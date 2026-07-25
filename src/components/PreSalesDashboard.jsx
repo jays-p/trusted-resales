@@ -29,6 +29,58 @@ const SALES_DATA = [
   { name: 'Harsh', leads: 49, interested: 26, deals: 6, target: 9, color: '#06b6d4' },
 ];
 
+// AI Quality parameters
+const QUALITY_PARAMS = [
+  { key: 'salesperson_introduction', label: 'Sales Intro', icon: '👋' },
+  { key: 'salesperson_politeness', label: 'Politeness', icon: '🤝' },
+  { key: 'salesperson_convincing_abilities', label: 'Convincing', icon: '💡' },
+  { key: 'salesperson_comprehension', label: 'Need Analysis', icon: '🎯' },
+  { key: 'call_objective', label: 'Obj. Handling', icon: '🛡️' },
+  { key: 'customer_sentiment', label: 'Sentiment', icon: '😊' },
+  { key: 'customer_eagerness', label: 'Eagerness', icon: '🔥' },
+];
+
+// AI scores per agent
+const AI_SCORES = {
+  'Jayesh': { salesperson_introduction: 4.2, salesperson_politeness: 4.8, salesperson_convincing_abilities: 3.5, salesperson_comprehension: 4.0, call_objective: 3.2, customer_sentiment: 4.5, customer_eagerness: 3.8 },
+  'Prachi': { salesperson_introduction: 4.6, salesperson_politeness: 4.9, salesperson_convincing_abilities: 4.2, salesperson_comprehension: 4.4, call_objective: 4.0, customer_sentiment: 4.7, customer_eagerness: 4.1 },
+  'Rohit': { salesperson_introduction: 3.8, salesperson_politeness: 4.1, salesperson_convincing_abilities: 3.0, salesperson_comprehension: 3.6, call_objective: 2.8, customer_sentiment: 3.9, customer_eagerness: 3.2 },
+  'Neha': { salesperson_introduction: 4.4, salesperson_politeness: 4.7, salesperson_convincing_abilities: 4.0, salesperson_comprehension: 4.3, call_objective: 3.8, customer_sentiment: 4.6, customer_eagerness: 4.0 },
+  'Amit': { salesperson_introduction: 4.0, salesperson_politeness: 4.5, salesperson_convincing_abilities: 3.8, salesperson_comprehension: 4.1, call_objective: 3.5, customer_sentiment: 4.3, customer_eagerness: 3.6 },
+  'Sneha': { salesperson_introduction: 4.7, salesperson_politeness: 5.0, salesperson_convincing_abilities: 4.3, salesperson_comprehension: 4.5, call_objective: 4.1, customer_sentiment: 4.8, customer_eagerness: 4.4 },
+  'Vikram': { salesperson_introduction: 3.5, salesperson_politeness: 3.9, salesperson_convincing_abilities: 2.8, salesperson_comprehension: 3.3, call_objective: 2.5, customer_sentiment: 3.6, customer_eagerness: 2.9 },
+  'Pooja': { salesperson_introduction: 4.3, salesperson_politeness: 4.6, salesperson_convincing_abilities: 3.9, salesperson_comprehension: 4.2, call_objective: 3.7, customer_sentiment: 4.4, customer_eagerness: 3.9 },
+  'Rahul': { salesperson_introduction: 3.6, salesperson_politeness: 4.0, salesperson_convincing_abilities: 3.1, salesperson_comprehension: 3.4, call_objective: 2.9, customer_sentiment: 3.7, customer_eagerness: 3.0 },
+  'Divya': { salesperson_introduction: 4.5, salesperson_politeness: 4.8, salesperson_convincing_abilities: 4.1, salesperson_comprehension: 4.3, call_objective: 3.9, customer_sentiment: 4.6, customer_eagerness: 4.2 },
+  'Suresh': { salesperson_introduction: 3.4, salesperson_politeness: 3.8, salesperson_convincing_abilities: 2.9, salesperson_comprehension: 3.2, call_objective: 2.6, customer_sentiment: 3.5, customer_eagerness: 2.8 },
+  'Kavita': { salesperson_introduction: 4.1, salesperson_politeness: 4.4, salesperson_convincing_abilities: 3.7, salesperson_comprehension: 3.9, call_objective: 3.4, customer_sentiment: 4.2, customer_eagerness: 3.5 },
+  'Deepak': { salesperson_introduction: 4.4, salesperson_politeness: 4.7, salesperson_convincing_abilities: 4.0, salesperson_comprehension: 4.2, call_objective: 3.8, customer_sentiment: 4.5, customer_eagerness: 4.0 },
+  'Anjali': { salesperson_introduction: 4.0, salesperson_politeness: 4.3, salesperson_convincing_abilities: 3.6, salesperson_comprehension: 3.8, call_objective: 3.3, customer_sentiment: 4.1, customer_eagerness: 3.4 },
+  'Manish': { salesperson_introduction: 3.7, salesperson_politeness: 4.0, salesperson_convincing_abilities: 3.2, salesperson_comprehension: 3.5, call_objective: 2.9, customer_sentiment: 3.8, customer_eagerness: 3.1 },
+  'Ritu': { salesperson_introduction: 4.2, salesperson_politeness: 4.5, salesperson_convincing_abilities: 3.8, salesperson_comprehension: 4.0, call_objective: 3.5, customer_sentiment: 4.3, customer_eagerness: 3.7 },
+  'Sanjay': { salesperson_introduction: 4.3, salesperson_politeness: 4.6, salesperson_convincing_abilities: 3.9, salesperson_comprehension: 4.1, call_objective: 3.6, customer_sentiment: 4.4, customer_eagerness: 3.8 },
+  'Megha': { salesperson_introduction: 3.5, salesperson_politeness: 3.9, salesperson_convincing_abilities: 2.9, salesperson_comprehension: 3.3, call_objective: 2.7, customer_sentiment: 3.6, customer_eagerness: 2.9 },
+  'Arjun': { salesperson_introduction: 4.1, salesperson_politeness: 4.4, salesperson_convincing_abilities: 3.7, salesperson_comprehension: 4.0, call_objective: 3.4, customer_sentiment: 4.2, customer_eagerness: 3.6 },
+  'Nisha': { salesperson_introduction: 3.6, salesperson_politeness: 4.0, salesperson_convincing_abilities: 3.1, salesperson_comprehension: 3.4, call_objective: 2.8, customer_sentiment: 3.7, customer_eagerness: 3.0 },
+  'Kunal': { salesperson_introduction: 4.3, salesperson_politeness: 4.6, salesperson_convincing_abilities: 3.9, salesperson_comprehension: 4.2, call_objective: 3.7, customer_sentiment: 4.4, customer_eagerness: 3.9 },
+  'Swati': { salesperson_introduction: 3.3, salesperson_politeness: 3.7, salesperson_convincing_abilities: 2.7, salesperson_comprehension: 3.1, call_objective: 2.4, customer_sentiment: 3.4, customer_eagerness: 2.7 },
+  'Vishal': { salesperson_introduction: 4.4, salesperson_politeness: 4.7, salesperson_convincing_abilities: 4.0, salesperson_comprehension: 4.3, call_objective: 3.8, customer_sentiment: 4.5, customer_eagerness: 4.0 },
+  'Tanvi': { salesperson_introduction: 3.7, salesperson_politeness: 4.1, salesperson_convincing_abilities: 3.2, salesperson_comprehension: 3.5, call_objective: 3.0, customer_sentiment: 3.8, customer_eagerness: 3.1 },
+  'Harsh': { salesperson_introduction: 4.2, salesperson_politeness: 4.5, salesperson_convincing_abilities: 3.8, salesperson_comprehension: 4.1, call_objective: 3.6, customer_sentiment: 4.3, customer_eagerness: 3.7 },
+};
+
+const getAgentAvgAI = (name) => {
+  const scores = AI_SCORES[name];
+  if (!scores) return 0;
+  return Object.values(scores).reduce((a, b) => a + b, 0) / QUALITY_PARAMS.length;
+};
+
+// Top 5 by AI score
+const TOP5_AI = [...SALES_DATA]
+  .filter(a => AI_SCORES[a.name])
+  .sort((a, b) => getAgentAvgAI(b.name) - getAgentAvgAI(a.name))
+  .slice(0, 5);
+
 const TOTAL = {
   leads: SALES_DATA.reduce((a, b) => a + b.leads, 0),
   interested: SALES_DATA.reduce((a, b) => a + b.interested, 0),
@@ -42,6 +94,7 @@ const PreSalesDashboard = ({ onBack }) => {
   const [hoveredBar, setHoveredBar] = React.useState(null);
   const [hoveredFunnel, setHoveredFunnel] = React.useState(null);
   const [hoveredTop, setHoveredTop] = React.useState(null);
+  const [hoveredSlice, setHoveredSlice] = React.useState(null);
 
   return (
     <div className="main-content no-scrollbar">
@@ -142,22 +195,61 @@ const PreSalesDashboard = ({ onBack }) => {
                     const pct = person.leads / total;
                     const dash = circ * pct;
                     const gap = circ - dash;
-                    const el = <circle key={i} cx="80" cy="80" r="62" fill="transparent" stroke={person.color} strokeWidth="24" strokeDasharray={`${dash} ${gap}`} strokeDashoffset={-offset} style={{ cursor: 'pointer', transition: 'opacity 0.2s' }} />;
+                    const isHovered = hoveredSlice === i;
+                    const el = (
+                      <circle
+                        key={i}
+                        cx="80"
+                        cy="80"
+                        r="62"
+                        fill="transparent"
+                        stroke={person.color}
+                        strokeWidth={isHovered ? 30 : 24}
+                        strokeDasharray={`${dash} ${gap}`}
+                        strokeDashoffset={-offset}
+                        style={{
+                          cursor: 'pointer',
+                          transition: 'stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease',
+                          opacity: hoveredSlice !== null && !isHovered ? 0.4 : 1,
+                          filter: isHovered ? `drop-shadow(0 0 6px ${person.color})` : 'none',
+                        }}
+                        onMouseEnter={() => setHoveredSlice(i)}
+                        onMouseLeave={() => setHoveredSlice(null)}
+                      />
+                    );
                     offset += dash;
                     return el;
                   });
                 })()}
               </svg>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ fontSize: '22px', fontWeight: 900, color: '#fff' }}>{TOTAL.leads}</div>
-                <div style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total</div>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                {hoveredSlice !== null ? (
+                  <>
+                    <div style={{ fontSize: '18px', fontWeight: 900, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].leads}</div>
+                    <div style={{ fontSize: '8px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{SALES_DATA[hoveredSlice].name}</div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: '22px', fontWeight: 900, color: '#fff' }}>{TOTAL.leads}</div>
+                    <div style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total</div>
+                  </>
+                )}
               </div>
+              {/* Tooltip */}
+              {hoveredSlice !== null && (
+                <div style={{ position: 'absolute', top: '-44px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', border: `1px solid ${SALES_DATA[hoveredSlice].color}40`, borderRadius: '8px', padding: '6px 12px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].name}</span>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}> — </span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{SALES_DATA[hoveredSlice].leads} leads</span>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}> ({((SALES_DATA[hoveredSlice].leads / TOTAL.leads) * 100).toFixed(1)}%)</span>
+                </div>
+              )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
               {SALES_DATA.slice(0, 8).map((person, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', transition: 'background 0.15s' }} title={`${person.name}: ${person.leads} leads (${((person.leads / TOTAL.leads) * 100).toFixed(1)}%)`}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', transition: 'background 0.15s', background: hoveredSlice === i ? 'rgba(129,140,248,0.08)' : 'transparent' }} onMouseEnter={() => setHoveredSlice(i)} onMouseLeave={() => setHoveredSlice(null)}>
                   <div style={{ width: '7px', height: '7px', borderRadius: '2px', background: person.color }} />
-                  <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 600 }}>{person.name} ({person.leads})</span>
+                  <span style={{ fontSize: '9px', color: hoveredSlice === i ? '#fff' : '#94a3b8', fontWeight: 600, transition: 'color 0.15s' }}>{person.name} ({person.leads})</span>
                 </div>
               ))}
             </div>
@@ -289,6 +381,107 @@ const PreSalesDashboard = ({ onBack }) => {
           </div>
         </div>
       </div>
+
+      {/* Top 5 AI Call Quality Performers */}
+      <div className="glass" style={{ marginBottom: '20px' }}>
+        <div className="glass-header">
+          <div className="glass-title">🏆 Top 5 Performers (By Avg AI Score)</div>
+          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>★ Score out of 5 (AI Evaluated)</div>
+        </div>
+        <div style={{ overflowX: 'auto' }} className="no-scrollbar">
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '850px' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>#</th>
+                <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Agent</th>
+                <th style={{ padding: '14px 10px', textAlign: 'center', fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Calls</th>
+                {QUALITY_PARAMS.map(p => (
+                  <th key={p.key} style={{ padding: '14px 6px', textAlign: 'center', fontSize: '9px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                    {p.icon} {p.label}
+                  </th>
+                ))}
+                <th style={{ padding: '14px 16px', textAlign: 'center', fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Avg</th>
+              </tr>
+            </thead>
+            <tbody>
+              {TOP5_AI.map((agent, i) => {
+                const scores = AI_SCORES[agent.name];
+                const avgScore = getAgentAvgAI(agent.name);
+                return (
+                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s' }}>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : i === 2 ? '#cd7f32' : '#64748b' }}>#{i + 1}</span>
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: agent.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: '#0d1117' }}>{agent.name[0]}</div>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{agent.name}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '14px 10px', textAlign: 'center', fontSize: '13px', fontWeight: 700, color: '#e2e8f0' }}>{agent.leads}</td>
+                    {QUALITY_PARAMS.map(param => {
+                      const score = scores[param.key];
+                      return (
+                        <td key={param.key} style={{ padding: '14px 6px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                            <StarRating score={score} size={11} />
+                            <span style={{ fontSize: '10px', fontWeight: 700, color: score >= 4.5 ? '#34d399' : score >= 3.5 ? '#e2e8f0' : '#f87171', fontFamily: "'JetBrains Mono', monospace" }}>{score.toFixed(1)}</span>
+                          </div>
+                        </td>
+                      );
+                    })}
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <span style={{
+                        padding: '5px 12px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: 800,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        background: avgScore >= 4.0 ? 'rgba(52,211,153,0.12)' : avgScore >= 3.5 ? 'rgba(251,191,36,0.12)' : 'rgba(248,113,113,0.12)',
+                        color: avgScore >= 4.0 ? '#34d399' : avgScore >= 3.5 ? '#fbbf24' : '#f87171',
+                      }}>
+                        {avgScore.toFixed(1)}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Star Rating component
+const StarRating = ({ score, maxStars = 5, size = 14 }) => {
+  const fullStars = Math.floor(score);
+  const partial = score - fullStars;
+  const emptyStars = maxStars - fullStars - (partial > 0 ? 1 : 0);
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '1px' }}>
+      {Array.from({ length: fullStars }).map((_, i) => (
+        <svg key={`full-${i}`} width={size} height={size} viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="0.5">
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+        </svg>
+      ))}
+      {partial > 0 && (
+        <svg key="partial" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="0.5">
+          <defs>
+            <clipPath id={`clip-${score}-${size}`}>
+              <rect x="0" y="0" width={partial * 24} height="24" />
+            </clipPath>
+          </defs>
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#fbbf24" clipPath={`url(#clip-${score}-${size})`} />
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="none" stroke="#fbbf24" strokeWidth="0.5" />
+        </svg>
+      )}
+      {Array.from({ length: emptyStars }).map((_, i) => (
+        <svg key={`empty-${i}`} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1">
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+        </svg>
+      ))}
     </div>
   );
 };
