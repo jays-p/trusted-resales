@@ -29,44 +29,48 @@ const SALES_DATA = [
   { name: 'Harsh', leads: 49, interested: 26, deals: 6, target: 9, color: '#06b6d4' },
 ];
 
-// AI Quality parameters
+// AI quality parameters from call recordings
 const QUALITY_PARAMS = [
-  { key: 'salesperson_introduction', label: 'Sales Intro', icon: '👋' },
-  { key: 'salesperson_politeness', label: 'Politeness', icon: '🤝' },
-  { key: 'salesperson_convincing_abilities', label: 'Convincing', icon: '💡' },
-  { key: 'salesperson_comprehension', label: 'Need Analysis', icon: '🎯' },
-  { key: 'call_objective', label: 'Obj. Handling', icon: '🛡️' },
-  { key: 'customer_sentiment', label: 'Sentiment', icon: '😊' },
-  { key: 'customer_eagerness', label: 'Eagerness', icon: '🔥' },
+  { key: 'call_objective', label: 'Call Objective', icon: '🎯' },
+  { key: 'comprehension', label: 'Comprehension', icon: '🧠' },
+  { key: 'convincing_abilities', label: 'Convincing Abilities', icon: '💡' },
+  { key: 'introduction', label: 'Introduction', icon: '👋' },
+  { key: 'politeness', label: 'Politeness', icon: '🤝' },
+  { key: 'project_brief_with_location', label: 'Project Brief With Location', icon: '📍' },
+  { key: 'probing', label: 'Probing', icon: '🔍' },
+  { key: 'project_highlights', label: 'Project Highlights', icon: '⭐' },
+  { key: 'investment_or_own_use_pitch', label: 'Investment Or Own Use Pitch', icon: '💰' },
+  { key: 'location_advantage', label: 'Location Advantage', icon: '📌' },
+  { key: 'site_visit_invite_and_urgency', label: 'Site Visit Invite And Urgency', icon: '🏠' },
 ];
 
 // AI scores per agent
 const AI_SCORES = {
-  'Jayesh': { salesperson_introduction: 4.2, salesperson_politeness: 4.8, salesperson_convincing_abilities: 3.5, salesperson_comprehension: 4.0, call_objective: 3.2, customer_sentiment: 4.5, customer_eagerness: 3.8 },
-  'Prachi': { salesperson_introduction: 4.6, salesperson_politeness: 4.9, salesperson_convincing_abilities: 4.2, salesperson_comprehension: 4.4, call_objective: 4.0, customer_sentiment: 4.7, customer_eagerness: 4.1 },
-  'Rohit': { salesperson_introduction: 3.8, salesperson_politeness: 4.1, salesperson_convincing_abilities: 3.0, salesperson_comprehension: 3.6, call_objective: 2.8, customer_sentiment: 3.9, customer_eagerness: 3.2 },
-  'Neha': { salesperson_introduction: 4.4, salesperson_politeness: 4.7, salesperson_convincing_abilities: 4.0, salesperson_comprehension: 4.3, call_objective: 3.8, customer_sentiment: 4.6, customer_eagerness: 4.0 },
-  'Amit': { salesperson_introduction: 4.0, salesperson_politeness: 4.5, salesperson_convincing_abilities: 3.8, salesperson_comprehension: 4.1, call_objective: 3.5, customer_sentiment: 4.3, customer_eagerness: 3.6 },
-  'Sneha': { salesperson_introduction: 4.7, salesperson_politeness: 5.0, salesperson_convincing_abilities: 4.3, salesperson_comprehension: 4.5, call_objective: 4.1, customer_sentiment: 4.8, customer_eagerness: 4.4 },
-  'Vikram': { salesperson_introduction: 3.5, salesperson_politeness: 3.9, salesperson_convincing_abilities: 2.8, salesperson_comprehension: 3.3, call_objective: 2.5, customer_sentiment: 3.6, customer_eagerness: 2.9 },
-  'Pooja': { salesperson_introduction: 4.3, salesperson_politeness: 4.6, salesperson_convincing_abilities: 3.9, salesperson_comprehension: 4.2, call_objective: 3.7, customer_sentiment: 4.4, customer_eagerness: 3.9 },
-  'Rahul': { salesperson_introduction: 3.6, salesperson_politeness: 4.0, salesperson_convincing_abilities: 3.1, salesperson_comprehension: 3.4, call_objective: 2.9, customer_sentiment: 3.7, customer_eagerness: 3.0 },
-  'Divya': { salesperson_introduction: 4.5, salesperson_politeness: 4.8, salesperson_convincing_abilities: 4.1, salesperson_comprehension: 4.3, call_objective: 3.9, customer_sentiment: 4.6, customer_eagerness: 4.2 },
-  'Suresh': { salesperson_introduction: 3.4, salesperson_politeness: 3.8, salesperson_convincing_abilities: 2.9, salesperson_comprehension: 3.2, call_objective: 2.6, customer_sentiment: 3.5, customer_eagerness: 2.8 },
-  'Kavita': { salesperson_introduction: 4.1, salesperson_politeness: 4.4, salesperson_convincing_abilities: 3.7, salesperson_comprehension: 3.9, call_objective: 3.4, customer_sentiment: 4.2, customer_eagerness: 3.5 },
-  'Deepak': { salesperson_introduction: 4.4, salesperson_politeness: 4.7, salesperson_convincing_abilities: 4.0, salesperson_comprehension: 4.2, call_objective: 3.8, customer_sentiment: 4.5, customer_eagerness: 4.0 },
-  'Anjali': { salesperson_introduction: 4.0, salesperson_politeness: 4.3, salesperson_convincing_abilities: 3.6, salesperson_comprehension: 3.8, call_objective: 3.3, customer_sentiment: 4.1, customer_eagerness: 3.4 },
-  'Manish': { salesperson_introduction: 3.7, salesperson_politeness: 4.0, salesperson_convincing_abilities: 3.2, salesperson_comprehension: 3.5, call_objective: 2.9, customer_sentiment: 3.8, customer_eagerness: 3.1 },
-  'Ritu': { salesperson_introduction: 4.2, salesperson_politeness: 4.5, salesperson_convincing_abilities: 3.8, salesperson_comprehension: 4.0, call_objective: 3.5, customer_sentiment: 4.3, customer_eagerness: 3.7 },
-  'Sanjay': { salesperson_introduction: 4.3, salesperson_politeness: 4.6, salesperson_convincing_abilities: 3.9, salesperson_comprehension: 4.1, call_objective: 3.6, customer_sentiment: 4.4, customer_eagerness: 3.8 },
-  'Megha': { salesperson_introduction: 3.5, salesperson_politeness: 3.9, salesperson_convincing_abilities: 2.9, salesperson_comprehension: 3.3, call_objective: 2.7, customer_sentiment: 3.6, customer_eagerness: 2.9 },
-  'Arjun': { salesperson_introduction: 4.1, salesperson_politeness: 4.4, salesperson_convincing_abilities: 3.7, salesperson_comprehension: 4.0, call_objective: 3.4, customer_sentiment: 4.2, customer_eagerness: 3.6 },
-  'Nisha': { salesperson_introduction: 3.6, salesperson_politeness: 4.0, salesperson_convincing_abilities: 3.1, salesperson_comprehension: 3.4, call_objective: 2.8, customer_sentiment: 3.7, customer_eagerness: 3.0 },
-  'Kunal': { salesperson_introduction: 4.3, salesperson_politeness: 4.6, salesperson_convincing_abilities: 3.9, salesperson_comprehension: 4.2, call_objective: 3.7, customer_sentiment: 4.4, customer_eagerness: 3.9 },
-  'Swati': { salesperson_introduction: 3.3, salesperson_politeness: 3.7, salesperson_convincing_abilities: 2.7, salesperson_comprehension: 3.1, call_objective: 2.4, customer_sentiment: 3.4, customer_eagerness: 2.7 },
-  'Vishal': { salesperson_introduction: 4.4, salesperson_politeness: 4.7, salesperson_convincing_abilities: 4.0, salesperson_comprehension: 4.3, call_objective: 3.8, customer_sentiment: 4.5, customer_eagerness: 4.0 },
-  'Tanvi': { salesperson_introduction: 3.7, salesperson_politeness: 4.1, salesperson_convincing_abilities: 3.2, salesperson_comprehension: 3.5, call_objective: 3.0, customer_sentiment: 3.8, customer_eagerness: 3.1 },
-  'Harsh': { salesperson_introduction: 4.2, salesperson_politeness: 4.5, salesperson_convincing_abilities: 3.8, salesperson_comprehension: 4.1, call_objective: 3.6, customer_sentiment: 4.3, customer_eagerness: 3.7 },
+  'Jayesh': { call_objective: 3.2, comprehension: 4.0, convincing_abilities: 3.5, introduction: 4.2, politeness: 4.8, project_brief_with_location: 3.9, probing: 3.6, project_highlights: 4.1, investment_or_own_use_pitch: 3.4, location_advantage: 4.0, site_visit_invite_and_urgency: 3.7 },
+  'Prachi': { call_objective: 4.0, comprehension: 4.4, convincing_abilities: 4.2, introduction: 4.6, politeness: 4.9, project_brief_with_location: 4.3, probing: 4.1, project_highlights: 4.5, investment_or_own_use_pitch: 3.9, location_advantage: 4.4, site_visit_invite_and_urgency: 4.2 },
+  'Rohit': { call_objective: 2.8, comprehension: 3.6, convincing_abilities: 3.0, introduction: 3.8, politeness: 4.1, project_brief_with_location: 3.3, probing: 3.0, project_highlights: 3.5, investment_or_own_use_pitch: 2.9, location_advantage: 3.4, site_visit_invite_and_urgency: 3.1 },
+  'Neha': { call_objective: 3.8, comprehension: 4.3, convincing_abilities: 4.0, introduction: 4.4, politeness: 4.7, project_brief_with_location: 4.1, probing: 3.9, project_highlights: 4.3, investment_or_own_use_pitch: 3.7, location_advantage: 4.2, site_visit_invite_and_urgency: 4.0 },
+  'Amit': { call_objective: 3.5, comprehension: 4.1, convincing_abilities: 3.8, introduction: 4.0, politeness: 4.5, project_brief_with_location: 3.7, probing: 3.5, project_highlights: 4.0, investment_or_own_use_pitch: 3.3, location_advantage: 3.8, site_visit_invite_and_urgency: 3.6 },
+  'Sneha': { call_objective: 4.1, comprehension: 4.5, convincing_abilities: 4.3, introduction: 4.7, politeness: 5.0, project_brief_with_location: 4.4, probing: 4.2, project_highlights: 4.6, investment_or_own_use_pitch: 4.0, location_advantage: 4.5, site_visit_invite_and_urgency: 4.3 },
+  'Vikram': { call_objective: 2.5, comprehension: 3.3, convincing_abilities: 2.8, introduction: 3.5, politeness: 3.9, project_brief_with_location: 3.0, probing: 2.7, project_highlights: 3.2, investment_or_own_use_pitch: 2.6, location_advantage: 3.1, site_visit_invite_and_urgency: 2.8 },
+  'Pooja': { call_objective: 3.7, comprehension: 4.2, convincing_abilities: 3.9, introduction: 4.3, politeness: 4.6, project_brief_with_location: 4.0, probing: 3.8, project_highlights: 4.2, investment_or_own_use_pitch: 3.6, location_advantage: 4.1, site_visit_invite_and_urgency: 3.9 },
+  'Rahul': { call_objective: 2.9, comprehension: 3.4, convincing_abilities: 3.1, introduction: 3.6, politeness: 4.0, project_brief_with_location: 3.2, probing: 2.9, project_highlights: 3.3, investment_or_own_use_pitch: 2.8, location_advantage: 3.3, site_visit_invite_and_urgency: 3.0 },
+  'Divya': { call_objective: 3.9, comprehension: 4.3, convincing_abilities: 4.1, introduction: 4.5, politeness: 4.8, project_brief_with_location: 4.2, probing: 4.0, project_highlights: 4.4, investment_or_own_use_pitch: 3.8, location_advantage: 4.3, site_visit_invite_and_urgency: 4.1 },
+  'Suresh': { call_objective: 2.6, comprehension: 3.2, convincing_abilities: 2.9, introduction: 3.4, politeness: 3.8, project_brief_with_location: 2.9, probing: 2.6, project_highlights: 3.1, investment_or_own_use_pitch: 2.5, location_advantage: 3.0, site_visit_invite_and_urgency: 2.7 },
+  'Kavita': { call_objective: 3.4, comprehension: 3.9, convincing_abilities: 3.7, introduction: 4.1, politeness: 4.4, project_brief_with_location: 3.6, probing: 3.4, project_highlights: 3.9, investment_or_own_use_pitch: 3.2, location_advantage: 3.7, site_visit_invite_and_urgency: 3.5 },
+  'Deepak': { call_objective: 3.8, comprehension: 4.2, convincing_abilities: 4.0, introduction: 4.4, politeness: 4.7, project_brief_with_location: 4.1, probing: 3.9, project_highlights: 4.3, investment_or_own_use_pitch: 3.7, location_advantage: 4.2, site_visit_invite_and_urgency: 4.0 },
+  'Anjali': { call_objective: 3.3, comprehension: 3.8, convincing_abilities: 3.6, introduction: 4.0, politeness: 4.3, project_brief_with_location: 3.5, probing: 3.3, project_highlights: 3.8, investment_or_own_use_pitch: 3.1, location_advantage: 3.6, site_visit_invite_and_urgency: 3.4 },
+  'Manish': { call_objective: 2.9, comprehension: 3.5, convincing_abilities: 3.2, introduction: 3.7, politeness: 4.0, project_brief_with_location: 3.2, probing: 3.0, project_highlights: 3.4, investment_or_own_use_pitch: 2.8, location_advantage: 3.3, site_visit_invite_and_urgency: 3.1 },
+  'Ritu': { call_objective: 3.5, comprehension: 4.0, convincing_abilities: 3.8, introduction: 4.2, politeness: 4.5, project_brief_with_location: 3.7, probing: 3.5, project_highlights: 4.0, investment_or_own_use_pitch: 3.3, location_advantage: 3.8, site_visit_invite_and_urgency: 3.6 },
+  'Sanjay': { call_objective: 3.6, comprehension: 4.1, convincing_abilities: 3.9, introduction: 4.3, politeness: 4.6, project_brief_with_location: 3.8, probing: 3.6, project_highlights: 4.1, investment_or_own_use_pitch: 3.4, location_advantage: 3.9, site_visit_invite_and_urgency: 3.7 },
+  'Megha': { call_objective: 2.7, comprehension: 3.3, convincing_abilities: 2.9, introduction: 3.5, politeness: 3.9, project_brief_with_location: 3.0, probing: 2.8, project_highlights: 3.2, investment_or_own_use_pitch: 2.6, location_advantage: 3.1, site_visit_invite_and_urgency: 2.9 },
+  'Arjun': { call_objective: 3.4, comprehension: 4.0, convincing_abilities: 3.7, introduction: 4.1, politeness: 4.4, project_brief_with_location: 3.6, probing: 3.4, project_highlights: 3.9, investment_or_own_use_pitch: 3.2, location_advantage: 3.7, site_visit_invite_and_urgency: 3.5 },
+  'Nisha': { call_objective: 2.8, comprehension: 3.4, convincing_abilities: 3.1, introduction: 3.6, politeness: 4.0, project_brief_with_location: 3.1, probing: 2.9, project_highlights: 3.3, investment_or_own_use_pitch: 2.7, location_advantage: 3.2, site_visit_invite_and_urgency: 3.0 },
+  'Kunal': { call_objective: 3.7, comprehension: 4.2, convincing_abilities: 3.9, introduction: 4.3, politeness: 4.6, project_brief_with_location: 3.9, probing: 3.7, project_highlights: 4.2, investment_or_own_use_pitch: 3.5, location_advantage: 4.0, site_visit_invite_and_urgency: 3.8 },
+  'Swati': { call_objective: 2.4, comprehension: 3.1, convincing_abilities: 2.7, introduction: 3.3, politeness: 3.7, project_brief_with_location: 2.8, probing: 2.5, project_highlights: 3.0, investment_or_own_use_pitch: 2.4, location_advantage: 2.9, site_visit_invite_and_urgency: 2.6 },
+  'Vishal': { call_objective: 3.8, comprehension: 4.3, convincing_abilities: 4.0, introduction: 4.4, politeness: 4.7, project_brief_with_location: 4.1, probing: 3.9, project_highlights: 4.3, investment_or_own_use_pitch: 3.7, location_advantage: 4.2, site_visit_invite_and_urgency: 4.0 },
+  'Tanvi': { call_objective: 3.0, comprehension: 3.5, convincing_abilities: 3.2, introduction: 3.7, politeness: 4.1, project_brief_with_location: 3.3, probing: 3.0, project_highlights: 3.4, investment_or_own_use_pitch: 2.9, location_advantage: 3.4, site_visit_invite_and_urgency: 3.1 },
+  'Harsh': { call_objective: 3.6, comprehension: 4.1, convincing_abilities: 3.8, introduction: 4.2, politeness: 4.5, project_brief_with_location: 3.8, probing: 3.6, project_highlights: 4.0, investment_or_own_use_pitch: 3.4, location_advantage: 3.9, site_visit_invite_and_urgency: 3.7 },
 };
 
 const getAgentAvgAI = (name) => {
@@ -75,11 +79,11 @@ const getAgentAvgAI = (name) => {
   return Object.values(scores).reduce((a, b) => a + b, 0) / QUALITY_PARAMS.length;
 };
 
-// Top 5 by AI score
+// Top 3 by AI score
 const TOP5_AI = [...SALES_DATA]
   .filter(a => AI_SCORES[a.name])
   .sort((a, b) => getAgentAvgAI(b.name) - getAgentAvgAI(a.name))
-  .slice(0, 5);
+  .slice(0, 3);
 
 const TOTAL = {
   leads: SALES_DATA.reduce((a, b) => a + b.leads, 0),
@@ -95,6 +99,19 @@ const PreSalesDashboard = ({ onBack }) => {
   const [hoveredFunnel, setHoveredFunnel] = React.useState(null);
   const [hoveredTop, setHoveredTop] = React.useState(null);
   const [hoveredSlice, setHoveredSlice] = React.useState(null);
+  const [execSearch, setExecSearch] = React.useState('');
+  const [aiSearch, setAiSearch] = React.useState('');
+
+  const handleExport = (headers, rows, filename) => {
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="main-content no-scrollbar">
@@ -111,149 +128,79 @@ const PreSalesDashboard = ({ onBack }) => {
 
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px', marginBottom: '24px' }}>
-        <KpiCard label="Total Leads" value={TOTAL.leads} color="#818cf8" />
-        <KpiCard label="Site Visit Interested" value={TOTAL.interested} color="#fbbf24" />
-        <KpiCard label="Deals Closed" value={TOTAL.deals} color="#34d399" />
-        <KpiCard label="Overall Conversion" value={`${((TOTAL.deals / TOTAL.leads) * 100).toFixed(1)}%`} color="#a78bfa" />
-        <KpiCard label="Team Size" value={SALES_DATA.length} color="#06b6d4" />
+        <KpiCard label="Calls" value="2,189" color="#ffffff" />
+        <KpiCard label="Goals Met" value={455} color="#34d399" />
+        <KpiCard label="Hot" value={44} color="#f87171" />
+        <KpiCard label="Warm" value={411} color="#fbbf24" />
+        <KpiCard label="Cold" value={889} color="#60a5fa" />
       </div>
 
-      {/* Row 1: Funnel + Top Performers + Lead Distribution */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-        <div className="glass">
-          <div className="glass-header">
-            <div className="glass-title">Sales Funnel - Team Overview</div>
-          </div>
-          <div style={{ padding: '20px' }}>
-            {[
-              { label: 'Total Leads Generated', value: TOTAL.leads, pct: 100, color: '#818cf8' },
-              { label: 'Site Visit Interested', value: TOTAL.interested, pct: (TOTAL.interested / TOTAL.leads * 100), color: '#fbbf24' },
-              { label: 'Deals Closed', value: TOTAL.deals, pct: (TOTAL.deals / TOTAL.leads * 100), color: '#34d399' },
-            ].map((step, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 0', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.04)' : 'none', position: 'relative', cursor: 'pointer' }} onMouseEnter={() => setHoveredFunnel(i)} onMouseLeave={() => setHoveredFunnel(null)}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '20px', fontWeight: 800, color: step.color, width: '50px' }}>{step.value}</div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#94a3b8', width: '160px' }}>{step.label}</div>
-                <div style={{ flex: 1, height: '10px', borderRadius: '5px', background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
-                  <div style={{ width: `${step.pct}%`, height: '100%', borderRadius: '5px', background: step.color }} />
-                </div>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 700, color: step.color, width: '50px', textAlign: 'right' }}>{step.pct.toFixed(1)}%</div>
-                {hoveredFunnel === i && (
-                  <div style={{ position: 'absolute', top: '-36px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', border: '1px solid rgba(129,140,248,0.3)', borderRadius: '8px', padding: '6px 12px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: step.color }}>{step.label}: {step.value} ({step.pct.toFixed(1)}%)</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+      {/* 🏆 Top 5 Performers */}
+      <div className="glass" style={{ marginBottom: '20px' }}>
+        <div className="glass-header">
+          <div className="glass-title">🏆 Top 3 Performers</div>
+          <SectionTimeFilter />
         </div>
-
-        {/* Top 5 Performers */}
-        <div className="glass">
-          <div className="glass-header">
-            <div className="glass-title">Top 5 Performers (By Deals)</div>
-          </div>
-          <div style={{ padding: '16px' }}>
-            {TOP5.map((person, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.04)' : 'none', position: 'relative', cursor: 'pointer', background: hoveredTop === i ? 'rgba(129,140,248,0.05)' : 'transparent', borderRadius: '8px', transition: 'background 0.15s' }} onMouseEnter={() => setHoveredTop(i)} onMouseLeave={() => setHoveredTop(null)}>
-                <div style={{ width: '24px', fontSize: '12px', fontWeight: 800, color: i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : i === 2 ? '#cd7f32' : '#64748b' }}>#{i + 1}</div>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: '#0d1117' }}>{person.name[0]}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{person.name}</div>
-                  <div style={{ fontSize: '10px', color: '#64748b' }}>{person.leads} leads → {person.interested} interested</div>
+        <TableToolbar
+          searchValue={aiSearch}
+          onSearch={setAiSearch}
+          placeholder="Search agent..."
+          onExport={() => handleExport(
+            ['#', 'Agent', 'Calls', ...QUALITY_PARAMS.map(p => p.label), 'Avg'],
+            TOP5_AI.map((a, i) => [i+1, a.name, a.leads, ...QUALITY_PARAMS.map(p => AI_SCORES[a.name][p.key].toFixed(1)), getAgentAvgAI(a.name).toFixed(1)]),
+            'top5-ai-quality'
+          )}
+        />
+        <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
+          {TOP5_AI.filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase())).map((agent, i) => {
+            const scores = AI_SCORES[agent.name];
+            const avgScore = getAgentAvgAI(agent.name);
+            return (
+              <div key={i} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '16px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', position: 'relative' }}>
+                {/* Rank Badge */}
+                <div style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: 800, color: i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : i === 2 ? '#cd7f32' : '#64748b' }}>#{i + 1}</div>
+                {/* Avatar */}
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: `linear-gradient(135deg, ${agent.color}40, ${agent.color}20)`, border: `2px solid ${agent.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 800, color: agent.color }}>
+                  {agent.name[0]}
                 </div>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: '#34d399' }}>{person.deals}</div>
-                <div style={{ fontSize: '9px', color: '#64748b', width: '30px' }}>deals</div>
-                {hoveredTop === i && (
-                  <div style={{ position: 'absolute', top: '-40px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', border: '1px solid rgba(129,140,248,0.3)', borderRadius: '8px', padding: '8px 14px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{person.name} — </span>
-                    <span style={{ fontSize: '11px', color: '#818cf8' }}>{person.leads} leads</span>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}> → </span>
-                    <span style={{ fontSize: '11px', color: '#fbbf24' }}>{person.interested} interested</span>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}> → </span>
-                    <span style={{ fontSize: '11px', color: '#34d399' }}>{person.deals} deals ({((person.deals/person.leads)*100).toFixed(1)}%)</span>
-                  </div>
-                )}
+                {/* Name */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{agent.name}</div>
+                  <div style={{ fontSize: '9px', color: '#64748b', marginTop: '1px' }}>{agent.leads} calls</div>
+                </div>
+                {/* Avg Score */}
+                <div style={{ fontSize: '20px', fontWeight: 900, color: avgScore >= 4.0 ? '#34d399' : avgScore >= 3.5 ? '#fbbf24' : '#f87171', fontFamily: "'JetBrains Mono', monospace" }}>{avgScore.toFixed(1)}</div>
+                {/* Star Rating */}
+                <StarRating score={avgScore} size={12} />
+                {/* Scores horizontal table */}
+                <div style={{ width: '100%', marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px', overflowX: 'auto' }} className="no-scrollbar">
+                  <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                    <thead>
+                      <tr>
+                        {QUALITY_PARAMS.map(param => (
+                          <th key={param.key} style={{ padding: '4px 2px', textAlign: 'center', fontSize: '6px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', lineHeight: '1.2', verticalAlign: 'bottom' }}>
+                            {param.label}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        {QUALITY_PARAMS.map(param => {
+                          const score = scores[param.key];
+                          return (
+                            <td key={param.key} style={{ padding: '4px 2px', textAlign: 'center', fontSize: '9px', fontWeight: 700, color: score >= 4.5 ? '#34d399' : score >= 3.5 ? '#e2e8f0' : '#f87171', fontFamily: "'JetBrains Mono', monospace" }}>
+                              {score.toFixed(1)}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Lead Distribution */}
-        <div className="glass">
-          <div className="glass-header">
-            <div className="glass-title">Lead Distribution by Person</div>
-          </div>
-          <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '14px' }}>
-            <div style={{ position: 'relative', width: '160px', height: '160px', flexShrink: 0 }}>
-              <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="80" cy="80" r="62" fill="transparent" stroke="rgba(255,255,255,0.04)" strokeWidth="24" />
-                {(() => {
-                  const total = TOTAL.leads;
-                  let offset = 0;
-                  const circ = 2 * Math.PI * 62;
-                  return SALES_DATA.slice(0, 8).map((person, i) => {
-                    const pct = person.leads / total;
-                    const dash = circ * pct;
-                    const gap = circ - dash;
-                    const isHovered = hoveredSlice === i;
-                    const el = (
-                      <circle
-                        key={i}
-                        cx="80"
-                        cy="80"
-                        r="62"
-                        fill="transparent"
-                        stroke={person.color}
-                        strokeWidth={isHovered ? 30 : 24}
-                        strokeDasharray={`${dash} ${gap}`}
-                        strokeDashoffset={-offset}
-                        style={{
-                          cursor: 'pointer',
-                          transition: 'stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease',
-                          opacity: hoveredSlice !== null && !isHovered ? 0.4 : 1,
-                          filter: isHovered ? `drop-shadow(0 0 6px ${person.color})` : 'none',
-                        }}
-                        onMouseEnter={() => setHoveredSlice(i)}
-                        onMouseLeave={() => setHoveredSlice(null)}
-                      />
-                    );
-                    offset += dash;
-                    return el;
-                  });
-                })()}
-              </svg>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                {hoveredSlice !== null ? (
-                  <>
-                    <div style={{ fontSize: '18px', fontWeight: 900, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].leads}</div>
-                    <div style={{ fontSize: '8px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{SALES_DATA[hoveredSlice].name}</div>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ fontSize: '22px', fontWeight: 900, color: '#fff' }}>{TOTAL.leads}</div>
-                    <div style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total</div>
-                  </>
-                )}
-              </div>
-              {/* Tooltip */}
-              {hoveredSlice !== null && (
-                <div style={{ position: 'absolute', top: '-44px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', border: `1px solid ${SALES_DATA[hoveredSlice].color}40`, borderRadius: '8px', padding: '6px 12px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].name}</span>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}> — </span>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{SALES_DATA[hoveredSlice].leads} leads</span>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}> ({((SALES_DATA[hoveredSlice].leads / TOTAL.leads) * 100).toFixed(1)}%)</span>
-                </div>
-              )}
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
-              {SALES_DATA.slice(0, 8).map((person, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', transition: 'background 0.15s', background: hoveredSlice === i ? 'rgba(129,140,248,0.08)' : 'transparent' }} onMouseEnter={() => setHoveredSlice(i)} onMouseLeave={() => setHoveredSlice(null)}>
-                  <div style={{ width: '7px', height: '7px', borderRadius: '2px', background: person.color }} />
-                  <span style={{ fontSize: '9px', color: hoveredSlice === i ? '#fff' : '#94a3b8', fontWeight: 600, transition: 'color 0.15s' }}>{person.name} ({person.leads})</span>
-                </div>
-              ))}
-            </div>
-          </div>
+            );
+          })}
         </div>
       </div>
 
@@ -261,8 +208,18 @@ const PreSalesDashboard = ({ onBack }) => {
       <div className="glass" style={{ marginBottom: '20px' }}>
         <div className="glass-header">
           <div className="glass-title">Executive Performance</div>
-          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>{SALES_DATA.length} Members</div>
+          <SectionTimeFilter />
         </div>
+        <TableToolbar
+          searchValue={execSearch}
+          onSearch={setExecSearch}
+          placeholder="Search executive..."
+          onExport={() => handleExport(
+            ['#', 'Executive', 'Calls', 'Avg Score', 'Interested', 'Site Visit', 'Follow-up', 'Flagged', 'Performance'],
+            SALES_DATA.map((p, i) => [i+1, p.name, p.leads, (p.deals/p.leads*10).toFixed(1), p.interested, p.deals, Math.floor(p.leads*0.2), Math.max(0, Math.floor(p.leads*0.05)), Math.min((p.deals/p.target)*100, 100).toFixed(0)+'%']),
+            'executive-performance'
+          )}
+        />
         <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }} className="no-scrollbar">
           <table className="lb-table" style={{ minWidth: '700px' }}>
             <thead style={{ position: 'sticky', top: 0, background: '#1a2030', zIndex: 5 }}>
@@ -271,15 +228,15 @@ const PreSalesDashboard = ({ onBack }) => {
                 <th>Executive</th>
                 <th>Calls</th>
                 <th>Avg Score</th>
-                <th>Interested</th>
+                <th>Interested (EOP)</th>
                 <th>Site Visit</th>
                 <th>Follow-up</th>
-                <th>Flagged</th>
+                <th>Cold</th>
                 <th>Performance</th>
               </tr>
             </thead>
             <tbody>
-              {SALES_DATA.map((person, i) => {
+              {SALES_DATA.filter(p => p.name.toLowerCase().includes(execSearch.toLowerCase())).map((person, i) => {
                 const avgScore = (person.deals / person.leads * 10).toFixed(1);
                 const followUp = Math.floor(person.leads * 0.2);
                 const flagged = Math.max(0, Math.floor(person.leads * 0.05));
@@ -327,10 +284,7 @@ const PreSalesDashboard = ({ onBack }) => {
       <div className="glass" style={{ marginBottom: '20px' }}>
         <div className="glass-header">
           <div className="glass-title">Target vs Achievement</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '10px', height: '4px', borderRadius: '2px', background: '#34d399' }} /><span style={{ fontSize: '9px', color: '#64748b', fontWeight: 600 }}>Achieved</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '10px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.1)' }} /><span style={{ fontSize: '9px', color: '#64748b', fontWeight: 600 }}>Target</span></div>
-          </div>
+          <SectionTimeFilter />
         </div>
         <div style={{ padding: '16px 20px', maxHeight: '400px', overflowY: 'auto' }} className="no-scrollbar">
           {SALES_DATA.map((person, i) => {
@@ -383,73 +337,155 @@ const PreSalesDashboard = ({ onBack }) => {
       </div>
 
       {/* Top 5 AI Call Quality Performers */}
-      <div className="glass" style={{ marginBottom: '20px' }}>
+
+      {/* Lead Distribution by Person - at the end */}
+      <div className="glass" style={{ marginBottom: '20px', maxWidth: '400px' }}>
         <div className="glass-header">
-          <div className="glass-title">🏆 Top 5 Performers (By Avg AI Score)</div>
-          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>★ Score out of 5 (AI Evaluated)</div>
+          <div className="glass-title">Lead Distribution by Person</div>
+          <SectionTimeFilter />
         </div>
-        <div style={{ overflowX: 'auto' }} className="no-scrollbar">
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '850px' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>#</th>
-                <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Agent</th>
-                <th style={{ padding: '14px 10px', textAlign: 'center', fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Calls</th>
-                {QUALITY_PARAMS.map(p => (
-                  <th key={p.key} style={{ padding: '14px 6px', textAlign: 'center', fontSize: '9px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                    {p.icon} {p.label}
-                  </th>
-                ))}
-                <th style={{ padding: '14px 16px', textAlign: 'center', fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Avg</th>
-              </tr>
-            </thead>
-            <tbody>
-              {TOP5_AI.map((agent, i) => {
-                const scores = AI_SCORES[agent.name];
-                const avgScore = getAgentAvgAI(agent.name);
-                return (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s' }}>
-                    <td style={{ padding: '14px 16px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 800, color: i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : i === 2 ? '#cd7f32' : '#64748b' }}>#{i + 1}</span>
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: agent.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: '#0d1117' }}>{agent.name[0]}</div>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{agent.name}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '14px 10px', textAlign: 'center', fontSize: '13px', fontWeight: 700, color: '#e2e8f0' }}>{agent.leads}</td>
-                    {QUALITY_PARAMS.map(param => {
-                      const score = scores[param.key];
-                      return (
-                        <td key={param.key} style={{ padding: '14px 6px', textAlign: 'center' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                            <StarRating score={score} size={11} />
-                            <span style={{ fontSize: '10px', fontWeight: 700, color: score >= 4.5 ? '#34d399' : score >= 3.5 ? '#e2e8f0' : '#f87171', fontFamily: "'JetBrains Mono', monospace" }}>{score.toFixed(1)}</span>
-                          </div>
-                        </td>
-                      );
-                    })}
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                      <span style={{
-                        padding: '5px 12px',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        fontWeight: 800,
-                        fontFamily: "'JetBrains Mono', monospace",
-                        background: avgScore >= 4.0 ? 'rgba(52,211,153,0.12)' : avgScore >= 3.5 ? 'rgba(251,191,36,0.12)' : 'rgba(248,113,113,0.12)',
-                        color: avgScore >= 4.0 ? '#34d399' : avgScore >= 3.5 ? '#fbbf24' : '#f87171',
-                      }}>
-                        {avgScore.toFixed(1)}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '14px' }}>
+          <div style={{ position: 'relative', width: '160px', height: '160px', flexShrink: 0 }}>
+            <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
+              <circle cx="80" cy="80" r="62" fill="transparent" stroke="rgba(255,255,255,0.04)" strokeWidth="24" />
+              {(() => {
+                const total = TOTAL.leads;
+                let offset = 0;
+                const circ = 2 * Math.PI * 62;
+                return SALES_DATA.slice(0, 8).map((person, i) => {
+                  const pct = person.leads / total;
+                  const dash = circ * pct;
+                  const gap = circ - dash;
+                  const isHovered = hoveredSlice === i;
+                  const el = (
+                    <circle
+                      key={i}
+                      cx="80"
+                      cy="80"
+                      r="62"
+                      fill="transparent"
+                      stroke={person.color}
+                      strokeWidth={isHovered ? 30 : 24}
+                      strokeDasharray={`${dash} ${gap}`}
+                      strokeDashoffset={-offset}
+                      style={{
+                        cursor: 'pointer',
+                        transition: 'stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease',
+                        opacity: hoveredSlice !== null && !isHovered ? 0.4 : 1,
+                        filter: isHovered ? `drop-shadow(0 0 6px ${person.color})` : 'none',
+                      }}
+                      onMouseEnter={() => setHoveredSlice(i)}
+                      onMouseLeave={() => setHoveredSlice(null)}
+                    />
+                  );
+                  offset += dash;
+                  return el;
+                });
+              })()}
+            </svg>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+              {hoveredSlice !== null ? (
+                <>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].leads}</div>
+                  <div style={{ fontSize: '8px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{SALES_DATA[hoveredSlice].name}</div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: '22px', fontWeight: 900, color: '#fff' }}>{TOTAL.leads}</div>
+                  <div style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total</div>
+                </>
+              )}
+            </div>
+            {hoveredSlice !== null && (
+              <div style={{ position: 'absolute', top: '-44px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', border: `1px solid ${SALES_DATA[hoveredSlice].color}40`, borderRadius: '8px', padding: '6px 12px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].name}</span>
+                <span style={{ fontSize: '11px', color: '#64748b' }}> — </span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{SALES_DATA[hoveredSlice].leads} leads</span>
+                <span style={{ fontSize: '11px', color: '#64748b' }}> ({((SALES_DATA[hoveredSlice].leads / TOTAL.leads) * 100).toFixed(1)}%)</span>
+              </div>
+            )}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
+            {SALES_DATA.slice(0, 8).map((person, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', transition: 'background 0.15s', background: hoveredSlice === i ? 'rgba(129,140,248,0.08)' : 'transparent' }} onMouseEnter={() => setHoveredSlice(i)} onMouseLeave={() => setHoveredSlice(null)}>
+                <div style={{ width: '7px', height: '7px', borderRadius: '2px', background: person.color }} />
+                <span style={{ fontSize: '9px', color: hoveredSlice === i ? '#fff' : '#94a3b8', fontWeight: 600, transition: 'color 0.15s' }}>{person.name} ({person.leads})</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+// Table Toolbar with search and export
+const TableToolbar = ({ searchValue, onSearch, onExport, placeholder = 'Search...' }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)', justifyContent: 'flex-end' }}>
+    <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '5px 10px', gap: '6px', width: '160px' }}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={searchValue}
+        onChange={(e) => onSearch(e.target.value)}
+        style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '11px', fontWeight: 600, width: '100%' }}
+      />
+    </div>
+    <button onClick={onExport} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', fontSize: '10px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+  </div>
+);
+
+// Section Time Filter with Custom popup
+const SectionTimeFilter = () => {
+  const [active, setActive] = React.useState('ALL');
+  const [showCustom, setShowCustom] = React.useState(false);
+  const [startDate, setStartDate] = React.useState('');
+  const [endDate, setEndDate] = React.useState('');
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!showCustom) return;
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setShowCustom(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showCustom]);
+
+  const labels = { '7D': '7D', '30D': '30D', '90D': '90D', 'YTD': 'FY', 'ALL': 'ALL' };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', position: 'relative' }} ref={ref}>
+      {Object.entries(labels).map(([key, label]) => (
+        <div key={key} onClick={() => { setActive(key); setShowCustom(false); }} style={{ padding: '3px 8px', borderRadius: '5px', fontSize: '9px', fontWeight: 700, color: active === key ? '#fff' : '#64748b', background: active === key ? 'rgba(129,140,248,0.2)' : 'transparent', border: active === key ? '1px solid rgba(129,140,248,0.3)' : '1px solid transparent', cursor: 'pointer', transition: 'all 0.15s' }}>{label}</div>
+      ))}
+      <div onClick={(e) => { e.stopPropagation(); setShowCustom(!showCustom); setActive(''); }} style={{ padding: '3px 8px', borderRadius: '5px', fontSize: '9px', fontWeight: 700, color: showCustom ? '#fff' : '#64748b', background: showCustom ? 'rgba(129,140,248,0.2)' : 'transparent', border: showCustom ? '1px solid rgba(129,140,248,0.3)' : '1px solid transparent', cursor: 'pointer', transition: 'all 0.15s' }}>Custom</div>
+      {showCustom && (
+        <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', background: '#151c2c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '14px 18px', zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', minWidth: '340px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px', display: 'block' }}>Start Date</label>
+              <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
+                <input type="text" placeholder="DD/MM/YYYY" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '11px', fontWeight: 600, width: '100%' }} />
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px', display: 'block' }}>End Date</label>
+              <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
+                <input type="text" placeholder="DD/MM/YYYY" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '11px', fontWeight: 600, width: '100%' }} />
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+            </div>
+            <button onClick={() => setShowCustom(false)} style={{ padding: '8px 16px', borderRadius: '7px', background: 'linear-gradient(135deg, #818cf8, #6366f1)', border: 'none', color: '#fff', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Apply</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
