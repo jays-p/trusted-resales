@@ -155,48 +155,40 @@ const PreSalesDashboard = ({ onBack }) => {
           {TOP5_AI.filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase())).map((agent, i) => {
             const scores = AI_SCORES[agent.name];
             const avgScore = getAgentAvgAI(agent.name);
+            const medalIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
             return (
-              <div key={i} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '16px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', position: 'relative' }}>
-                {/* Rank Badge */}
-                <div style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: 800, color: i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : i === 2 ? '#cd7f32' : '#64748b' }}>#{i + 1}</div>
+              <div key={i} style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))', border: i === 0 ? '1px solid rgba(251,191,36,0.3)' : i === 1 ? '1px solid rgba(148,163,184,0.25)' : '1px solid rgba(205,127,50,0.25)', borderRadius: '16px', padding: '20px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', position: 'relative', boxShadow: i === 0 ? '0 4px 20px rgba(251,191,36,0.08)' : 'none' }}>
+                {/* Medal + Rank */}
+                <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '16px' }}>{medalIcon}</span>
+                  <span style={{ fontSize: '10px', fontWeight: 800, color: i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : '#cd7f32' }}>#{i + 1}</span>
+                </div>
                 {/* Avatar */}
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: `linear-gradient(135deg, ${agent.color}40, ${agent.color}20)`, border: `2px solid ${agent.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 800, color: agent.color }}>
+                <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: `linear-gradient(135deg, ${agent.color}50, ${agent.color}20)`, border: `3px solid ${agent.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 800, color: agent.color, boxShadow: `0 0 16px ${agent.color}30` }}>
                   {agent.name[0]}
                 </div>
                 {/* Name */}
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{agent.name}</div>
-                  <div style={{ fontSize: '9px', color: '#64748b', marginTop: '1px' }}>{agent.leads} calls</div>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>{agent.name}</div>
+                  <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>{agent.leads} calls</div>
                 </div>
                 {/* Avg Score */}
-                <div style={{ fontSize: '20px', fontWeight: 900, color: avgScore >= 4.0 ? '#34d399' : avgScore >= 3.5 ? '#fbbf24' : '#f87171', fontFamily: "'JetBrains Mono', monospace" }}>{avgScore.toFixed(1)}</div>
+                <div style={{ fontSize: '24px', fontWeight: 900, color: avgScore >= 4.0 ? '#34d399' : avgScore >= 3.5 ? '#fbbf24' : '#f87171', fontFamily: "'JetBrains Mono', monospace" }}>{avgScore.toFixed(1)}</div>
                 {/* Star Rating */}
-                <StarRating score={avgScore} size={12} />
-                {/* Scores horizontal table */}
-                <div style={{ width: '100%', marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px', overflowX: 'auto' }} className="no-scrollbar">
-                  <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-                    <thead>
-                      <tr>
-                        {QUALITY_PARAMS.map(param => (
-                          <th key={param.key} style={{ padding: '4px 2px', textAlign: 'center', fontSize: '6px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', lineHeight: '1.2', verticalAlign: 'bottom' }}>
-                            {param.label}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        {QUALITY_PARAMS.map(param => {
-                          const score = scores[param.key];
-                          return (
-                            <td key={param.key} style={{ padding: '4px 2px', textAlign: 'center', fontSize: '9px', fontWeight: 700, color: score >= 4.5 ? '#34d399' : score >= 3.5 ? '#e2e8f0' : '#f87171', fontFamily: "'JetBrains Mono', monospace" }}>
-                              {score.toFixed(1)}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    </tbody>
-                  </table>
+                <StarRating score={avgScore} size={14} />
+                {/* Scores - 2 column grid for readability */}
+                <div style={{ width: '100%', marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px' }}>
+                    {QUALITY_PARAMS.map(param => {
+                      const score = scores[param.key];
+                      return (
+                        <div key={param.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                          <span style={{ fontSize: '8px', color: '#94a3b8', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '85px' }}>{param.label}</span>
+                          <span style={{ fontSize: '10px', fontWeight: 700, color: score >= 4.5 ? '#34d399' : score >= 3.5 ? '#e2e8f0' : '#f87171', fontFamily: "'JetBrains Mono', monospace", flexShrink: 0 }}>{score.toFixed(1)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             );
