@@ -1,0 +1,591 @@
+import React, { useState } from 'react';
+import { Settings2, ChevronDown, Calendar } from 'lucide-react';
+import Sidebar from './Sidebar';
+import CallsChart from './CallsChart';
+import PreSalesDashboard from './PreSalesDashboard';
+import './PlatformDashboard.css';
+
+// Static data matching screenshots
+const STATIC_DATA = {
+  overview: {
+    totalCalls: 871,
+    avgDur: '2m 10s',
+    totalTalkTime: '850 min',
+    siteVisitSuccess: '2.8%',
+    avgConfidence: '84.5%',
+    prevDelta: '-34.3% vs prev'
+  },
+  counts: { '1D': 28, 'YESTERDAY': 31, '7D': 198, '30D': 859, '90D': 2410, 'YTD': 4520, 'ALL': 2185 },
+  ticker: {
+    calls: 2189,
+    goalsMet: 455,
+    hot: 44,
+    warm: 411,
+    cold: 889
+  },
+  lineChart: [
+    { label: 'Jun 11', value: 9 },
+    { label: 'Jun 14', value: 30 },
+    { label: 'Jun 17', value: 179 },
+    { label: 'Jun 20', value: 152 },
+    { label: 'Jun 25', value: 141 },
+    { label: 'Jun 30', value: 135 },
+    { label: 'Jul 5', value: 90 },
+    { label: 'Jul 10', value: 50 },
+    { label: 'Jul 14', value: 325 },
+    { label: 'Jul 16', value: 177 },
+    { label: 'Jul 18', value: 130 },
+    { label: 'Jul 21', value: 177 },
+    { label: 'Jul 24', value: 155 },
+  ],
+  funnel: [
+    { label: 'Total Calls', value: 2189, pct: 100, color: '#34d399' },
+    { label: 'Interested', value: 455, pct: 20.8, color: '#818cf8' },
+    { label: 'Site Visit Booked', value: 26, pct: 1.2, color: '#34d399' },
+  ],
+  comparison: {
+    dateRange: '31 Mar 2026 - 25 Jul 2026',
+    prevRange: '',
+    calls: { val: '2,189', last: 'Vs 0', delta: '↑ 100%', positive: true },
+    goals: { val: 282, last: 'Vs 0', delta: '↑ 100%', positive: true },
+    hot: { val: 44, last: 'Vs 0', delta: '↑ 100%', positive: true },
+    confidence: { val: '89.9%', last: 'Vs 0%', delta: '↑ 100%', positive: true },
+  },
+  callDuration: [
+    { label: 'Very Short', sub: '0 - 15 sec', value: 852, pct: 39, color: '#f87171' },
+    { label: 'Short', sub: '16 - 30 sec', value: 433, pct: 20, color: '#fbbf24' },
+    { label: 'Medium', sub: '30 sec - 1 min', value: 436, pct: 20, color: '#818cf8' },
+    { label: 'Long', sub: '> 1 minute', value: 468, pct: 21, color: '#34d399' },
+  ],
+  projectPerformance: [
+    { rank: 1, project: 'M3m', calls: 561, hot: 7, warm: 78, cold: 144, svSchedule: 0, svConverted: '0 (0.00)' },
+    { rank: 2, project: 'Smartworld Sky Arc', calls: 96, hot: 0, warm: 9, cold: 9, svSchedule: 0, svConverted: '0 (0.00)' },
+    { rank: 3, project: 'Smartworld One Dxp', calls: 41, hot: 0, warm: 3, cold: 6, svSchedule: 0, svConverted: '0 (0.00)' },
+    { rank: 4, project: 'Smartworld The Edition', calls: 28, hot: 0, warm: 1, cold: 3, svSchedule: 0, svConverted: '0 (0.00)' },
+    { rank: 5, project: 'Smartworld Nature\'s Court At Gic', calls: 22, hot: 0, warm: 0, cold: 0, svSchedule: 0, svConverted: '0 (0.00)' },
+  ],
+  creditConsumption: [
+    { rank: 1, project: 'ABC Tower 1', totalTopup: '₹25,000', available: '₹20,588', totalUsed: '₹4,412' },
+    { rank: 2, project: 'M3m', totalTopup: '₹41,421', available: '₹39,849', totalUsed: '₹1,572' },
+    { rank: 3, project: 'DTC Downtown', totalTopup: '₹3,000', available: '₹2,871', totalUsed: '₹129' },
+    { rank: 4, project: 'Smartworld Sky Arc', totalTopup: '₹9,99,631', available: '₹9,99,571', totalUsed: '₹60' },
+    { rank: 5, project: 'Smartworld One Dxp', totalTopup: '₹9,98,419', available: '₹9,98,380', totalUsed: '₹39' },
+  ],
+  heatmap: {
+    projects: ['DTC Downtown, DTC Still Waters, And DTC Capital City', 'BPTP Smartworld Pride', 'Smartworld Orchard', 'DTC Downtown & Capital City', 'World Home Purv'],
+    goals: ['Present Pricing', 'Qualify Interest', 'Schedule Visit'],
+    data: [
+      [0, 0, 0, 0, 0],
+      ['100%', '100%', '100%', '100%', '100%'],
+      ['100%', '100%', '100%', '100%', '100%'],
+    ]
+  },
+  recentCalls: [
+    { project: 'SFDC_00Tfw0000ecqAZEAY', status: 'QUEUED', rating: '—', duration: '—', totalUsed: '—', date: '24 Jul 26 03:52 PM' },
+    { project: 'SFDC_00Tfw0000ed3alEAA', status: 'QUEUED', rating: '—', duration: '—', totalUsed: '—', date: '24 Jul 26 03:52 PM' },
+    { project: 'SFDC_00TOX00000x8wfV2A0', status: 'QUEUED', rating: '—', duration: '—', totalUsed: '—', date: '24 Jul 26 03:52 PM' },
+  ],
+  developers: [
+    'Smartworld',
+    'M3m Developer',
+    'DTC Group',
+    'BPTP Ltd',
+    'Godrej Properties',
+    'Raheja Developers',
+    'Emaar India',
+  ],
+  projects: [
+    'Smartworld Sky Arc',
+    'Smartworld One Dxp',
+    'Smartworld The Edition',
+    'Smartworld Nature\'s Court At Gic',
+    'M3m Crown',
+    'M3m Antalya Hills',
+    'DTC Downtown',
+    'DTC Capital City',
+    'DTC Still Waters',
+    'BPTP Smartworld Pride',
+    'World Home Purv',
+    'ABC Tower 1',
+  ]
+};
+
+const PlatformDashboard = () => {
+  const [timeRange, setTimeRange] = useState('YTD');
+  const [showCustomPopup, setShowCustomPopup] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [devDropdown, setDevDropdown] = useState(false);
+  const [projDropdown, setProjDropdown] = useState(false);
+  const [devSearch, setDevSearch] = useState('');
+  const [projSearch, setProjSearch] = useState('');
+  const [selectedDev, setSelectedDev] = useState('Enterprise View (All Developers)');
+  const [selectedProj, setSelectedProj] = useState('All Projects');
+  const [activePage, setActivePage] = useState('dashboard');
+  const data = STATIC_DATA;
+
+  const timeLabels = {
+    '1D': 'Today',
+    'YESTERDAY': 'Yesterday',
+    '7D': '7 Days',
+    '30D': '30 Days',
+    '90D': '90 Days',
+    'YTD': 'FY',
+    'ALL': 'All Time',
+  };
+
+  const handleTimeChange = (range) => {
+    setTimeRange(range);
+    setShowCustomPopup(false);
+  };
+
+  return (
+    <div className="platform-dashboard-container">
+      <Sidebar />
+      {activePage === 'presales' ? (
+        <PreSalesDashboard onBack={() => setActivePage('dashboard')} />
+      ) : (
+      <div className="main-content no-scrollbar">
+        {/* Topbar */}
+        <div className="topbar">
+          <div className="topbar-left">
+            <div>
+              <h2>Dashboard</h2>
+              <p>Enterprise-Wide Platform Analytics</p>
+            </div>
+          </div>
+          <div className="topbar-right">
+            {/* Pre Sales Button */}
+            <button
+              onClick={() => setActivePage('presales')}
+              style={{ padding: '8px 14px', borderRadius: '10px', background: '#151c2c', border: '1px solid rgba(255,255,255,0.08)', color: '#c8d1dc', fontSize: '12px', fontWeight: 600, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'all 0.15s', height: '36px', display: 'flex', alignItems: 'center' }}
+            >
+              Pre Sales
+            </button>
+            {/* Developer Dropdown */}
+            <div className={`admin-dropdown ${devDropdown ? 'open' : ''}`} onClick={() => { setDevDropdown(!devDropdown); setProjDropdown(false); }}>
+              <Settings2 className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
+              <span>{selectedDev}</span>
+              <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: devDropdown ? 'rotate(180deg)' : '' }} />
+              {devDropdown && (
+                <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    className="dropdown-search"
+                    type="text"
+                    placeholder="Search..."
+                    value={devSearch}
+                    onChange={(e) => setDevSearch(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="dropdown-list">
+                    <div className={`dropdown-item ${selectedDev === 'Enterprise View (All Developers)' ? 'active' : ''}`} onClick={() => { setSelectedDev('Enterprise View (All Developers)'); setDevDropdown(false); setDevSearch(''); }}>
+                      Enterprise View (All Developers)
+                    </div>
+                    {data.developers.filter(d => d.toLowerCase().includes(devSearch.toLowerCase())).map((dev, i) => (
+                      <div key={i} className={`dropdown-item ${selectedDev === dev ? 'active' : ''}`} onClick={() => { setSelectedDev(dev); setDevDropdown(false); setDevSearch(''); }}>
+                        {dev}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Project Dropdown */}
+            <div className={`admin-dropdown ${projDropdown ? 'open' : ''}`} onClick={() => { setProjDropdown(!projDropdown); setDevDropdown(false); }}>
+              <Settings2 className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
+              <span>{selectedProj}</span>
+              <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: projDropdown ? 'rotate(180deg)' : '' }} />
+              {projDropdown && (
+                <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    className="dropdown-search"
+                    type="text"
+                    placeholder="Search..."
+                    value={projSearch}
+                    onChange={(e) => setProjSearch(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="dropdown-list">
+                    <div className={`dropdown-item ${selectedProj === 'All Projects' ? 'active' : ''}`} onClick={() => { setSelectedProj('All Projects'); setProjDropdown(false); setProjSearch(''); }}>
+                      All Projects
+                    </div>
+                    {data.projects.filter(p => p.toLowerCase().includes(projSearch.toLowerCase())).map((proj, i) => (
+                      <div key={i} className={`dropdown-item ${selectedProj === proj ? 'active' : ''}`} onClick={() => { setSelectedProj(proj); setProjDropdown(false); setProjSearch(''); }}>
+                        {proj}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Time Range Bar */}
+        <div className="global-time-bar">
+          <span className="global-time-label">Time Range</span>
+          <div className="time-presets" style={{ marginLeft: 'auto' }}>
+            {Object.entries(timeLabels).map(([key, label]) => (
+              <div
+                key={key}
+                className={`time-preset ${timeRange === key ? 'active' : ''}`}
+                onClick={() => handleTimeChange(key)}
+              >
+                {label}
+                {data.counts[key] && timeRange === key && (
+                  <span className="preset-badge">{data.counts[key]}</span>
+                )}
+              </div>
+            ))}
+            <div
+              className={`time-preset ${showCustomPopup ? 'active' : ''}`}
+              onClick={() => setShowCustomPopup(!showCustomPopup)}
+              style={{ position: 'relative' }}
+            >
+              Custom
+            </div>
+          </div>
+          {/* Custom Date Popup */}
+          {showCustomPopup && (
+            <div className="custom-date-popup">
+              <div className="custom-date-row">
+                <div className="custom-date-field">
+                  <label>Start Date</label>
+                  <div className="custom-date-input">
+                    <input
+                      type="text"
+                      placeholder="DD/MM/YYYY"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                    <Calendar className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
+                  </div>
+                </div>
+                <div className="custom-date-field">
+                  <label>End Date</label>
+                  <div className="custom-date-input">
+                    <input
+                      type="text"
+                      placeholder="DD/MM/YYYY"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                    <Calendar className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
+                  </div>
+                </div>
+                <button className="custom-date-apply" onClick={() => setShowCustomPopup(false)}>Apply</button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Ticker Summary */}
+        <div className="ticker">
+          <span className="ticker-label">● FY</span>
+          <div className="tick-item">
+            <span className="tick-val" style={{ color: '#ffffff', fontWeight: 900 }}>{data.ticker.calls.toLocaleString()}</span>
+            <span className="tick-name">Calls</span>
+          </div>
+          <div className="tick-item">
+            <span className="tick-val" style={{ color: '#34d399', fontWeight: 900 }}>{data.ticker.goalsMet}</span>
+            <span className="tick-name">Goals Met</span>
+          </div>
+          <div className="tick-item">
+            <span className="tick-val" style={{ color: '#f87171', fontWeight: 900 }}>{data.ticker.hot}</span>
+            <span className="tick-name">Hot</span>
+          </div>
+          <div className="tick-item">
+            <span className="tick-val" style={{ color: '#fbbf24', fontWeight: 900 }}>{data.ticker.warm}</span>
+            <span className="tick-name">Warm</span>
+          </div>
+          <div className="tick-item">
+            <span className="tick-val" style={{ color: '#60a5fa', fontWeight: 900 }}>{data.ticker.cold}</span>
+            <span className="tick-name">Cold</span>
+          </div>
+        </div>
+
+        {/* Overview Cards */}
+        <div className="overview">
+          <div className="ov-card">
+            <div className="ov-val" style={{ color: '#818cf8' }}>{data.overview.totalCalls.toLocaleString()}</div>
+            <div className="ov-label">Total Calls</div>
+            <div className="ov-sub" style={{ color: data.overview.prevDelta.startsWith('+') ? '#34d399' : '#f87171' }}>{data.overview.prevDelta}</div>
+          </div>
+          <div className="ov-card">
+            <div className="ov-val" style={{ color: '#34d399' }}>{data.overview.avgDur}</div>
+            <div className="ov-label">Avg Duration</div>
+          </div>
+          <div className="ov-card">
+            <div className="ov-val" style={{ color: '#06b6d4' }}>{data.overview.totalTalkTime}</div>
+            <div className="ov-label">Total Talk Time</div>
+          </div>
+          <div className="ov-card">
+            <div className="ov-val" style={{ color: '#34d399' }}>{data.overview.siteVisitSuccess}</div>
+            <div className="ov-label">Site Visit Success</div>
+            <div className="ov-sub" style={{ color: 'var(--muted)' }}>Conversion Rate</div>
+          </div>
+          <div className="ov-card">
+            <div className="ov-val" style={{ color: '#a78bfa' }}>{data.overview.avgConfidence}</div>
+            <div className="ov-label">Avg Confidence</div>
+            <div className="ov-sub" style={{ color: 'var(--muted)' }}>Word-level ASR</div>
+          </div>
+        </div>
+
+        {/* Charts Row - Calls Over Time + Lead Conversion */}
+        <div className="g2" style={{ marginBottom: '20px' }}>
+          <div className="glass">
+            <div className="glass-header">
+              <div className="glass-title">Calls Over Time</div>
+              <SectionFilter active="ALL" />
+            </div>
+            <div className="chart-area">
+              <CallsChart data={data.lineChart} />
+            </div>
+          </div>
+
+          <div className="glass">
+            <div className="glass-header">
+              <div className="glass-title">Lead Conversion Rate</div>
+              <SectionFilter active="ALL" />
+            </div>
+            <div className="glass-body">
+              {data.funnel.map((step, i) => (
+                <div key={i} className="funnel-step">
+                  <div className="funnel-num">{step.value.toLocaleString()}</div>
+                  <div className="funnel-label">{step.label}</div>
+                  <div className="funnel-bar-wrap">
+                    <div className="funnel-bar" style={{ width: `${step.pct}%`, background: step.color }} />
+                  </div>
+                  <div className="funnel-pct">{step.pct}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Comparison + Call Duration Distribution */}
+        <div className="g2" style={{ marginBottom: '20px' }}>
+          <div className="glass">
+            <div className="glass-header">
+              <div className="glass-title">Comparison</div>
+              <SectionFilter active="30D" excludeAll={true} />
+            </div>
+            <div style={{ padding: '12px 18px' }}>
+              <div style={{ fontSize: '10px', color: 'var(--muted)', marginBottom: '12px', fontWeight: 600 }}>
+                {data.comparison.dateRange}
+              </div>
+              <div className="wk-grid">
+                <WkCard label="Calls" val={data.comparison.calls.val} last={data.comparison.calls.last} delta={data.comparison.calls.delta} positive={data.comparison.calls.positive} />
+                <WkCard label="Goals" val={data.comparison.goals.val} last={data.comparison.goals.last} delta={data.comparison.goals.delta} positive={data.comparison.goals.positive} />
+                <WkCard label="Hot Leads" val={data.comparison.hot.val} last={data.comparison.hot.last} delta={data.comparison.hot.delta} positive={data.comparison.hot.positive} />
+                <WkCard label="Confidence" val={data.comparison.confidence.val} last={data.comparison.confidence.last} delta={data.comparison.confidence.delta} positive={data.comparison.confidence.positive} />
+              </div>
+            </div>
+          </div>
+
+          <div className="glass">
+            <div className="glass-header">
+              <div className="glass-title">Call Duration Distribution</div>
+              <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 700 }}>{data.ticker.calls.toLocaleString()} CALLS</span>
+            </div>
+            <div className="glass-body">
+              {data.callDuration.map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: i < data.callDuration.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '170px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: item.color }} />
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)' }}>{item.label}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{item.sub}</div>
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, height: '8px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                    <div style={{ width: `${item.pct}%`, height: '100%', borderRadius: '4px', background: item.color, transition: 'width 0.8s ease' }} />
+                  </div>
+                  <div style={{ width: '70px', textAlign: 'right' }}>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 800, color: 'var(--text)' }}>{item.value}</span>
+                    <span style={{ fontSize: '10px', color: 'var(--muted)', marginLeft: '4px' }}>{item.pct}%</span>
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--muted)', cursor: 'pointer' }}>→</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Project Performance + Credit Consumption */}
+        <div className="g2" style={{ marginBottom: '20px' }}>
+          <div className="glass">
+            <div className="glass-header">
+              <div className="glass-title">Project Performance</div>
+              <SectionFilter active="ALL" />
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="lb-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Project</th>
+                    <th>Calls</th>
+                    <th style={{ color: 'var(--hot)' }}>Hot</th>
+                    <th style={{ color: 'var(--warm)' }}>Warm</th>
+                    <th style={{ color: 'var(--cold)' }}>Cold</th>
+                    <th>SV Schedule</th>
+                    <th>SV Converted</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.projectPerformance.map((row) => (
+                    <tr key={row.rank}>
+                      <td>{row.rank}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--text)' }}>{row.project}</td>
+                      <td>{row.calls}</td>
+                      <td style={{ color: 'var(--hot)', fontWeight: 700 }}>{row.hot}</td>
+                      <td style={{ color: 'var(--warn)', fontWeight: 700 }}>{row.warm}</td>
+                      <td>{row.cold}</td>
+                      <td>{row.svSchedule}</td>
+                      <td>{row.svConverted}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div style={{ padding: '12px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 700, cursor: 'pointer' }}>View All 37 Projects →</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass">
+            <div className="glass-header">
+              <div className="glass-title">Project Credit Consumption</div>
+              <SectionFilter active="ALL" />
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="lb-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Project</th>
+                    <th>Total Topup</th>
+                    <th>Available</th>
+                    <th>Total Used</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.creditConsumption.map((row) => (
+                    <tr key={row.rank}>
+                      <td>{row.rank}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--text)' }}>{row.project}</td>
+                      <td style={{ color: 'var(--success)', fontWeight: 700 }}>{row.totalTopup}</td>
+                      <td style={{ color: 'var(--success)', fontWeight: 700 }}>{row.available}</td>
+                      <td>
+                        <span className="lb-badge" style={{ background: 'rgba(129,140,248,0.12)', color: 'var(--accent)' }}>{row.totalUsed}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div style={{ padding: '12px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 700, cursor: 'pointer' }}>View All 18 Projects Consumption Details →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Goal x Project Heatmap + Recent Calls */}
+        <div className="g2" style={{ marginBottom: '20px' }}>
+          <div className="glass">
+            <div className="glass-header">
+              <div className="glass-title">Goal × Project Heatmap</div>
+              <SectionFilter active="ALL" />
+            </div>
+            <div className="heatmap" style={{ gridTemplateColumns: `130px repeat(${data.heatmap.projects.length}, minmax(80px, 1fr))` }}>
+              <div />
+              {data.heatmap.projects.map((p, i) => (
+                <div key={i} className="hm-header" style={{ justifyContent: 'center', textAlign: 'center', fontSize: '8px', lineHeight: '1.3', whiteSpace: 'normal', wordBreak: 'break-word' }}>{p}</div>
+              ))}
+              {data.heatmap.goals.map((goal, gi) => (
+                <React.Fragment key={gi}>
+                  <div className="hm-header hm-row-label">{goal}</div>
+                  {data.heatmap.data[gi].map((val, pi) => {
+                    const v = typeof val === 'string' ? parseInt(val) : val;
+                    const bg = v >= 70 ? `rgba(16,185,129,${0.15 + v / 150})` : v >= 40 ? `rgba(245,158,11,${0.15 + v / 150})` : v > 0 ? `rgba(239,68,68,${0.15 + v / 150})` : 'rgba(100,116,139,0.06)';
+                    const textColor = v >= 70 ? '#34d399' : v >= 40 ? '#fbbf24' : v > 0 ? '#f87171' : '#64748b';
+                    return (
+                      <div key={pi} className="hm-cell" style={{ background: bg, color: textColor }}>
+                        {val === 0 ? '—' : val}
+                      </div>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+
+          <div className="glass">
+            <div className="glass-header">
+              <div className="glass-title">Recent Calls</div>
+              <SectionFilter active="ALL" />
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="lb-table">
+                <thead>
+                  <tr>
+                    <th>Project</th>
+                    <th>Status</th>
+                    <th>Rating</th>
+                    <th>Duration</th>
+                    <th>Total Used</th>
+                    <th>Date & Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.recentCalls.map((call, i) => (
+                    <tr key={i}>
+                      <td style={{ fontWeight: 600, color: 'var(--text)', fontSize: '11px' }}>{call.project}</td>
+                      <td>
+                        <span className="lb-badge" style={{ background: 'rgba(251,191,36,0.12)', color: 'var(--warn)' }}>{call.status}</span>
+                      </td>
+                      <td style={{ color: 'var(--muted)' }}>{call.rating}</td>
+                      <td style={{ color: 'var(--muted)' }}>{call.duration}</td>
+                      <td style={{ color: 'var(--muted)' }}>{call.totalUsed}</td>
+                      <td style={{ fontSize: '10px', color: 'var(--muted)' }}>{call.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      )}
+    </div>
+  );
+};
+
+// Sub-components
+const SectionFilter = ({ active = '30D', excludeAll = false }) => {
+  const labels = { '1D': 'Today', 'YESTERDAY': 'Yesterday', '7D': '7D', '30D': '30D', '90D': '90D', 'YTD': 'FY', 'ALL': 'ALL' };
+  const filters = Object.entries(labels).filter(([key]) => !excludeAll || key !== 'ALL');
+  return (
+    <div className="chart-time">
+      {filters.map(([key, label]) => (
+        <div key={key} className={`ct-btn ${active === key ? 'active' : ''}`}>{label}</div>
+      ))}
+    </div>
+  );
+};
+
+const WkCard = ({ label, val, last, delta, positive }) => (
+  <div className="wk-card">
+    <div className="wk-label">{label}</div>
+    <div className="wk-vals">
+      <div className="wk-this" style={{ color: 'var(--accent)' }}>{val}</div>
+      <div className="wk-last">{last}</div>
+    </div>
+    <div className="wk-delta" style={{ color: positive ? 'var(--success)' : 'var(--danger)' }}>{delta}</div>
+  </div>
+);
+
+export default PlatformDashboard;
