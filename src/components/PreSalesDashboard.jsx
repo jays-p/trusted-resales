@@ -176,19 +176,31 @@ const PreSalesDashboard = ({ onBack }) => {
                 <div style={{ fontSize: '24px', fontWeight: 900, color: avgScore >= 4.0 ? '#34d399' : avgScore >= 3.5 ? '#fbbf24' : '#f87171', fontFamily: "'JetBrains Mono', monospace" }}>{avgScore.toFixed(1)}</div>
                 {/* Star Rating */}
                 <StarRating score={avgScore} size={14} />
-                {/* Scores - 2 column grid for readability */}
-                <div style={{ width: '100%', marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px' }}>
-                    {QUALITY_PARAMS.map(param => {
-                      const score = scores[param.key];
-                      return (
-                        <div key={param.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                          <span style={{ fontSize: '8px', color: '#94a3b8', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '85px' }}>{param.label}</span>
-                          <span style={{ fontSize: '10px', fontWeight: 700, color: score >= 4.5 ? '#34d399' : score >= 3.5 ? '#e2e8f0' : '#f87171', fontFamily: "'JetBrains Mono', monospace", flexShrink: 0 }}>{score.toFixed(1)}</span>
-                        </div>
-                      );
-                    })}
+                {/* Scores - horizontal table with wrapping column names */}
+                <div style={{ width: '100%', marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${QUALITY_PARAMS.length}, 1fr)`, gap: '0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '8px', marginBottom: '8px' }}>
+                    {QUALITY_PARAMS.map(param => (
+                      <div key={param.key} style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '7px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'center', lineHeight: '1.3' }}>{param.label}</span>
+                      </div>
+                    ))}
                   </div>
+                  {[0, 1, 2].map(rowIdx => {
+                    const offsets = [0, 0.2, -0.3];
+                    return (
+                      <div key={rowIdx} style={{ display: 'grid', gridTemplateColumns: `repeat(${QUALITY_PARAMS.length}, 1fr)`, gap: '0', padding: '4px 0', borderBottom: rowIdx < 2 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                        {QUALITY_PARAMS.map(param => {
+                          const base = scores[param.key];
+                          const val = Math.min(5, Math.max(1, +(base + offsets[rowIdx]).toFixed(1)));
+                          return (
+                            <div key={param.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ fontSize: '11px', fontWeight: 800, color: val >= 4.5 ? '#34d399' : val >= 3.5 ? '#e2e8f0' : '#f87171', fontFamily: "'JetBrains Mono', monospace" }}>{val.toFixed(1)}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
