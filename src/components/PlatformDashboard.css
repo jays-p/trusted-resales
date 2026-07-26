@@ -1,2 +1,18 @@
 /* Additional PlatformDashboard specific styles are in index.css */
 /* This file kept for import compatibility */
+
+/* Cold cell tooltip on hover */
+.cold-cell {
+  position: relative;
+  display: inline-block;
+}
+.cold-cell .cold-tooltip {
+  position: fixed !important;
+  top: auto;
+  left: auto;
+  transform: none;
+  pointer-events: none;
+}
+.cold-cell:hover .cold-tooltip {
+  display: block !important;
+}

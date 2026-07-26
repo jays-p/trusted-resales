@@ -101,6 +101,7 @@ const PreSalesDashboard = ({ onBack }) => {
   const [hoveredSlice, setHoveredSlice] = React.useState(null);
   const [execSearch, setExecSearch] = React.useState('');
   const [aiSearch, setAiSearch] = React.useState('');
+  const [coldTooltip, setColdTooltip] = React.useState(null);
 
   const handleExport = (headers, rows, filename) => {
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -212,19 +213,23 @@ const PreSalesDashboard = ({ onBack }) => {
       <div className="glass" style={{ marginBottom: '20px' }}>
         <div className="glass-header">
           <div className="glass-title">Executive Performance</div>
-          <SectionTimeFilter />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <SectionTimeFilter />
+            <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '5px 10px', gap: '6px', width: '140px' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search..." value={execSearch} onChange={(e) => setExecSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '10px', fontWeight: 600, width: '100%' }} />
+            </div>
+            <button onClick={() => handleExport(
+              ['#', 'Executive', 'Calls', 'Avg Score', 'Site Visit', 'EOI', 'Interested (EOP)', 'Follow-up', 'Cold', 'Answered', 'Unanswered', 'Performance'],
+              SALES_DATA.map((p, i) => [i+1, p.name, p.leads, (p.deals/p.leads*10).toFixed(1), p.deals, Math.floor(p.interested*0.6), p.interested, Math.floor(p.leads*0.2), Math.floor(p.leads*0.4), Math.floor(p.leads*0.75), p.leads - Math.floor(p.leads*0.75), Math.min((p.deals/p.target)*100, 100).toFixed(0)+'%']),
+              'executive-performance'
+            )} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 12px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', fontSize: '10px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+          </div>
         </div>
-        <TableToolbar
-          searchValue={execSearch}
-          onSearch={setExecSearch}
-          placeholder="Search executive..."
-          onExport={() => handleExport(
-            ['#', 'Executive', 'Calls', 'Avg Score', 'Interested', 'Site Visit', 'Follow-up', 'Flagged', 'Performance'],
-            SALES_DATA.map((p, i) => [i+1, p.name, p.leads, (p.deals/p.leads*10).toFixed(1), p.interested, p.deals, Math.floor(p.leads*0.2), Math.max(0, Math.floor(p.leads*0.05)), Math.min((p.deals/p.target)*100, 100).toFixed(0)+'%']),
-            'executive-performance'
-          )}
-        />
-        <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }} className="no-scrollbar">
+        <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto', position: 'relative' }} className="no-scrollbar">
           <table className="lb-table" style={{ minWidth: '700px' }}>
             <thead style={{ position: 'sticky', top: 0, background: '#1a2030', zIndex: 5 }}>
               <tr>
@@ -232,10 +237,13 @@ const PreSalesDashboard = ({ onBack }) => {
                 <th>Executive</th>
                 <th>Calls</th>
                 <th>Avg Score</th>
-                <th>Interested (EOP)</th>
                 <th>Site Visit</th>
+                <th>EOI</th>
+                <th>Interested (EOP)</th>
                 <th>Follow-up</th>
                 <th>Cold</th>
+                <th>Answered</th>
+                <th>Unanswered</th>
                 <th>Performance</th>
               </tr>
             </thead>
@@ -245,6 +253,10 @@ const PreSalesDashboard = ({ onBack }) => {
                 const followUp = Math.floor(person.leads * 0.2);
                 const flagged = Math.max(0, Math.floor(person.leads * 0.05));
                 const perfPct = Math.min((person.deals / person.target) * 100, 100);
+                const eoi = Math.floor(person.interested * 0.6);
+                const answered = Math.floor(person.leads * 0.75);
+                const unanswered = person.leads - answered;
+                const coldTotal = Math.floor(person.leads * 0.4);
                 return (
                   <tr key={i} style={{ transition: 'background 0.15s' }}>
                     <td style={{ color: '#64748b', fontWeight: 700 }}>{i + 1}</td>
@@ -258,16 +270,24 @@ const PreSalesDashboard = ({ onBack }) => {
                     <td>
                       <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, background: parseFloat(avgScore) >= 1.2 ? 'rgba(52,211,153,0.12)' : parseFloat(avgScore) >= 0.8 ? 'rgba(251,191,36,0.12)' : 'rgba(248,113,113,0.12)', color: parseFloat(avgScore) >= 1.2 ? '#34d399' : parseFloat(avgScore) >= 0.8 ? '#fbbf24' : '#f87171' }}>{avgScore}</span>
                     </td>
-                    <td style={{ color: '#fbbf24', fontWeight: 700 }}>{person.interested}</td>
                     <td style={{ color: '#34d399', fontWeight: 700 }}>{person.deals}</td>
+                    <td style={{ color: '#06b6d4', fontWeight: 700 }}>{eoi}</td>
+                    <td style={{ color: '#fbbf24', fontWeight: 700 }}>{person.interested}</td>
                     <td style={{ color: '#94a3b8' }}>{followUp}</td>
                     <td>
-                      {flagged > 0 ? (
-                        <span style={{ padding: '2px 7px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, background: 'rgba(248,113,113,0.12)', color: '#f87171' }}>{flagged}</span>
-                      ) : (
-                        <span style={{ color: '#64748b' }}>0</span>
-                      )}
+                      <span
+                        style={{ padding: '2px 7px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, background: 'rgba(96,165,250,0.12)', color: '#60a5fa', cursor: 'pointer' }}
+                        onMouseEnter={(e) => {
+                          const rect = e.target.getBoundingClientRect();
+                          setColdTooltip({ x: rect.left, y: rect.top - 10 });
+                        }}
+                        onMouseLeave={() => setColdTooltip(null)}
+                      >
+                        {coldTotal}
+                      </span>
                     </td>
+                    <td style={{ color: '#34d399', fontWeight: 700 }}>{answered}</td>
+                    <td style={{ color: '#f87171', fontWeight: 700 }}>{unanswered}</td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{ width: '60px', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
@@ -419,6 +439,18 @@ const PreSalesDashboard = ({ onBack }) => {
           </div>
         </div>
       </div>
+
+      {/* Cold Tooltip - Fixed position */}
+      {coldTooltip && (
+        <div style={{ position: 'fixed', left: coldTooltip.x, top: coldTooltip.y, transform: 'translate(-30%, -100%)', zIndex: 9999, background: '#0f172a', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '10px', padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', textAlign: 'left', lineHeight: '2', pointerEvents: 'none' }}>
+          <div style={{ fontSize: '10px', color: '#f87171', fontWeight: 700 }}>Budget Issue <span style={{ color: '#94a3b8' }}>- 12</span></div>
+          <div style={{ fontSize: '10px', color: '#fbbf24', fontWeight: 700 }}>Location Issue <span style={{ color: '#94a3b8' }}>- 9</span></div>
+          <div style={{ fontSize: '10px', color: '#fb923c', fontWeight: 700 }}>Configuration Issue <span style={{ color: '#94a3b8' }}>- 60</span></div>
+          <div style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 700 }}>Received but not responded</div>
+          <div style={{ fontSize: '10px', color: '#60a5fa', fontWeight: 700 }}>Call Hangup <span style={{ color: '#94a3b8' }}>- 7</span></div>
+          <div style={{ fontSize: '10px', color: '#e879f9', fontWeight: 700 }}>Not Interested <span style={{ color: '#94a3b8' }}>- 7</span></div>
+        </div>
+      )}
     </div>
   );
 };
