@@ -1071,3 +1071,23 @@ body {
 .global-time-bar {
   position: relative;
 }
+
+body.light-mode {
+  --bg: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --glass: rgba(0, 0, 0, 0.025);
+  --glass-s: rgba(0, 0, 0, 0.05);
+  --glass-xs: rgba(0, 0, 0, 0.015);
+  --gb: rgba(0, 0, 0, 0.06);
+  --gb2: rgba(0, 0, 0, 0.10);
+  --text: #0f172a;
+  --text-dim: #334155;
+  --dim: #475569;
+  --muted: #64748b;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body.light-mode .glass, body.light-mode .glass-header, body.light-mode .topbar-left h2, body.light-mode .platform-dashboard-container::before {
+  /* Some adjustments for light mode to look okay if needed */
+}

@@ -102,6 +102,11 @@ const PreSalesDashboard = ({ onBack }) => {
   const [execSearch, setExecSearch] = React.useState('');
   const [aiSearch, setAiSearch] = React.useState('');
   const [coldTooltip, setColdTooltip] = React.useState(null);
+  const [expandedRows, setExpandedRows] = React.useState({});
+
+  const toggleRow = (idx) => {
+    setExpandedRows(prev => ({ ...prev, [idx]: !prev[idx] }));
+  };
 
   const handleExport = (headers, rows, filename) => {
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -127,6 +132,9 @@ const PreSalesDashboard = ({ onBack }) => {
         </button>
       </div>
 
+      {/* Main Time Filter */}
+      <MainTimeFilter />
+
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px', marginBottom: '24px' }}>
         <KpiCard label="Calls" value="2,189" color="#ffffff" />
@@ -136,72 +144,114 @@ const PreSalesDashboard = ({ onBack }) => {
         <KpiCard label="Cold" value={889} color="#60a5fa" />
       </div>
 
-      {/* 🏆 Top 5 Performers */}
+      {/* 🏆 Top Performers & Lead Distribution - Grid Layout */}
       <div className="glass" style={{ marginBottom: '20px' }}>
-        <div className="glass-header">
-          <div className="glass-title">🏆 Top 3 Performers</div>
-          <SectionTimeFilter />
+        <div className="glass-header" style={{ padding: '24px', borderBottom: 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+            <span style={{ fontSize: '24px' }}>🏆</span>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)', letterSpacing: 'normal', textTransform: 'none' }}>Leaderboard</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600, marginTop: '4px' }}>Overall call quality score</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <SectionTimeFilter active="ALL" />
+            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '6px 12px', gap: '8px', width: '160px' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+              <input type="text" placeholder="Search agent..." value={aiSearch} onChange={(e) => setAiSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
+            </div>
+            <button onClick={() => handleExport(
+              ['#', 'Agent', 'Calls', ...QUALITY_PARAMS.map(p => p.label), 'Avg'],
+              TOP5_AI.map((a, i) => [i + 1, a.name, a.leads, ...QUALITY_PARAMS.map(p => AI_SCORES[a.name][p.key].toFixed(1)), getAgentAvgAI(a.name).toFixed(1)]),
+              'leaderboard'
+            )} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--accent)', cursor: 'pointer', transition: 'all 0.2s' }} title="Export">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+            </button>
+          </div>
         </div>
-        <TableToolbar
-          searchValue={aiSearch}
-          onSearch={setAiSearch}
-          placeholder="Search agent..."
-          onExport={() => handleExport(
-            ['#', 'Agent', 'Calls', ...QUALITY_PARAMS.map(p => p.label), 'Avg'],
-            TOP5_AI.map((a, i) => [i+1, a.name, a.leads, ...QUALITY_PARAMS.map(p => AI_SCORES[a.name][p.key].toFixed(1)), getAgentAvgAI(a.name).toFixed(1)]),
-            'top5-ai-quality'
-          )}
-        />
-        <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
-          {TOP5_AI.filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase())).map((agent, i) => {
+
+        <div style={{ padding: '0 24px 24px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          {TOP5_AI.filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase())).slice(0, 3).map((agent, i) => {
             const scores = AI_SCORES[agent.name];
             const avgScore = getAgentAvgAI(agent.name);
-            const medalIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
+            const ringColor = i === 0 ? '#fbbf24' : i === 1 ? '#8b5cf6' : '#fb923c'; // Gold, Purple, Peach/Orange
+
+            // Circular progress calculations
+            const size = 120;
+            const stroke = 10;
+            const cx = size / 2;
+            const cy = size / 2;
+            const r = cx - stroke;
+            const circumference = r * 2 * Math.PI;
+            const strokeDashoffset = circumference - (avgScore / 5) * circumference;
+
             return (
-              <div key={i} style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))', border: i === 0 ? '1px solid rgba(251,191,36,0.3)' : i === 1 ? '1px solid rgba(148,163,184,0.25)' : '1px solid rgba(205,127,50,0.25)', borderRadius: '16px', padding: '20px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', position: 'relative', boxShadow: i === 0 ? '0 4px 20px rgba(251,191,36,0.08)' : 'none' }}>
-                {/* Medal + Rank */}
-                <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ fontSize: '16px' }}>{medalIcon}</span>
-                  <span style={{ fontSize: '10px', fontWeight: 800, color: i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : '#cd7f32' }}>#{i + 1}</span>
+              <div key={i} style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                {/* Rank Badge */}
+                <div style={{ position: 'absolute', top: '24px', left: '24px', width: '26px', height: '26px', background: ringColor, borderRadius: '0 12px 12px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: '14px' }}>
+                  {i + 1}
                 </div>
-                {/* Avatar */}
-                <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: `linear-gradient(135deg, ${agent.color}50, ${agent.color}20)`, border: `3px solid ${agent.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 800, color: agent.color, boxShadow: `0 0 16px ${agent.color}30` }}>
-                  {agent.name[0]}
-                </div>
-                {/* Name */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>{agent.name}</div>
-                  <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>{agent.leads} calls</div>
-                </div>
-                {/* Avg Score */}
-                <div style={{ fontSize: '24px', fontWeight: 900, color: avgScore >= 4.0 ? '#34d399' : avgScore >= 3.5 ? '#fbbf24' : '#f87171', fontFamily: "'JetBrains Mono', monospace" }}>{avgScore.toFixed(1)}</div>
-                {/* Star Rating */}
-                <StarRating score={avgScore} size={14} />
-                {/* Scores - horizontal table with wrapping column names */}
-                <div style={{ width: '100%', marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${QUALITY_PARAMS.length}, 1fr)`, gap: '0', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '8px', marginBottom: '8px' }}>
-                    {QUALITY_PARAMS.map(param => (
-                      <div key={param.key} style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-                        <span style={{ fontSize: '7px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'center', lineHeight: '1.3' }}>{param.label}</span>
-                      </div>
-                    ))}
+
+                {/* Circular Score */}
+                <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '10px' }}>
+                  <svg height={size} width={size} style={{ transform: 'rotate(-90deg)' }}>
+                    <circle stroke={`${ringColor}20`} fill="transparent" strokeWidth={stroke} r={r} cx={cx} cy={cy} />
+                    <circle stroke={ringColor} fill="transparent" strokeWidth={stroke} strokeDasharray={circumference + ' ' + circumference} style={{ strokeDashoffset, transition: 'stroke-dashoffset 1s ease-in-out' }} strokeLinecap="round" r={r} cx={cx} cy={cy} />
+                  </svg>
+                  <div style={{ position: 'absolute', fontSize: '32px', fontWeight: 900, color: 'var(--text)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>
+                    {avgScore.toFixed(1)}
                   </div>
-                  {[0, 1, 2].map(rowIdx => {
-                    const offsets = [0, 0.2, -0.3];
+                </div>
+
+                {/* Agent Name & Calls */}
+                <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)' }}>{agent.name}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>{agent.leads} calls</div>
+                </div>
+
+                {/* Star Rating */}
+                <div style={{ marginTop: '12px', display: 'flex', gap: '4px' }}>
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <svg key={star} width="14" height="14" viewBox="0 0 24 24" fill={star <= Math.round(avgScore) ? ringColor : 'none'} stroke={star <= Math.round(avgScore) ? ringColor : 'var(--muted)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                  ))}
+                </div>
+
+                {/* Quality Metrics */}
+                <div style={{ width: '100%', marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {(expandedRows[i] ? QUALITY_PARAMS : QUALITY_PARAMS.slice(0, 5)).map((param, index) => {
+                    // Replace generic emoji with colored icons based on design
+                    const icons = [
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>,
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>,
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>,
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>,
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>,
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>,
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>,
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>,
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    ];
                     return (
-                      <div key={rowIdx} style={{ display: 'grid', gridTemplateColumns: `repeat(${QUALITY_PARAMS.length}, 1fr)`, gap: '0', padding: '4px 0', borderBottom: rowIdx < 2 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                        {QUALITY_PARAMS.map(param => {
-                          const base = scores[param.key];
-                          const val = Math.min(5, Math.max(1, +(base + offsets[rowIdx]).toFixed(1)));
-                          return (
-                            <div key={param.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <span style={{ fontSize: '11px', fontWeight: 800, color: val >= 4.5 ? '#34d399' : val >= 3.5 ? '#e2e8f0' : '#f87171', fontFamily: "'JetBrains Mono', monospace" }}>{val.toFixed(1)}</span>
-                            </div>
-                          );
-                        })}
+                      <div key={param.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {icons[index % icons.length]}
+                          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text)' }}>{param.label}</span>
+                        </div>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)' }}>{scores[param.key].toFixed(1)}</span>
                       </div>
                     );
                   })}
+                </div>
+
+                {/* Footer Button */}
+                <div style={{ width: '100%', marginTop: '24px' }}>
+                  <div onClick={() => toggleRow(i)} style={{ background: 'var(--glass-s)', color: 'var(--text)', fontSize: '11px', fontWeight: 700, padding: '12px', borderRadius: '8px', textAlign: 'center', cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--glass)'} onMouseOut={e => e.currentTarget.style.background = 'var(--glass-s)'}>
+                    {expandedRows[i] ? 'Hide Metrics' : `+${QUALITY_PARAMS.length - 5} More Metrics`}
+                  </div>
                 </div>
               </div>
             );
@@ -216,16 +266,15 @@ const PreSalesDashboard = ({ onBack }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <SectionTimeFilter />
             <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '5px 10px', gap: '6px', width: '140px' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
               <input type="text" placeholder="Search..." value={execSearch} onChange={(e) => setExecSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '10px', fontWeight: 600, width: '100%' }} />
             </div>
             <button onClick={() => handleExport(
-              ['#', 'Executive', 'Calls', 'Avg Score', 'Site Visit', 'EOI', 'Interested (EOP)', 'Follow-up', 'Cold', 'Answered', 'Unanswered', 'Performance'],
-              SALES_DATA.map((p, i) => [i+1, p.name, p.leads, (p.deals/p.leads*10).toFixed(1), p.deals, Math.floor(p.interested*0.6), p.interested, Math.floor(p.leads*0.2), Math.floor(p.leads*0.4), Math.floor(p.leads*0.75), p.leads - Math.floor(p.leads*0.75), Math.min((p.deals/p.target)*100, 100).toFixed(0)+'%']),
+              ['#', 'Executive', 'Calls', 'Avg Score', 'Site Visit', 'EOI', 'Follow-up', 'Cold', 'Answered', 'Unanswered', 'Performance'],
+              SALES_DATA.map((p, i) => [i + 1, p.name, p.leads, (p.deals / p.leads * 10).toFixed(1), p.deals, Math.floor(p.interested * 0.6), Math.floor(p.leads * 0.2), Math.floor(p.leads * 0.4), Math.floor(p.leads * 0.75), p.leads - Math.floor(p.leads * 0.75), Math.min((p.deals / p.target) * 100, 100).toFixed(0) + '%']),
               'executive-performance'
-            )} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 12px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', fontSize: '10px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Export
+            )} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', cursor: 'pointer' }} title="Export">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
             </button>
           </div>
         </div>
@@ -239,7 +288,6 @@ const PreSalesDashboard = ({ onBack }) => {
                 <th>Avg Score</th>
                 <th>Site Visit</th>
                 <th>EOI</th>
-                <th>Interested (EOP)</th>
                 <th>Follow-up</th>
                 <th>Cold</th>
                 <th>Answered</th>
@@ -272,14 +320,23 @@ const PreSalesDashboard = ({ onBack }) => {
                     </td>
                     <td style={{ color: '#34d399', fontWeight: 700 }}>{person.deals}</td>
                     <td style={{ color: '#06b6d4', fontWeight: 700 }}>{eoi}</td>
-                    <td style={{ color: '#fbbf24', fontWeight: 700 }}>{person.interested}</td>
                     <td style={{ color: '#94a3b8' }}>{followUp}</td>
                     <td>
                       <span
                         style={{ padding: '2px 7px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, background: 'rgba(96,165,250,0.12)', color: '#60a5fa', cursor: 'pointer' }}
                         onMouseEnter={(e) => {
                           const rect = e.target.getBoundingClientRect();
-                          setColdTooltip({ x: rect.left, y: rect.top - 10 });
+                          const budget = Math.floor(coldTotal * 0.15);
+                          const location = Math.floor(coldTotal * 0.1);
+                          const config = Math.floor(coldTotal * 0.5);
+                          const received = Math.floor(coldTotal * 0.1);
+                          const hangup = Math.floor(coldTotal * 0.05);
+                          const notInterested = coldTotal - (budget + location + config + received + hangup);
+                          setColdTooltip({
+                            x: rect.left,
+                            y: rect.top - 10,
+                            breakdown: { budget, location, config, received, hangup, notInterested, total: coldTotal }
+                          });
                         }}
                         onMouseLeave={() => setColdTooltip(null)}
                       >
@@ -304,176 +361,159 @@ const PreSalesDashboard = ({ onBack }) => {
         </div>
       </div>
 
-      {/* Target vs Achievement - Below */}
-      <div className="glass" style={{ marginBottom: '20px' }}>
-        <div className="glass-header">
-          <div className="glass-title">Target vs Achievement</div>
-          <SectionTimeFilter />
-        </div>
-        <div style={{ padding: '16px 20px', maxHeight: '400px', overflowY: 'auto' }} className="no-scrollbar">
-          {SALES_DATA.map((person, i) => {
-            const pct = Math.min((person.deals / person.target) * 100, 100);
-            const achieved = person.deals >= person.target;
-            return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', borderBottom: i < SALES_DATA.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none', position: 'relative', cursor: 'pointer' }} onMouseEnter={() => setHoveredBar(i)} onMouseLeave={() => setHoveredBar(null)}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: '#0d1117', flexShrink: 0 }}>{person.name[0]}</div>
-                <div style={{ width: '70px', fontSize: '12px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{person.name}</div>
-                <div style={{ flex: 1, position: 'relative', height: '18px', borderRadius: '9px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-                  <div style={{ width: `${pct}%`, height: '100%', borderRadius: '9px', background: 'linear-gradient(90deg, #06b6d4, #34d399)', transition: 'width 0.8s ease', boxShadow: hoveredBar === i ? '0 0 16px rgba(52,211,153,0.5)' : '0 0 12px rgba(52,211,153,0.3)' }} />
-                </div>
-                <div style={{ width: '90px', display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 800, color: person.color }}>{person.deals}</span>
-                  <span style={{ fontSize: '10px', color: '#64748b' }}>/</span>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8' }}>{person.target}</span>
-                </div>
-                <div style={{ width: '50px', textAlign: 'right', fontSize: '11px', fontWeight: 700, color: person.color }}>
-                  {pct.toFixed(0)}%
-                </div>
-                {achieved && <span style={{ fontSize: '12px' }}>✓</span>}
-                {hoveredBar === i && (
-                  <div style={{ position: 'absolute', top: '-42px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', border: '1px solid rgba(6,182,212,0.3)', borderRadius: '8px', padding: '8px 14px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff' }}>{person.name}</span>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}> — Target: </span>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>{person.target}</span>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}> | Achieved: </span>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#34d399' }}>{person.deals}</span>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}> | </span>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: achieved ? '#34d399' : '#fbbf24' }}>{pct.toFixed(0)}%</span>
+      {/* Bottom Row */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', alignItems: 'stretch' }}>
+        {/* Target vs Achievement */}
+        <div className="glass" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+          <div className="glass-header">
+            <div className="glass-title" style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Target vs Achievement</div>
+            <SectionTimeFilter />
+          </div>
+          <div style={{ padding: '16px 20px', maxHeight: '260px', overflowY: 'auto' }} className="no-scrollbar">
+            {SALES_DATA.map((person, i) => {
+              const pct = Math.min((person.deals / person.target) * 100, 100);
+              const achieved = person.deals >= person.target;
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', borderBottom: i < SALES_DATA.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none', position: 'relative', cursor: 'pointer' }} onMouseEnter={() => setHoveredBar(i)} onMouseLeave={() => setHoveredBar(null)}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: '#0d1117', flexShrink: 0 }}>{person.name[0]}</div>
+                  <div style={{ width: '70px', fontSize: '12px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{person.name}</div>
+                  <div style={{ flex: 1, position: 'relative', height: '18px', borderRadius: '9px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                    <div style={{ width: `${pct}%`, height: '100%', borderRadius: '9px', background: 'linear-gradient(90deg, #06b6d4, #34d399)', transition: 'width 0.8s ease', boxShadow: hoveredBar === i ? '0 0 16px rgba(52,211,153,0.5)' : '0 0 12px rgba(52,211,153,0.3)' }} />
                   </div>
+                  <div style={{ width: '90px', display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, justifyContent: 'flex-end' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: person.color }}>{person.deals}</span>
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>/</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8' }}>{person.target}</span>
+                  </div>
+                  <div style={{ width: '50px', textAlign: 'right', fontSize: '11px', fontWeight: 700, color: person.color }}>
+                    {pct.toFixed(0)}%
+                  </div>
+                  {achieved && <span style={{ fontSize: '12px' }}>✓</span>}
+                  {hoveredBar === i && (
+                    <div style={{ position: 'absolute', top: '-42px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', border: '1px solid rgba(6,182,212,0.3)', borderRadius: '8px', padding: '8px 14px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff' }}>{person.name}</span>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}> — Target: </span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>{person.target}</span>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}> | Achieved: </span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#34d399' }}>{person.deals}</span>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}> | </span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: achieved ? '#34d399' : '#fbbf24' }}>{pct.toFixed(0)}%</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {/* Summary */}
+          <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>Total Target: <span style={{ fontWeight: 800, color: '#fff' }}>{TOTAL.target}</span></div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>Total Achieved: <span style={{ fontWeight: 800, color: '#34d399' }}>{TOTAL.deals}</span></div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>Achievement: <span style={{ fontWeight: 800, color: ((TOTAL.deals / TOTAL.target) * 100) >= 70 ? '#34d399' : '#fbbf24' }}>{((TOTAL.deals / TOTAL.target) * 100).toFixed(1)}%</span></div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(52,211,153,0.1)', color: '#34d399', fontWeight: 700 }}>✓ {SALES_DATA.filter(p => p.deals >= p.target).length} achieved</span>
+              <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(251,191,36,0.1)', color: '#fbbf24', fontWeight: 700 }}>{SALES_DATA.filter(p => p.deals < p.target && (p.deals / p.target) > 0.6).length} near target</span>
+              <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(248,113,113,0.1)', color: '#f87171', fontWeight: 700 }}>{SALES_DATA.filter(p => (p.deals / p.target) <= 0.6).length} below target</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Lead Distribution by Person */}
+        <div className="glass" style={{ width: '480px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+          <div className="glass-header">
+            <div className="glass-title" style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Lead Distribution</div>
+            <SectionTimeFilter />
+          </div>
+          <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '14px' }}>
+            <div style={{ position: 'relative', width: '160px', height: '160px', flexShrink: 0 }}>
+              <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="80" cy="80" r="62" fill="transparent" stroke="rgba(255,255,255,0.04)" strokeWidth="24" />
+                {(() => {
+                  const total = TOTAL.leads;
+                  let offset = 0;
+                  const circ = 2 * Math.PI * 62;
+                  return SALES_DATA.slice(0, 8).map((person, i) => {
+                    const pct = person.leads / total;
+                    const dash = circ * pct;
+                    const gap = circ - dash;
+                    const isHovered = hoveredSlice === i;
+                    const el = (
+                      <circle
+                        key={i}
+                        cx="80"
+                        cy="80"
+                        r="62"
+                        fill="transparent"
+                        stroke={person.color}
+                        strokeWidth={isHovered ? 30 : 24}
+                        strokeDasharray={`${dash} ${gap}`}
+                        strokeDashoffset={-offset}
+                        style={{
+                          cursor: 'pointer',
+                          transition: 'stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease',
+                          opacity: hoveredSlice !== null && !isHovered ? 0.4 : 1,
+                          filter: isHovered ? `drop-shadow(0 0 6px ${person.color})` : 'none',
+                        }}
+                        onMouseEnter={() => setHoveredSlice(i)}
+                        onMouseLeave={() => setHoveredSlice(null)}
+                      />
+                    );
+                    offset += dash;
+                    return el;
+                  });
+                })()}
+              </svg>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                {hoveredSlice !== null ? (
+                  <>
+                    <div style={{ fontSize: '18px', fontWeight: 900, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].leads}</div>
+                    <div style={{ fontSize: '8px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{SALES_DATA[hoveredSlice].name}</div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: '22px', fontWeight: 900, color: '#fff' }}>{TOTAL.leads}</div>
+                    <div style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total</div>
+                  </>
                 )}
               </div>
-            );
-          })}
-        </div>
-        {/* Summary */}
-        <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Total Target: <span style={{ fontWeight: 800, color: '#fff' }}>{TOTAL.target}</span></div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Total Achieved: <span style={{ fontWeight: 800, color: '#34d399' }}>{TOTAL.deals}</span></div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Achievement: <span style={{ fontWeight: 800, color: ((TOTAL.deals / TOTAL.target) * 100) >= 70 ? '#34d399' : '#fbbf24' }}>{((TOTAL.deals / TOTAL.target) * 100).toFixed(1)}%</span></div>
-          </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(52,211,153,0.1)', color: '#34d399', fontWeight: 700 }}>✓ {SALES_DATA.filter(p => p.deals >= p.target).length} achieved</span>
-            <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(251,191,36,0.1)', color: '#fbbf24', fontWeight: 700 }}>{SALES_DATA.filter(p => p.deals < p.target && (p.deals/p.target) > 0.6).length} near target</span>
-            <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(248,113,113,0.1)', color: '#f87171', fontWeight: 700 }}>{SALES_DATA.filter(p => (p.deals/p.target) <= 0.6).length} below target</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Top 5 AI Call Quality Performers */}
-
-      {/* Lead Distribution by Person - at the end */}
-      <div className="glass" style={{ marginBottom: '20px', maxWidth: '400px' }}>
-        <div className="glass-header">
-          <div className="glass-title">Lead Distribution by Person</div>
-          <SectionTimeFilter />
-        </div>
-        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '14px' }}>
-          <div style={{ position: 'relative', width: '160px', height: '160px', flexShrink: 0 }}>
-            <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx="80" cy="80" r="62" fill="transparent" stroke="rgba(255,255,255,0.04)" strokeWidth="24" />
-              {(() => {
-                const total = TOTAL.leads;
-                let offset = 0;
-                const circ = 2 * Math.PI * 62;
-                return SALES_DATA.slice(0, 8).map((person, i) => {
-                  const pct = person.leads / total;
-                  const dash = circ * pct;
-                  const gap = circ - dash;
-                  const isHovered = hoveredSlice === i;
-                  const el = (
-                    <circle
-                      key={i}
-                      cx="80"
-                      cy="80"
-                      r="62"
-                      fill="transparent"
-                      stroke={person.color}
-                      strokeWidth={isHovered ? 30 : 24}
-                      strokeDasharray={`${dash} ${gap}`}
-                      strokeDashoffset={-offset}
-                      style={{
-                        cursor: 'pointer',
-                        transition: 'stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease',
-                        opacity: hoveredSlice !== null && !isHovered ? 0.4 : 1,
-                        filter: isHovered ? `drop-shadow(0 0 6px ${person.color})` : 'none',
-                      }}
-                      onMouseEnter={() => setHoveredSlice(i)}
-                      onMouseLeave={() => setHoveredSlice(null)}
-                    />
-                  );
-                  offset += dash;
-                  return el;
-                });
-              })()}
-            </svg>
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-              {hoveredSlice !== null ? (
-                <>
-                  <div style={{ fontSize: '18px', fontWeight: 900, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].leads}</div>
-                  <div style={{ fontSize: '8px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{SALES_DATA[hoveredSlice].name}</div>
-                </>
-              ) : (
-                <>
-                  <div style={{ fontSize: '22px', fontWeight: 900, color: '#fff' }}>{TOTAL.leads}</div>
-                  <div style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total</div>
-                </>
+              {hoveredSlice !== null && (
+                <div style={{ position: 'absolute', top: '-44px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', border: `1px solid ${SALES_DATA[hoveredSlice].color}40`, borderRadius: '8px', padding: '6px 12px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].name}</span>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}> — </span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{SALES_DATA[hoveredSlice].leads} leads</span>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}> ({((SALES_DATA[hoveredSlice].leads / TOTAL.leads) * 100).toFixed(1)}%)</span>
+                </div>
               )}
             </div>
-            {hoveredSlice !== null && (
-              <div style={{ position: 'absolute', top: '-44px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', border: `1px solid ${SALES_DATA[hoveredSlice].color}40`, borderRadius: '8px', padding: '6px 12px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].name}</span>
-                <span style={{ fontSize: '11px', color: '#64748b' }}> — </span>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{SALES_DATA[hoveredSlice].leads} leads</span>
-                <span style={{ fontSize: '11px', color: '#64748b' }}> ({((SALES_DATA[hoveredSlice].leads / TOTAL.leads) * 100).toFixed(1)}%)</span>
-              </div>
-            )}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
-            {SALES_DATA.slice(0, 8).map((person, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', transition: 'background 0.15s', background: hoveredSlice === i ? 'rgba(129,140,248,0.08)' : 'transparent' }} onMouseEnter={() => setHoveredSlice(i)} onMouseLeave={() => setHoveredSlice(null)}>
-                <div style={{ width: '7px', height: '7px', borderRadius: '2px', background: person.color }} />
-                <span style={{ fontSize: '9px', color: hoveredSlice === i ? '#fff' : '#94a3b8', fontWeight: 600, transition: 'color 0.15s' }}>{person.name} ({person.leads})</span>
-              </div>
-            ))}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
+              {SALES_DATA.slice(0, 8).map((person, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', transition: 'background 0.15s', background: hoveredSlice === i ? 'rgba(129,140,248,0.08)' : 'transparent' }} onMouseEnter={() => setHoveredSlice(i)} onMouseLeave={() => setHoveredSlice(null)}>
+                  <div style={{ width: '7px', height: '7px', borderRadius: '2px', background: person.color }} />
+                  <span style={{ fontSize: '9px', color: hoveredSlice === i ? '#fff' : '#94a3b8', fontWeight: 600, transition: 'color 0.15s' }}>{person.name} ({person.leads})</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Cold Tooltip - Fixed position */}
       {coldTooltip && (
-        <div style={{ position: 'fixed', left: coldTooltip.x, top: coldTooltip.y, transform: 'translate(-30%, -100%)', zIndex: 9999, background: '#0f172a', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '10px', padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', textAlign: 'left', lineHeight: '2', pointerEvents: 'none' }}>
-          <div style={{ fontSize: '10px', color: '#f87171', fontWeight: 700 }}>Budget Issue <span style={{ color: '#94a3b8' }}>- 12</span></div>
-          <div style={{ fontSize: '10px', color: '#fbbf24', fontWeight: 700 }}>Location Issue <span style={{ color: '#94a3b8' }}>- 9</span></div>
-          <div style={{ fontSize: '10px', color: '#fb923c', fontWeight: 700 }}>Configuration Issue <span style={{ color: '#94a3b8' }}>- 60</span></div>
-          <div style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 700 }}>Received but not responded</div>
-          <div style={{ fontSize: '10px', color: '#60a5fa', fontWeight: 700 }}>Call Hangup <span style={{ color: '#94a3b8' }}>- 7</span></div>
-          <div style={{ fontSize: '10px', color: '#e879f9', fontWeight: 700 }}>Not Interested <span style={{ color: '#94a3b8' }}>- 7</span></div>
+        <div style={{ position: 'fixed', left: coldTooltip.x, top: coldTooltip.y, transform: 'translate(-30%, -100%)', zIndex: 9999, background: '#0f172a', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '10px', padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', textAlign: 'left', lineHeight: '2', pointerEvents: 'none', minWidth: '200px' }}>
+          <div style={{ fontSize: '10px', color: '#f87171', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Budget Issue</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.budget}</span></div>
+          <div style={{ fontSize: '10px', color: '#fbbf24', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Location Issue</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.location}</span></div>
+          <div style={{ fontSize: '10px', color: '#fb923c', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Configuration Issue</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.config}</span></div>
+          <div style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Received but not responded</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.received}</span></div>
+          <div style={{ fontSize: '10px', color: '#60a5fa', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Call Hangup</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.hangup}</span></div>
+          <div style={{ fontSize: '10px', color: '#e879f9', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Not Interested</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.notInterested}</span></div>
+          <div style={{ fontSize: '11px', color: '#fff', fontWeight: 800, display: 'flex', justifyContent: 'space-between', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.1)' }}><span>Total</span> <span style={{ color: '#60a5fa' }}>{coldTooltip.breakdown.total}</span></div>
         </div>
       )}
     </div>
   );
 };
 
-// Table Toolbar with search and export
-const TableToolbar = ({ searchValue, onSearch, onExport, placeholder = 'Search...' }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)', justifyContent: 'flex-end' }}>
-    <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '5px 10px', gap: '6px', width: '160px' }}>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input
-        type="text"
-        placeholder={placeholder}
-        value={searchValue}
-        onChange={(e) => onSearch(e.target.value)}
-        style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '11px', fontWeight: 600, width: '100%' }}
-      />
-    </div>
-    <button onClick={onExport} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', fontSize: '10px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Export
-    </button>
-  </div>
-);
 
 // Section Time Filter with Custom popup
 const SectionTimeFilter = () => {
@@ -498,9 +538,9 @@ const SectionTimeFilter = () => {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '4px', position: 'relative' }} ref={ref}>
       {Object.entries(labels).map(([key, label]) => (
-        <div key={key} onClick={() => { setActive(key); setShowCustom(false); }} style={{ padding: '3px 8px', borderRadius: '5px', fontSize: '9px', fontWeight: 700, color: active === key ? '#fff' : '#64748b', background: active === key ? 'rgba(129,140,248,0.2)' : 'transparent', border: active === key ? '1px solid rgba(129,140,248,0.3)' : '1px solid transparent', cursor: 'pointer', transition: 'all 0.15s' }}>{label}</div>
+        <div key={key} onClick={() => { setActive(key); setShowCustom(false); }} style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, color: active === key ? '#fff' : '#64748b', background: active === key ? '#3b82f6' : 'transparent', cursor: 'pointer', transition: 'all 0.15s' }}>{label}</div>
       ))}
-      <div onClick={(e) => { e.stopPropagation(); setShowCustom(!showCustom); setActive(''); }} style={{ padding: '3px 8px', borderRadius: '5px', fontSize: '9px', fontWeight: 700, color: showCustom ? '#fff' : '#64748b', background: showCustom ? 'rgba(129,140,248,0.2)' : 'transparent', border: showCustom ? '1px solid rgba(129,140,248,0.3)' : '1px solid transparent', cursor: 'pointer', transition: 'all 0.15s' }}>Custom</div>
+      <div onClick={(e) => { e.stopPropagation(); setShowCustom(!showCustom); setActive(''); }} style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, color: showCustom ? '#fff' : '#64748b', background: showCustom ? '#3b82f6' : 'transparent', cursor: 'pointer', transition: 'all 0.15s' }}>Custom</div>
       {showCustom && (
         <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', background: '#151c2c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '14px 18px', zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', minWidth: '340px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
@@ -508,14 +548,14 @@ const SectionTimeFilter = () => {
               <label style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px', display: 'block' }}>Start Date</label>
               <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
                 <input type="text" placeholder="DD/MM/YYYY" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '11px', fontWeight: 600, width: '100%' }} />
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
               </div>
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px', display: 'block' }}>End Date</label>
               <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
                 <input type="text" placeholder="DD/MM/YYYY" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '11px', fontWeight: 600, width: '100%' }} />
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
               </div>
             </div>
             <button onClick={() => setShowCustom(false)} style={{ padding: '8px 16px', borderRadius: '7px', background: 'linear-gradient(135deg, #818cf8, #6366f1)', border: 'none', color: '#fff', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Apply</button>
@@ -582,6 +622,108 @@ const MetricCircle = ({ label, value, color }) => {
         </div>
       </div>
       <div style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', textAlign: 'center' }}>{label}</div>
+    </div>
+  );
+};
+
+// Main Time Filter
+const MainTimeFilter = () => {
+  const [active, setActive] = React.useState('fy');
+  const [showCustom, setShowCustom] = React.useState(false);
+  const [startDate, setStartDate] = React.useState('');
+  const [endDate, setEndDate] = React.useState('');
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!showCustom) return;
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setShowCustom(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showCustom]);
+
+  const options = [
+    { id: 'today', label: 'Today' },
+    { id: 'yesterday', label: 'Yesterday' },
+    { id: '7d', label: '7 Days' },
+    { id: '30d', label: '30 Days' },
+    { id: '90d', label: '90 Days' },
+    { id: 'fy', label: 'FY', badge: '4520' },
+    { id: 'all', label: 'All Time' },
+  ];
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1a2030', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '12px 20px', marginBottom: '24px' }}>
+      <div style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>TIME RANGE</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} ref={ref}>
+        {options.map(opt => (
+          <div
+            key={opt.id}
+            onClick={() => { setActive(opt.id); setShowCustom(false); }}
+            style={{
+              position: 'relative',
+              padding: '6px 14px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              color: active === opt.id ? '#fff' : '#94a3b8',
+              background: active === opt.id ? 'rgba(129,140,248,0.15)' : 'transparent',
+              border: active === opt.id ? '1px solid rgba(129,140,248,0.3)' : '1px solid transparent',
+            }}
+          >
+            {opt.label}
+            {opt.badge && (
+              <div style={{ position: 'absolute', top: '-8px', right: '-12px', background: '#6366f1', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '10px', border: '2px solid #1a2030', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {opt.badge}
+              </div>
+            )}
+          </div>
+        ))}
+        <div style={{ position: 'relative' }}>
+          <div
+            onClick={(e) => { e.stopPropagation(); setShowCustom(!showCustom); setActive('custom'); }}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              color: (active === 'custom' || showCustom) ? '#fff' : '#94a3b8',
+              background: (active === 'custom' || showCustom) ? 'rgba(129,140,248,0.15)' : 'transparent',
+              border: (active === 'custom' || showCustom) ? '1px solid rgba(129,140,248,0.3)' : '1px solid transparent',
+            }}
+          >
+            Custom
+          </div>
+          {showCustom && (
+            <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '12px', background: '#151c2c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '16px 20px', zIndex: 100, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', minWidth: '340px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '9px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px', display: 'block' }}>Start Date</label>
+                  <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '8px 12px', gap: '8px' }}>
+                    <input type="text" placeholder="DD/MM/YYYY" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '12px', fontWeight: 600, width: '100%' }} />
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '9px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px', display: 'block' }}>End Date</label>
+                  <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '8px 12px', gap: '8px' }}>
+                    <input type="text" placeholder="DD/MM/YYYY" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '12px', fontWeight: 600, width: '100%' }} />
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                  </div>
+                </div>
+                <button onClick={() => setShowCustom(false)} style={{ padding: '9px 18px', borderRadius: '8px', background: 'linear-gradient(135deg, #818cf8, #6366f1)', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Apply</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

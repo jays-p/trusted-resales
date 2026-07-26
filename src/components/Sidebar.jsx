@@ -16,11 +16,23 @@ import {
 } from 'lucide-react';
 import convoAILogo from '../assets/convoAI-purple.svg';
 
-const Sidebar = () => {
+const Sidebar = ({ activePage = 'dashboard', onNavigate = () => {} }) => {
   const [managementOpen, setManagementOpen] = React.useState(false);
+  const [isDark, setIsDark] = React.useState(() => {
+    return !document.body.classList.contains('light-mode');
+  });
+
+  React.useEffect(() => {
+    if (isDark) {
+      document.body.classList.remove('light-mode');
+    } else {
+      document.body.classList.add('light-mode');
+    }
+  }, [isDark]);
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, active: true },
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, active: activePage === 'dashboard' },
+    { id: 'presales', label: 'Pre Sales', icon: <PieChart className="w-4 h-4" />, active: activePage === 'presales' },
   ];
 
   return (
@@ -38,7 +50,7 @@ const Sidebar = () => {
       {/* Navigation */}
       <div className="nav">
         {menuItems.map(item => (
-          <div key={item.id} className={`nav-item ${item.active ? 'active' : ''}`}>
+          <div key={item.id} className={`nav-item ${item.active ? 'active' : ''}`} onClick={() => onNavigate(item.id)} style={{ cursor: 'pointer' }}>
             {item.icon}
             <span>{item.label}</span>
             {item.active && <span style={{ marginLeft: 'auto', fontSize: '10px', color: 'var(--accent)' }}>›</span>}
@@ -48,17 +60,14 @@ const Sidebar = () => {
 
       {/* Bottom Section */}
       <div className="sidebar-bottom">
-        <div className="upload-btn">
-          <Upload className="w-4 h-4" />
-          <span>Upload Call</span>
-        </div>
-
-        <div className="dark-mode-toggle">
+        <div className="dark-mode-toggle" onClick={() => setIsDark(!isDark)} style={{ cursor: 'pointer' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Moon className="w-3.5 h-3.5" />
-            Dark Mode
+            {isDark ? 'Dark Mode' : 'Light Mode'}
           </span>
-          <div className="toggle-switch" />
+          <div className="toggle-switch" style={{ background: isDark ? 'var(--accent)' : '#cbd5e1', display: 'flex', alignItems: 'center', padding: '0 2px' }}>
+            <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transform: isDark ? 'translateX(18px)' : 'translateX(0)', transition: 'transform 0.2s ease' }} />
+          </div>
         </div>
 
         <div className="user-info">

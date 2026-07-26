@@ -155,7 +155,7 @@ const PlatformDashboard = () => {
 
   return (
     <div className="platform-dashboard-container">
-      <Sidebar />
+      <Sidebar activePage={activePage} onNavigate={setActivePage} />
       {activePage === 'presales' ? (
         <PreSalesDashboard onBack={() => setActivePage('dashboard')} />
       ) : (
@@ -169,13 +169,6 @@ const PlatformDashboard = () => {
             </div>
           </div>
           <div className="topbar-right">
-            {/* Pre Sales Button */}
-            <button
-              onClick={() => setActivePage('presales')}
-              style={{ padding: '8px 14px', borderRadius: '10px', background: '#151c2c', border: '1px solid rgba(255,255,255,0.08)', color: '#c8d1dc', fontSize: '12px', fontWeight: 600, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'all 0.15s', height: '36px', display: 'flex', alignItems: 'center' }}
-            >
-              Pre Sales
-            </button>
             {/* Developer Dropdown */}
             <div className={`admin-dropdown ${devDropdown ? 'open' : ''}`} onClick={() => { setDevDropdown(!devDropdown); setProjDropdown(false); }}>
               <Settings2 className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
