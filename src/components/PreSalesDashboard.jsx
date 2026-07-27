@@ -1,5 +1,16 @@
 import React from 'react';
+import { Settings2, ChevronDown } from 'lucide-react';
 import './PlatformDashboard.css';
+
+const DEVELOPERS = [
+  'Smartworld', 'M3m Developer', 'DTC Group', 'BPTP Ltd', 'Godrej Properties', 'Raheja Developers', 'Emaar India',
+];
+
+const PROJECTS = [
+  'Smartworld Sky Arc', 'Smartworld One Dxp', 'Smartworld The Edition', "Smartworld Nature's Court At Gic",
+  'M3m Crown', 'M3m Antalya Hills', 'DTC Downtown', 'DTC Capital City', 'DTC Still Waters',
+  'BPTP Smartworld Pride', 'World Home Purv', 'ABC Tower 1',
+];
 
 const SALES_DATA = [
   { name: 'Jayesh', leads: 50, interested: 25, deals: 6, target: 10, color: '#818cf8' },
@@ -105,6 +116,12 @@ const PreSalesDashboard = ({ onBack }) => {
   const [coldTooltip, setColdTooltip] = React.useState(null);
   const [expandedRows, setExpandedRows] = React.useState({});
   const [showAllLeaderboard, setShowAllLeaderboard] = React.useState(false);
+  const [devDropdown, setDevDropdown] = React.useState(false);
+  const [projDropdown, setProjDropdown] = React.useState(false);
+  const [devSearch, setDevSearch] = React.useState('');
+  const [projSearch, setProjSearch] = React.useState('');
+  const [selectedDev, setSelectedDev] = React.useState('Enterprise View (All Developers)');
+  const [selectedProj, setSelectedProj] = React.useState('All Projects');
 
   const toggleRow = (idx) => {
     setExpandedRows(prev => ({ ...prev, [idx]: !prev[idx] }));
@@ -124,14 +141,76 @@ const PreSalesDashboard = ({ onBack }) => {
   return (
     <div className="main-content no-scrollbar">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <div>
-          <h2 style={{ fontSize: '22px', fontWeight: 900, fontStyle: 'italic', textTransform: 'uppercase', color: '#fff', letterSpacing: '-0.03em' }}>Pre Sales Analytics</h2>
-          <p style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: '2px' }}>Sales Team Performance Overview — {SALES_DATA.length} Members</p>
+      <div className="topbar" style={{ marginBottom: '24px', borderBottom: 'none', padding: 0 }}>
+        <div className="topbar-left">
+          <div>
+            <h2 style={{ fontSize: '22px', fontWeight: 900, fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.03em' }}>Pre Sales Analytics</h2>
+            <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: '2px' }}>Sales Team Performance Overview — {SALES_DATA.length} Members</p>
+          </div>
         </div>
-        <button onClick={onBack} style={{ padding: '8px 18px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-          ← Back to Dashboard
-        </button>
+        <div className="topbar-right">
+          {/* Developer Dropdown */}
+          <div className={`admin-dropdown ${devDropdown ? 'open' : ''}`} onClick={() => { setDevDropdown(!devDropdown); setProjDropdown(false); }}>
+            <Settings2 className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
+            <span>{selectedDev}</span>
+            <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: devDropdown ? 'rotate(180deg)' : '' }} />
+            {devDropdown && (
+              <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                <input
+                  className="dropdown-search"
+                  type="text"
+                  placeholder="Search..."
+                  value={devSearch}
+                  onChange={(e) => setDevSearch(e.target.value)}
+                  autoFocus
+                />
+                <div className="dropdown-list">
+                  <div className={`dropdown-item ${selectedDev === 'Enterprise View (All Developers)' ? 'active' : ''}`} onClick={() => { setSelectedDev('Enterprise View (All Developers)'); setDevDropdown(false); setDevSearch(''); }}>
+                    Enterprise View (All Developers)
+                  </div>
+                  {DEVELOPERS.filter(d => d.toLowerCase().includes(devSearch.toLowerCase())).map((dev, i) => (
+                    <div key={i} className={`dropdown-item ${selectedDev === dev ? 'active' : ''}`} onClick={() => { setSelectedDev(dev); setDevDropdown(false); setDevSearch(''); }}>
+                      {dev}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Project Dropdown */}
+          <div className={`admin-dropdown ${projDropdown ? 'open' : ''}`} onClick={() => { setProjDropdown(!projDropdown); setDevDropdown(false); }}>
+            <Settings2 className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
+            <span>{selectedProj}</span>
+            <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: projDropdown ? 'rotate(180deg)' : '' }} />
+            {projDropdown && (
+              <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                <input
+                  className="dropdown-search"
+                  type="text"
+                  placeholder="Search..."
+                  value={projSearch}
+                  onChange={(e) => setProjSearch(e.target.value)}
+                  autoFocus
+                />
+                <div className="dropdown-list">
+                  <div className={`dropdown-item ${selectedProj === 'All Projects' ? 'active' : ''}`} onClick={() => { setSelectedProj('All Projects'); setProjDropdown(false); setProjSearch(''); }}>
+                    All Projects
+                  </div>
+                  {PROJECTS.filter(p => p.toLowerCase().includes(projSearch.toLowerCase())).map((proj, i) => (
+                    <div key={i} className={`dropdown-item ${selectedProj === proj ? 'active' : ''}`} onClick={() => { setSelectedProj(proj); setProjDropdown(false); setProjSearch(''); }}>
+                      {proj}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button onClick={onBack} style={{ padding: '8px 18px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', fontSize: '12px', fontWeight: 700, cursor: 'pointer', marginLeft: '12px' }}>
+            ← Back to Dashboard
+          </button>
+        </div>
       </div>
 
       {/* Main Time Filter */}
@@ -139,7 +218,7 @@ const PreSalesDashboard = ({ onBack }) => {
 
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px', marginBottom: '24px' }}>
-        <KpiCard label="Calls" value="2,189" color="#ffffff" />
+        <KpiCard label="Calls" value="2,189" color="var(--text)" />
         <KpiCard label="Goals Met" value={455} color="#34d399" />
         <KpiCard label="Hot" value={44} color="#f87171" />
         <KpiCard label="Warm" value={411} color="#fbbf24" />
@@ -175,7 +254,7 @@ const PreSalesDashboard = ({ onBack }) => {
         {showAllLeaderboard ? (
           <div style={{ padding: '0 24px 24px', overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }} className="no-scrollbar">
             <table className="lb-table" style={{ minWidth: '1200px' }}>
-              <thead style={{ position: 'sticky', top: 0, background: '#1a2030', zIndex: 5 }}>
+              <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
                 <tr>
                   <th style={{ width: '40px' }}>#</th>
                   <th>Executive</th>
@@ -189,11 +268,11 @@ const PreSalesDashboard = ({ onBack }) => {
                   const scores = AI_SCORES[agent.name];
                   return (
                     <tr key={agent.name} style={{ transition: 'background 0.15s' }}>
-                      <td style={{ color: '#64748b', fontWeight: 700 }}>{i + 1}</td>
+                      <td style={{ color: 'var(--muted)', fontWeight: 700 }}>{i + 1}</td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: agent.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: '#0d1117', flexShrink: 0 }}>{agent.name[0]}</div>
-                          <span style={{ fontWeight: 700, color: '#fff', fontSize: '12px' }}>{agent.name}</span>
+                          <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: agent.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{agent.name[0]}</div>
+                          <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '12px' }}>{agent.name}</span>
                         </div>
                       </td>
                       <td>
@@ -205,7 +284,7 @@ const PreSalesDashboard = ({ onBack }) => {
                         </div>
                       </td>
                       {QUALITY_PARAMS.map(p => (
-                        <td key={p.key} style={{ fontSize: '11px', color: '#e2e8f0', fontWeight: 600 }}>{scores[p.key].toFixed(1)}</td>
+                        <td key={p.key} style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 600 }}>{scores[p.key].toFixed(1)}</td>
                       ))}
                     </tr>
                   )
@@ -232,7 +311,7 @@ const PreSalesDashboard = ({ onBack }) => {
             return (
               <div key={i} style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
                 {/* Rank Badge */}
-                <div style={{ position: 'absolute', top: '24px', left: '24px', width: '26px', height: '26px', background: ringColor, borderRadius: '0 12px 12px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: '14px' }}>
+                <div style={{ position: 'absolute', top: '24px', left: '24px', width: '26px', height: '26px', background: ringColor, borderRadius: '0 12px 12px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontWeight: 800, fontSize: '14px' }}>
                   {i + 1}
                 </div>
 
@@ -348,9 +427,9 @@ const PreSalesDashboard = ({ onBack }) => {
           <div className="glass-title">Executive Performance</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <SectionTimeFilter />
-            <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '5px 10px', gap: '6px', width: '140px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '5px 10px', gap: '6px', width: '140px' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-              <input type="text" placeholder="Search..." value={execSearch} onChange={(e) => setExecSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '10px', fontWeight: 600, width: '100%' }} />
+              <input type="text" placeholder="Search..." value={execSearch} onChange={(e) => setExecSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '10px', fontWeight: 600, width: '100%' }} />
             </div>
             <button onClick={() => handleExport(
               ['#', 'Executive', 'Calls', 'Avg Score', 'Site Visit', 'EOI', 'Follow-up', 'Cold', 'Answered', 'Unanswered', 'Performance'],
@@ -363,7 +442,7 @@ const PreSalesDashboard = ({ onBack }) => {
         </div>
         <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto', position: 'relative' }} className="no-scrollbar">
           <table className="lb-table" style={{ minWidth: '700px' }}>
-            <thead style={{ position: 'sticky', top: 0, background: '#1a2030', zIndex: 5 }}>
+            <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
               <tr>
                 <th style={{ width: '40px' }}>#</th>
                 <th>Executive</th>
@@ -390,20 +469,20 @@ const PreSalesDashboard = ({ onBack }) => {
                 const coldTotal = Math.floor(person.leads * 0.4);
                 return (
                   <tr key={i} style={{ transition: 'background 0.15s' }}>
-                    <td style={{ color: '#64748b', fontWeight: 700 }}>{i + 1}</td>
+                    <td style={{ color: 'var(--muted)', fontWeight: 700 }}>{i + 1}</td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: '#0d1117', flexShrink: 0 }}>{person.name[0]}</div>
-                        <span style={{ fontWeight: 700, color: '#fff', fontSize: '13px' }}>{person.name}</span>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{person.name[0]}</div>
+                        <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '13px' }}>{person.name}</span>
                       </div>
                     </td>
-                    <td style={{ fontWeight: 700, color: '#e2e8f0' }}>{person.leads}</td>
+                    <td style={{ fontWeight: 700, color: 'var(--text)' }}>{person.leads}</td>
                     <td>
                       <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, background: parseFloat(avgScore) >= 1.2 ? 'rgba(52,211,153,0.12)' : parseFloat(avgScore) >= 0.8 ? 'rgba(251,191,36,0.12)' : 'rgba(248,113,113,0.12)', color: parseFloat(avgScore) >= 1.2 ? '#34d399' : parseFloat(avgScore) >= 0.8 ? '#fbbf24' : '#f87171' }}>{avgScore}</span>
                     </td>
                     <td style={{ color: '#34d399', fontWeight: 700 }}>{person.deals}</td>
                     <td style={{ color: '#06b6d4', fontWeight: 700 }}>{eoi}</td>
-                    <td style={{ color: '#94a3b8' }}>{followUp}</td>
+                    <td style={{ color: 'var(--muted)' }}>{followUp}</td>
                     <td>
                       <span
                         style={{ padding: '2px 7px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, background: 'rgba(96,165,250,0.12)', color: '#60a5fa', cursor: 'pointer' }}
@@ -430,7 +509,7 @@ const PreSalesDashboard = ({ onBack }) => {
                     <td style={{ color: '#f87171', fontWeight: 700 }}>{unanswered}</td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '60px', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                        <div style={{ width: '60px', height: '6px', borderRadius: '3px', background: 'var(--gb)', overflow: 'hidden' }}>
                           <div style={{ width: `${perfPct}%`, height: '100%', borderRadius: '3px', background: perfPct >= 80 ? '#34d399' : perfPct >= 50 ? '#fbbf24' : '#f87171' }} />
                         </div>
                         <span style={{ fontSize: '10px', fontWeight: 700, color: perfPct >= 80 ? '#34d399' : perfPct >= 50 ? '#fbbf24' : '#f87171' }}>{perfPct.toFixed(0)}%</span>
@@ -457,29 +536,29 @@ const PreSalesDashboard = ({ onBack }) => {
               const pct = Math.min((person.deals / person.target) * 100, 100);
               const achieved = person.deals >= person.target;
               return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', borderBottom: i < SALES_DATA.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none', position: 'relative', cursor: 'pointer' }} onMouseEnter={() => setHoveredBar(i)} onMouseLeave={() => setHoveredBar(null)}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: '#0d1117', flexShrink: 0 }}>{person.name[0]}</div>
-                  <div style={{ width: '70px', fontSize: '12px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{person.name}</div>
-                  <div style={{ flex: 1, position: 'relative', height: '18px', borderRadius: '9px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', borderBottom: i < SALES_DATA.length - 1 ? '1px solid var(--gb)' : 'none', position: 'relative', cursor: 'pointer' }} onMouseEnter={() => setHoveredBar(i)} onMouseLeave={() => setHoveredBar(null)}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{person.name[0]}</div>
+                  <div style={{ width: '70px', fontSize: '12px', fontWeight: 700, color: 'var(--text)', flexShrink: 0 }}>{person.name}</div>
+                  <div style={{ flex: 1, position: 'relative', height: '18px', borderRadius: '9px', background: 'var(--glass)', border: '1px solid var(--gb)', overflow: 'hidden' }}>
                     <div style={{ width: `${pct}%`, height: '100%', borderRadius: '9px', background: 'linear-gradient(90deg, #06b6d4, #34d399)', transition: 'width 0.8s ease', boxShadow: hoveredBar === i ? '0 0 16px rgba(52,211,153,0.5)' : '0 0 12px rgba(52,211,153,0.3)' }} />
                   </div>
                   <div style={{ width: '90px', display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, justifyContent: 'flex-end' }}>
                     <span style={{ fontSize: '13px', fontWeight: 800, color: person.color }}>{person.deals}</span>
-                    <span style={{ fontSize: '10px', color: '#64748b' }}>/</span>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8' }}>{person.target}</span>
+                    <span style={{ fontSize: '10px', color: 'var(--muted)' }}>/</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--muted)' }}>{person.target}</span>
                   </div>
                   <div style={{ width: '50px', textAlign: 'right', fontSize: '11px', fontWeight: 700, color: person.color }}>
                     {pct.toFixed(0)}%
                   </div>
                   {achieved && <span style={{ fontSize: '12px' }}>✓</span>}
                   {hoveredBar === i && (
-                    <div style={{ position: 'absolute', top: '-42px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', border: '1px solid rgba(6,182,212,0.3)', borderRadius: '8px', padding: '8px 14px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff' }}>{person.name}</span>
-                      <span style={{ fontSize: '11px', color: '#64748b' }}> — Target: </span>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>{person.target}</span>
-                      <span style={{ fontSize: '11px', color: '#64748b' }}> | Achieved: </span>
+                    <div style={{ position: 'absolute', top: '-42px', left: '50%', transform: 'translateX(-50%)', background: 'var(--glass-xs)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: '8px', padding: '8px 14px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text)' }}>{person.name}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--muted)' }}> — Target: </span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--muted)' }}>{person.target}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--muted)' }}> | Achieved: </span>
                       <span style={{ fontSize: '11px', fontWeight: 700, color: '#34d399' }}>{person.deals}</span>
-                      <span style={{ fontSize: '11px', color: '#64748b' }}> | </span>
+                      <span style={{ fontSize: '11px', color: 'var(--muted)' }}> | </span>
                       <span style={{ fontSize: '11px', fontWeight: 700, color: achieved ? '#34d399' : '#fbbf24' }}>{pct.toFixed(0)}%</span>
                     </div>
                   )}
@@ -488,11 +567,11 @@ const PreSalesDashboard = ({ onBack }) => {
             })}
           </div>
           {/* Summary */}
-          <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--gb)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', gap: '20px' }}>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>Total Target: <span style={{ fontWeight: 800, color: '#fff' }}>{TOTAL.target}</span></div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>Total Achieved: <span style={{ fontWeight: 800, color: '#34d399' }}>{TOTAL.deals}</span></div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>Achievement: <span style={{ fontWeight: 800, color: ((TOTAL.deals / TOTAL.target) * 100) >= 70 ? '#34d399' : '#fbbf24' }}>{((TOTAL.deals / TOTAL.target) * 100).toFixed(1)}%</span></div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Total Target: <span style={{ fontWeight: 800, color: 'var(--text)' }}>{TOTAL.target}</span></div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Total Achieved: <span style={{ fontWeight: 800, color: '#34d399' }}>{TOTAL.deals}</span></div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Achievement: <span style={{ fontWeight: 800, color: ((TOTAL.deals / TOTAL.target) * 100) >= 70 ? '#34d399' : '#fbbf24' }}>{((TOTAL.deals / TOTAL.target) * 100).toFixed(1)}%</span></div>
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
               <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(52,211,153,0.1)', color: '#34d399', fontWeight: 700 }}>✓ {SALES_DATA.filter(p => p.deals >= p.target).length} achieved</span>
@@ -511,7 +590,7 @@ const PreSalesDashboard = ({ onBack }) => {
           <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '14px' }}>
             <div style={{ position: 'relative', width: '160px', height: '160px', flexShrink: 0 }}>
               <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="80" cy="80" r="62" fill="transparent" stroke="rgba(255,255,255,0.04)" strokeWidth="24" />
+                <circle cx="80" cy="80" r="62" fill="transparent" stroke="var(--gb)" strokeWidth="24" />
                 {(() => {
                   const total = TOTAL.leads;
                   let offset = 0;
@@ -551,21 +630,21 @@ const PreSalesDashboard = ({ onBack }) => {
                 {hoveredSlice !== null ? (
                   <>
                     <div style={{ fontSize: '18px', fontWeight: 900, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].leads}</div>
-                    <div style={{ fontSize: '8px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{SALES_DATA[hoveredSlice].name}</div>
+                    <div style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>{SALES_DATA[hoveredSlice].name}</div>
                   </>
                 ) : (
                   <>
-                    <div style={{ fontSize: '22px', fontWeight: 900, color: '#fff' }}>{TOTAL.leads}</div>
-                    <div style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total</div>
+                    <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text)' }}>{TOTAL.leads}</div>
+                    <div style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Total</div>
                   </>
                 )}
               </div>
               {hoveredSlice !== null && (
-                <div style={{ position: 'absolute', top: '-44px', left: '50%', transform: 'translateX(-50%)', background: '#0f172a', border: `1px solid ${SALES_DATA[hoveredSlice].color}40`, borderRadius: '8px', padding: '6px 12px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
+                <div style={{ position: 'absolute', top: '-44px', left: '50%', transform: 'translateX(-50%)', background: 'var(--glass-xs)', border: `1px solid ${SALES_DATA[hoveredSlice].color}40`, borderRadius: '8px', padding: '6px 12px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
                   <span style={{ fontSize: '11px', fontWeight: 800, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].name}</span>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}> — </span>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#fff' }}>{SALES_DATA[hoveredSlice].leads} leads</span>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}> ({((SALES_DATA[hoveredSlice].leads / TOTAL.leads) * 100).toFixed(1)}%)</span>
+                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}> — </span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)' }}>{SALES_DATA[hoveredSlice].leads} leads</span>
+                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}> ({((SALES_DATA[hoveredSlice].leads / TOTAL.leads) * 100).toFixed(1)}%)</span>
                 </div>
               )}
             </div>
@@ -573,7 +652,7 @@ const PreSalesDashboard = ({ onBack }) => {
               {SALES_DATA.slice(0, 8).map((person, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', transition: 'background 0.15s', background: hoveredSlice === i ? 'rgba(129,140,248,0.08)' : 'transparent' }} onMouseEnter={() => setHoveredSlice(i)} onMouseLeave={() => setHoveredSlice(null)}>
                   <div style={{ width: '7px', height: '7px', borderRadius: '2px', background: person.color }} />
-                  <span style={{ fontSize: '9px', color: hoveredSlice === i ? '#fff' : '#94a3b8', fontWeight: 600, transition: 'color 0.15s' }}>{person.name} ({person.leads})</span>
+                  <span style={{ fontSize: '9px', color: hoveredSlice === i ? 'var(--text)' : 'var(--muted)', fontWeight: 600, transition: 'color 0.15s' }}>{person.name} ({person.leads})</span>
                 </div>
               ))}
             </div>
@@ -583,14 +662,14 @@ const PreSalesDashboard = ({ onBack }) => {
 
       {/* Cold Tooltip - Fixed position */}
       {coldTooltip && (
-        <div style={{ position: 'fixed', left: coldTooltip.x, top: coldTooltip.y, transform: 'translate(-30%, -100%)', zIndex: 9999, background: '#0f172a', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '10px', padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', textAlign: 'left', lineHeight: '2', pointerEvents: 'none', minWidth: '200px' }}>
-          <div style={{ fontSize: '10px', color: '#f87171', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Budget Issue</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.budget}</span></div>
-          <div style={{ fontSize: '10px', color: '#fbbf24', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Location Issue</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.location}</span></div>
-          <div style={{ fontSize: '10px', color: '#fb923c', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Configuration Issue</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.config}</span></div>
-          <div style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Received but not responded</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.received}</span></div>
-          <div style={{ fontSize: '10px', color: '#60a5fa', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Call Hangup</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.hangup}</span></div>
-          <div style={{ fontSize: '10px', color: '#e879f9', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Not Interested</span> <span style={{ color: '#94a3b8' }}>{coldTooltip.breakdown.notInterested}</span></div>
-          <div style={{ fontSize: '11px', color: '#fff', fontWeight: 800, display: 'flex', justifyContent: 'space-between', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.1)' }}><span>Total</span> <span style={{ color: '#60a5fa' }}>{coldTooltip.breakdown.total}</span></div>
+        <div style={{ position: 'fixed', left: coldTooltip.x, top: coldTooltip.y, transform: 'translate(-30%, -100%)', zIndex: 9999, background: 'var(--glass-xs)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '10px', padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', textAlign: 'left', lineHeight: '2', pointerEvents: 'none', minWidth: '200px' }}>
+          <div style={{ fontSize: '10px', color: '#f87171', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Budget Issue</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.budget}</span></div>
+          <div style={{ fontSize: '10px', color: '#fbbf24', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Location Issue</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.location}</span></div>
+          <div style={{ fontSize: '10px', color: '#fb923c', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Configuration Issue</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.config}</span></div>
+          <div style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Received but not responded</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.received}</span></div>
+          <div style={{ fontSize: '10px', color: '#60a5fa', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Call Hangup</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.hangup}</span></div>
+          <div style={{ fontSize: '10px', color: '#e879f9', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Not Interested</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.notInterested}</span></div>
+          <div style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 800, display: 'flex', justifyContent: 'space-between', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--glass-s)' }}><span>Total</span> <span style={{ color: '#60a5fa' }}>{coldTooltip.breakdown.total}</span></div>
         </div>
       )}
     </div>
@@ -621,27 +700,27 @@ const SectionTimeFilter = () => {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '4px', position: 'relative' }} ref={ref}>
       {Object.entries(labels).map(([key, label]) => (
-        <div key={key} onClick={() => { setActive(key); setShowCustom(false); }} style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, color: active === key ? '#fff' : '#64748b', background: active === key ? '#3b82f6' : 'transparent', cursor: 'pointer', transition: 'all 0.15s' }}>{label}</div>
+        <div key={key} onClick={() => { setActive(key); setShowCustom(false); }} style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, color: active === key ? 'var(--text)' : 'var(--muted)', background: active === key ? '#3b82f6' : 'transparent', cursor: 'pointer', transition: 'all 0.15s' }}>{label}</div>
       ))}
-      <div onClick={(e) => { e.stopPropagation(); setShowCustom(!showCustom); setActive(''); }} style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, color: showCustom ? '#fff' : '#64748b', background: showCustom ? '#3b82f6' : 'transparent', cursor: 'pointer', transition: 'all 0.15s' }}>Custom</div>
+      <div onClick={(e) => { e.stopPropagation(); setShowCustom(!showCustom); setActive(''); }} style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, color: showCustom ? 'var(--text)' : 'var(--muted)', background: showCustom ? '#3b82f6' : 'transparent', cursor: 'pointer', transition: 'all 0.15s' }}>Custom</div>
       {showCustom && (
-        <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', background: '#151c2c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '14px 18px', zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', minWidth: '340px' }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', background: 'var(--popup-bg)', border: '1px solid var(--glass-s)', borderRadius: '12px', padding: '14px 18px', zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', minWidth: '340px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px', display: 'block' }}>Start Date</label>
-              <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
-                <input type="text" placeholder="DD/MM/YYYY" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '11px', fontWeight: 600, width: '100%' }} />
+              <label style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px', display: 'block' }}>Start Date</label>
+              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
+                <input type="text" placeholder="DD/MM/YYYY" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
               </div>
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '8px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px', display: 'block' }}>End Date</label>
-              <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
-                <input type="text" placeholder="DD/MM/YYYY" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '11px', fontWeight: 600, width: '100%' }} />
+              <label style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px', display: 'block' }}>End Date</label>
+              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
+                <input type="text" placeholder="DD/MM/YYYY" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
               </div>
             </div>
-            <button onClick={() => setShowCustom(false)} style={{ padding: '8px 16px', borderRadius: '7px', background: 'linear-gradient(135deg, #818cf8, #6366f1)', border: 'none', color: '#fff', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Apply</button>
+            <button onClick={() => setShowCustom(false)} style={{ padding: '8px 16px', borderRadius: '7px', background: 'linear-gradient(135deg, #818cf8, #6366f1)', border: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Apply</button>
           </div>
         </div>
       )}
@@ -673,7 +752,7 @@ const StarRating = ({ score, maxStars = 5, size = 14, color = '#fbbf24' }) => {
         </svg>
       )}
       {Array.from({ length: emptyStars }).map((_, i) => (
-        <svg key={`empty-${i}`} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1">
+        <svg key={`empty-${i}`} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="var(--glass)" strokeWidth="1">
           <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
         </svg>
       ))}
@@ -683,9 +762,9 @@ const StarRating = ({ score, maxStars = 5, size = 14, color = '#fbbf24' }) => {
 
 // Sub components
 const KpiCard = ({ label, value, color }) => (
-  <div style={{ background: '#1a2030', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '20px 16px', textAlign: 'center' }}>
+  <div style={{ background: 'var(--bg)', border: '1px solid var(--gb)', borderRadius: '14px', padding: '20px 16px', textAlign: 'center' }}>
     <div style={{ fontSize: '26px', fontWeight: 800, fontStyle: 'italic', color, letterSpacing: '-0.5px' }}>{value}</div>
-    <div style={{ fontSize: '9px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '6px' }}>{label}</div>
+    <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '6px' }}>{label}</div>
   </div>
 );
 
@@ -697,14 +776,14 @@ const MetricCircle = ({ label, value, color }) => {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
       <div style={{ position: 'relative', width: '90px', height: '90px' }}>
         <svg width="90" height="90" viewBox="0 0 90 90" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="45" cy="45" r={r} fill="transparent" stroke="rgba(255,255,255,0.04)" strokeWidth="8" />
+          <circle cx="45" cy="45" r={r} fill="transparent" stroke="var(--gb)" strokeWidth="8" />
           <circle cx="45" cy="45" r={r} fill="transparent" stroke={color} strokeWidth="8" strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s ease' }} />
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ fontSize: '16px', fontWeight: 800, color }}>{value}%</span>
         </div>
       </div>
-      <div style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', textAlign: 'center' }}>{label}</div>
+      <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--muted)', textAlign: 'center' }}>{label}</div>
     </div>
   );
 };
@@ -739,8 +818,8 @@ const MainTimeFilter = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1a2030', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '12px 20px', marginBottom: '24px' }}>
-      <div style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>TIME RANGE</div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg)', border: '1px solid var(--gb)', borderRadius: '14px', padding: '12px 20px', marginBottom: '24px' }}>
+      <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>TIME RANGE</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} ref={ref}>
         {options.map(opt => (
           <div
@@ -754,14 +833,14 @@ const MainTimeFilter = () => {
               fontWeight: 700,
               cursor: 'pointer',
               transition: 'all 0.2s',
-              color: active === opt.id ? '#fff' : '#94a3b8',
+              color: active === opt.id ? 'var(--text)' : 'var(--muted)',
               background: active === opt.id ? 'rgba(129,140,248,0.15)' : 'transparent',
               border: active === opt.id ? '1px solid rgba(129,140,248,0.3)' : '1px solid transparent',
             }}
           >
             {opt.label}
             {opt.badge && (
-              <div style={{ position: 'absolute', top: '-8px', right: '-12px', background: '#6366f1', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '10px', border: '2px solid #1a2030', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ position: 'absolute', top: '-8px', right: '-12px', background: '#6366f1', color: 'var(--text)', fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '10px', border: '2px solid var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {opt.badge}
               </div>
             )}
@@ -777,7 +856,7 @@ const MainTimeFilter = () => {
               fontWeight: 700,
               cursor: 'pointer',
               transition: 'all 0.2s',
-              color: (active === 'custom' || showCustom) ? '#fff' : '#94a3b8',
+              color: (active === 'custom' || showCustom) ? 'var(--text)' : 'var(--muted)',
               background: (active === 'custom' || showCustom) ? 'rgba(129,140,248,0.15)' : 'transparent',
               border: (active === 'custom' || showCustom) ? '1px solid rgba(129,140,248,0.3)' : '1px solid transparent',
             }}
@@ -785,23 +864,23 @@ const MainTimeFilter = () => {
             Custom
           </div>
           {showCustom && (
-            <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '12px', background: '#151c2c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '16px 20px', zIndex: 100, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', minWidth: '340px' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '12px', background: 'var(--popup-bg)', border: '1px solid var(--glass-s)', borderRadius: '12px', padding: '16px 20px', zIndex: 100, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', minWidth: '340px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '9px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px', display: 'block' }}>Start Date</label>
-                  <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '8px 12px', gap: '8px' }}>
-                    <input type="text" placeholder="DD/MM/YYYY" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '12px', fontWeight: 600, width: '100%' }} />
+                  <label style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px', display: 'block' }}>Start Date</label>
+                  <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '8px 12px', gap: '8px' }}>
+                    <input type="text" placeholder="DD/MM/YYYY" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '12px', fontWeight: 600, width: '100%' }} />
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '9px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px', display: 'block' }}>End Date</label>
-                  <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '8px 12px', gap: '8px' }}>
-                    <input type="text" placeholder="DD/MM/YYYY" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '12px', fontWeight: 600, width: '100%' }} />
+                  <label style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px', display: 'block' }}>End Date</label>
+                  <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '8px 12px', gap: '8px' }}>
+                    <input type="text" placeholder="DD/MM/YYYY" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '12px', fontWeight: 600, width: '100%' }} />
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                   </div>
                 </div>
-                <button onClick={() => setShowCustom(false)} style={{ padding: '9px 18px', borderRadius: '8px', background: 'linear-gradient(135deg, #818cf8, #6366f1)', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Apply</button>
+                <button onClick={() => setShowCustom(false)} style={{ padding: '9px 18px', borderRadius: '8px', background: 'linear-gradient(135deg, #818cf8, #6366f1)', border: 'none', color: 'var(--text)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Apply</button>
               </div>
             </div>
           )}
