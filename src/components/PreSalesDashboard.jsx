@@ -79,11 +79,12 @@ const getAgentAvgAI = (name) => {
   return Object.values(scores).reduce((a, b) => a + b, 0) / QUALITY_PARAMS.length;
 };
 
-// Top 3 by AI score
-const TOP5_AI = [...SALES_DATA]
+// Top AI scores
+const ALL_AI = [...SALES_DATA]
   .filter(a => AI_SCORES[a.name])
-  .sort((a, b) => getAgentAvgAI(b.name) - getAgentAvgAI(a.name))
-  .slice(0, 3);
+  .sort((a, b) => getAgentAvgAI(b.name) - getAgentAvgAI(a.name));
+
+const TOP3_AI = ALL_AI.slice(0, 3);
 
 const TOTAL = {
   leads: SALES_DATA.reduce((a, b) => a + b.leads, 0),
@@ -103,6 +104,7 @@ const PreSalesDashboard = ({ onBack }) => {
   const [aiSearch, setAiSearch] = React.useState('');
   const [coldTooltip, setColdTooltip] = React.useState(null);
   const [expandedRows, setExpandedRows] = React.useState({});
+  const [showAllLeaderboard, setShowAllLeaderboard] = React.useState(false);
 
   const toggleRow = (idx) => {
     setExpandedRows(prev => ({ ...prev, [idx]: !prev[idx] }));
@@ -155,6 +157,9 @@ const PreSalesDashboard = ({ onBack }) => {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button onClick={() => setShowAllLeaderboard(!showAllLeaderboard)} style={{ padding: '6px 12px', borderRadius: '8px', background: showAllLeaderboard ? 'rgba(129,140,248,0.1)' : 'var(--glass-xs)', border: '1px solid var(--gb)', color: showAllLeaderboard ? '#818cf8' : 'var(--text)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
+              {showAllLeaderboard ? 'Show Top 3' : 'View All'}
+            </button>
             <SectionTimeFilter active="ALL" />
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '6px 12px', gap: '8px', width: '160px' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
@@ -162,7 +167,7 @@ const PreSalesDashboard = ({ onBack }) => {
             </div>
             <button onClick={() => handleExport(
               ['#', 'Agent', 'Calls', ...QUALITY_PARAMS.map(p => p.label), 'Avg'],
-              TOP5_AI.map((a, i) => [i + 1, a.name, a.leads, ...QUALITY_PARAMS.map(p => AI_SCORES[a.name][p.key].toFixed(1)), getAgentAvgAI(a.name).toFixed(1)]),
+              ALL_AI.map((a, i) => [i + 1, a.name, a.leads, ...QUALITY_PARAMS.map(p => AI_SCORES[a.name][p.key].toFixed(1)), getAgentAvgAI(a.name).toFixed(1)]),
               'leaderboard'
             )} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--accent)', cursor: 'pointer', transition: 'all 0.2s' }} title="Export">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
@@ -170,8 +175,47 @@ const PreSalesDashboard = ({ onBack }) => {
           </div>
         </div>
 
+        {showAllLeaderboard ? (
+          <div style={{ padding: '0 24px 24px', overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }} className="no-scrollbar">
+            <table className="lb-table" style={{ minWidth: '1200px' }}>
+              <thead style={{ position: 'sticky', top: 0, background: '#1a2030', zIndex: 5 }}>
+                <tr>
+                  <th style={{ width: '40px' }}>#</th>
+                  <th>Executive</th>
+                  <th>Score</th>
+                  {QUALITY_PARAMS.map(p => <th key={p.key}>{p.label}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {ALL_AI.filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase())).map((agent, i) => {
+                  const avgScore = getAgentAvgAI(agent.name);
+                  const scores = AI_SCORES[agent.name];
+                  return (
+                    <tr key={agent.name} style={{ transition: 'background 0.15s' }}>
+                      <td style={{ color: '#64748b', fontWeight: 700 }}>{i + 1}</td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: agent.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: '#0d1117', flexShrink: 0 }}>{agent.name[0]}</div>
+                          <span style={{ fontWeight: 700, color: '#fff', fontSize: '12px' }}>{agent.name}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: 'rgba(251,191,36,0.12)', color: '#fbbf24' }}>
+                          {avgScore.toFixed(1)}
+                        </span>
+                      </td>
+                      {QUALITY_PARAMS.map(p => (
+                        <td key={p.key} style={{ fontSize: '11px', color: '#e2e8f0', fontWeight: 600 }}>{scores[p.key].toFixed(1)}</td>
+                      ))}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
         <div style={{ padding: '0 24px 24px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-          {TOP5_AI.filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase())).slice(0, 3).map((agent, i) => {
+          {TOP3_AI.filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase())).slice(0, 3).map((agent, i) => {
             const scores = AI_SCORES[agent.name];
             const avgScore = getAgentAvgAI(agent.name);
             const ringColor = i === 0 ? '#fbbf24' : i === 1 ? '#8b5cf6' : '#fb923c'; // Gold, Purple, Peach/Orange
@@ -257,6 +301,7 @@ const PreSalesDashboard = ({ onBack }) => {
             );
           })}
         </div>
+        )}
       </div>
 
       {/* Executive Performance Table - Above */}
