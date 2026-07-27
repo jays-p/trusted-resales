@@ -157,9 +157,6 @@ const PreSalesDashboard = ({ onBack }) => {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button onClick={() => setShowAllLeaderboard(!showAllLeaderboard)} style={{ padding: '6px 12px', borderRadius: '8px', background: showAllLeaderboard ? 'rgba(129,140,248,0.1)' : 'var(--glass-xs)', border: '1px solid var(--gb)', color: showAllLeaderboard ? '#818cf8' : 'var(--text)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
-              {showAllLeaderboard ? 'Show Top 3' : 'View All'}
-            </button>
             <SectionTimeFilter active="ALL" />
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '6px 12px', gap: '8px', width: '160px' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
@@ -305,6 +302,44 @@ const PreSalesDashboard = ({ onBack }) => {
           })}
         </div>
         )}
+        <div style={{ padding: '0 24px 24px', display: 'flex', justifyContent: 'center' }}>
+          <button 
+            onClick={() => setShowAllLeaderboard(!showAllLeaderboard)} 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              padding: '12px 32px', 
+              borderRadius: '100px', 
+              background: 'rgba(129,140,248,0.1)', 
+              border: '1px solid rgba(129,140,248,0.25)', 
+              color: '#818cf8', 
+              fontSize: '12px', 
+              fontWeight: 800, 
+              letterSpacing: '0.03em',
+              textTransform: 'uppercase',
+              cursor: 'pointer', 
+              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            }} 
+            onMouseOver={e => {
+              e.currentTarget.style.background = 'rgba(129,140,248,0.2)';
+              e.currentTarget.style.borderColor = 'rgba(129,140,248,0.4)';
+              e.currentTarget.style.transform = 'scale(1.02) translateY(-1px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px -6px rgba(129,140,248,0.4)';
+            }} 
+            onMouseOut={e => {
+              e.currentTarget.style.background = 'rgba(129,140,248,0.1)';
+              e.currentTarget.style.borderColor = 'rgba(129,140,248,0.25)';
+              e.currentTarget.style.transform = 'scale(1) translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            <span>{showAllLeaderboard ? 'Collapse to Top 3' : 'View Full Leaderboard'}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)', transform: showAllLeaderboard ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Executive Performance Table - Above */}
