@@ -200,9 +200,12 @@ const PreSalesDashboard = ({ onBack }) => {
                         </div>
                       </td>
                       <td>
-                        <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: 'rgba(251,191,36,0.12)', color: '#fbbf24' }}>
-                          {avgScore.toFixed(1)}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: avgScore >= 3.5 ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)', color: avgScore >= 3.5 ? '#34d399' : '#f87171' }}>
+                            {avgScore.toFixed(1)}
+                          </span>
+                          <StarRating score={avgScore} size={12} color={avgScore >= 3.5 ? '#34d399' : '#f87171'} />
+                        </div>
                       </td>
                       {QUALITY_PARAMS.map(p => (
                         <td key={p.key} style={{ fontSize: '11px', color: '#e2e8f0', fontWeight: 600 }}>{scores[p.key].toFixed(1)}</td>
@@ -612,26 +615,26 @@ const SectionTimeFilter = () => {
 };
 
 // Star Rating component
-const StarRating = ({ score, maxStars = 5, size = 14 }) => {
+const StarRating = ({ score, maxStars = 5, size = 14, color = '#fbbf24' }) => {
   const fullStars = Math.floor(score);
   const partial = score - fullStars;
   const emptyStars = maxStars - fullStars - (partial > 0 ? 1 : 0);
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '1px' }}>
       {Array.from({ length: fullStars }).map((_, i) => (
-        <svg key={`full-${i}`} width={size} height={size} viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="0.5">
+        <svg key={`full-${i}`} width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="0.5">
           <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
         </svg>
       ))}
       {partial > 0 && (
-        <svg key="partial" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="0.5">
+        <svg key="partial" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="0.5">
           <defs>
             <clipPath id={`clip-${score}-${size}`}>
               <rect x="0" y="0" width={partial * 24} height="24" />
             </clipPath>
           </defs>
-          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#fbbf24" clipPath={`url(#clip-${score}-${size})`} />
-          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="none" stroke="#fbbf24" strokeWidth="0.5" />
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill={color} clipPath={`url(#clip-${score}-${size})`} />
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="none" stroke={color} strokeWidth="0.5" />
         </svg>
       )}
       {Array.from({ length: emptyStars }).map((_, i) => (
