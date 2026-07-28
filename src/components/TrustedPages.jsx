@@ -27,12 +27,27 @@ const TopBorderCard = ({ label, value, color, valueColor }) => (
   </div>
 );
 
-const FilterDot = ({ label }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '20px', background: 'var(--card-bg-alt)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--dim)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+const FilterDot = ({ label, color = '#818cf8', active, onClick }) => (
+  <div
+    onClick={onClick}
+    style={{
+      display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '20px',
+      background: active ? `${color}20` : 'var(--card-bg-alt)',
+      border: active ? `1px solid ${color}80` : '1px solid rgba(255,255,255,0.08)',
+      color: active ? color : 'var(--dim)',
+      fontSize: '11px', fontWeight: active ? 700 : 600, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s ease',
+    }}
+  >
     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />
     {label}
   </div>
 );
+
+const toggleInArray = (setter, value) => setter(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
+
+const LEAD_STATUS_COLORS = { Hot: '#f87171', Warm: '#fbbf24', Cold: '#60a5fa', Skipped: '#94a3b8' };
+const CALL_STATUS_COLORS = { Completed: '#34d399', Processing: '#60a5fa', Failed: '#f87171' };
+const OUTCOME_COLORS = { Answered: '#34d399', Unanswered: '#f87171' };
 
 /* ---------- ALL CALL RECORDS ---------- */
 
@@ -46,17 +61,33 @@ const CALL_RECORDS_STATS = [
   { label: 'On Hold', value: '0', color: '#fb923c' },
 ];
 
+const LEAD_STATUS_CYCLE = ['Hot', 'Warm', 'Cold', 'Skipped'];
+const CALL_STATUS_CYCLE = ['Completed', 'Processing', 'Failed'];
+
 const CALL_RECORDS_DATA = Array.from({ length: 8 }, (_, i) => ({
   id: `6a630${i}56997bf2e4e89${(641 - i * 4).toString().padStart(3, '0')}d`,
   leadId: `6a4603ca3a93681cadae2${(500 + i * 7).toString().padStart(3, '0')}`,
   project: 'M3m',
+  leadStatus: LEAD_STATUS_CYCLE[i % LEAD_STATUS_CYCLE.length],
+  callStatus: CALL_STATUS_CYCLE[i % CALL_STATUS_CYCLE.length],
+  answered: i % 3 !== 0,
   date: '24 Jul 2026',
   time: `${12 - Math.floor(i / 4)}:${(30 - i * 3).toString().padStart(2, '0')} PM`,
 }));
 
-export const AllCallRecordsPage = () => {
+export const AllCallRecordsPage = ({ initialFilter }) => {
   const [search, setSearch] = React.useState('');
-  const rows = CALL_RECORDS_DATA.filter(r => r.id.toLowerCase().includes(search.toLowerCase()) || r.project.toLowerCase().includes(search.toLowerCase()));
+  const [leadStatusFilter, setLeadStatusFilter] = React.useState(initialFilter?.type === 'lead' ? [initialFilter.value] : []);
+  const [callStatusFilter, setCallStatusFilter] = React.useState(initialFilter?.type === 'call' ? [initialFilter.value] : []);
+  const [outcomeFilter, setOutcomeFilter] = React.useState(initialFilter?.type === 'outcome' ? [initialFilter.value] : []);
+
+  const rows = CALL_RECORDS_DATA.filter(r => {
+    const matchesSearch = r.id.toLowerCase().includes(search.toLowerCase()) || r.project.toLowerCase().includes(search.toLowerCase());
+    const matchesLead = leadStatusFilter.length === 0 || leadStatusFilter.includes(r.leadStatus);
+    const matchesCall = callStatusFilter.length === 0 || callStatusFilter.includes(r.callStatus);
+    const matchesOutcome = outcomeFilter.length === 0 || outcomeFilter.includes(r.answered ? 'Answered' : 'Unanswered');
+    return matchesSearch && matchesLead && matchesCall && matchesOutcome;
+  });
 
   return (
     <div className="main-content no-scrollbar">
@@ -96,13 +127,25 @@ export const AllCallRecordsPage = () => {
           <div>
             <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Lead Status</div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              {['Hot', 'Warm', 'Cold', 'Skipped'].map((l) => <FilterDot key={l} label={l} />)}
+              {LEAD_STATUS_CYCLE.map((l) => (
+                <FilterDot key={l} label={l} color={LEAD_STATUS_COLORS[l]} active={leadStatusFilter.includes(l)} onClick={() => toggleInArray(setLeadStatusFilter, l)} />
+              ))}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Call Status</div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              {['Completed', 'Processing', 'Failed'].map((l) => <FilterDot key={l} label={l} />)}
+              {CALL_STATUS_CYCLE.map((l) => (
+                <FilterDot key={l} label={l} color={CALL_STATUS_COLORS[l]} active={callStatusFilter.includes(l)} onClick={() => toggleInArray(setCallStatusFilter, l)} />
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Call Outcome</div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {['Answered', 'Unanswered'].map((l) => (
+                <FilterDot key={l} label={l} color={OUTCOME_COLORS[l]} active={outcomeFilter.includes(l)} onClick={() => toggleInArray(setOutcomeFilter, l)} />
+              ))}
             </div>
           </div>
           <div>
@@ -147,8 +190,11 @@ export const AllCallRecordsPage = () => {
                   <td style={{ fontWeight: 700, color: 'var(--text)' }}>{r.project}</td>
                   <td><IdBadge id={r.id} /></td>
                   <td><IdBadge id={r.leadId} /></td>
-                  <td><StatusBadge label="Queued" color="#fbbf24" /></td>
-                  <td style={{ color: 'var(--muted)' }}>—</td>
+                  <td>
+                    <StatusBadge label={r.callStatus} color={CALL_STATUS_COLORS[r.callStatus]} />
+                    <div style={{ fontSize: '9px', color: r.answered ? '#34d399' : '#f87171', marginTop: '4px', fontWeight: 700 }}>{r.answered ? 'Answered' : 'Unanswered'}</div>
+                  </td>
+                  <td><StatusBadge label={r.leadStatus} color={LEAD_STATUS_COLORS[r.leadStatus]} /></td>
                   <td style={{ color: 'var(--muted)' }}>—</td>
                   <td style={{ color: 'var(--muted)' }}>—</td>
                   <td><DateCell date={r.date} time={r.time} /></td>

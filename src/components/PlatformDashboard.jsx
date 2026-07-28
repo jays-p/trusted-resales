@@ -147,7 +147,13 @@ const PlatformDashboard = () => {
   const [creditSearch, setCreditSearch] = useState('');
   const [recentCallsSearch, setRecentCallsSearch] = useState('');
   const [expandedTemp, setExpandedTemp] = useState(null);
+  const [callRecordsFilter, setCallRecordsFilter] = useState(null);
   const data = STATIC_DATA;
+
+  const goToCallRecords = (filter) => {
+    setCallRecordsFilter(filter);
+    setActivePage('all-call-records');
+  };
 
   const timeLabels = {
     '1D': 'Today',
@@ -194,9 +200,9 @@ const PlatformDashboard = () => {
     <div className="platform-dashboard-container">
       <Sidebar activePage={activePage} onNavigate={setActivePage} />
       {activePage === 'presales' ? (
-        <PreSalesDashboard onBack={() => setActivePage('dashboard')} />
+        <PreSalesDashboard onBack={() => setActivePage('dashboard')} onNavigateToCallRecords={goToCallRecords} />
       ) : StaticPage ? (
-        <StaticPage />
+        <StaticPage initialFilter={activePage === 'all-call-records' ? callRecordsFilter : undefined} />
       ) : (
       <div className="main-content no-scrollbar">
         {/* Topbar */}

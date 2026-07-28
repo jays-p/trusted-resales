@@ -1,6 +1,53 @@
 import React from 'react';
-import { Settings2, ChevronDown } from 'lucide-react';
+import { Settings2, ChevronDown, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import './PlatformDashboard.css';
+
+const toggleSort = (setter, key) => setter(prev => ({ key, dir: prev.key === key && prev.dir === 'desc' ? 'asc' : 'desc' }));
+
+const SortArrow = ({ active, dir }) => (
+  <span
+    style={{
+      marginLeft: '6px',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '16px',
+      height: '16px',
+      borderRadius: '5px',
+      background: active ? 'var(--accent)' : 'var(--glass-xs)',
+      color: active ? '#fff' : 'var(--muted)',
+    }}
+  >
+    {active ? (
+      dir === 'asc' ? <ArrowUp size={10} strokeWidth={2.75} /> : <ArrowDown size={10} strokeWidth={2.75} />
+    ) : (
+      <ArrowUpDown size={10} strokeWidth={2.25} />
+    )}
+  </span>
+);
+
+const SortableTh = ({ label, sortKey, sort, onSort, style }) => (
+  <th
+    onClick={() => onSort(sortKey)}
+    style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap', ...style }}
+  >
+    <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+      {label}
+      <SortArrow active={sort.key === sortKey} dir={sort.dir} />
+    </span>
+  </th>
+);
+
+const sortByKey = (rows, sort, getValue) => {
+  if (!sort.key) return rows;
+  const sorted = [...rows].sort((a, b) => {
+    const va = getValue(a, sort.key);
+    const vb = getValue(b, sort.key);
+    if (typeof va === 'string') return va.localeCompare(vb);
+    return va - vb;
+  });
+  return sort.dir === 'asc' ? sorted : sorted.reverse();
+};
 
 const DEVELOPERS = [
   'Smartworld', 'M3m Developer', 'DTC Group', 'BPTP Ltd', 'Godrej Properties', 'Raheja Developers', 'Emaar India',
@@ -90,6 +137,206 @@ const getAgentAvgAI = (name) => {
   return Object.values(scores).reduce((a, b) => a + b, 0) / QUALITY_PARAMS.length;
 };
 
+// Deterministic pseudo-random monthly trend per executive (stable across re-renders)
+const TREND_MONTHS = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+const seededRandom = (seed) => {
+  let s = seed;
+  return () => {
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+};
+const getMonthlyTrend = (person) => {
+  let seed = 0;
+  for (let i = 0; i < person.name.length; i++) seed = (seed * 31 + person.name.charCodeAt(i)) >>> 0;
+  const rand = seededRandom(seed);
+  const baseCalls = person.leads / TREND_MONTHS.length;
+  const baseScore = Math.max(1.5, Math.min(4.5, (person.deals / person.leads) * 10));
+  return TREND_MONTHS.map((month, i) => {
+    const progress = i / (TREND_MONTHS.length - 1);
+    const calls = Math.max(3, Math.round(baseCalls * (0.75 + 0.3 * progress) * (0.85 + rand() * 0.3)));
+    const avgScore = Math.max(0.5, Math.min(5, parseFloat((baseScore * (0.82 + 0.22 * progress) + (rand() - 0.5) * 0.5).toFixed(1))));
+    return { month, calls, avgScore };
+  });
+};
+
+const roundedTopBarPath = (x, y, w, h, r) => {
+  const rr = Math.min(r, h);
+  return `M ${x} ${y + h} L ${x} ${y + rr} Q ${x} ${y} ${x + rr} ${y} L ${x + w - rr} ${y} Q ${x + w} ${y} ${x + w} ${y + rr} L ${x + w} ${y + h} Z`;
+};
+
+const AgentTrendModal = ({ person, onClose }) => {
+  const data = React.useMemo(() => getMonthlyTrend(person), [person.name]);
+  const [hoverIdx, setHoverIdx] = React.useState(null);
+  const [showTable, setShowTable] = React.useState(false);
+  const n = data.length;
+
+  // Line chart (avg quality score) — sized for a side-by-side half-width column
+  const W = 430, H = 210;
+  const padL = 30, padR = 14, padT = 16, padB = 26;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const xAt = (i) => padL + (n === 1 ? 0 : (i / (n - 1)) * plotW);
+  const yScore = (v) => padT + plotH - (v / 5) * plotH;
+  const linePath = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xAt(i)} ${yScore(d.avgScore)}`).join(' ');
+  const areaPath = `${linePath} L ${xAt(n - 1)} ${padT + plotH} L ${xAt(0)} ${padT + plotH} Z`;
+
+  // Bar chart (calls)
+  const H2 = 210;
+  const padT2 = 16, padB2 = 26;
+  const plotH2 = H2 - padT2 - padB2;
+  const callsMax = Math.max(...data.map(d => d.calls)) * 1.2;
+  const yCalls = (v) => padT2 + plotH2 - (v / callsMax) * plotH2;
+  const barW = 18;
+  const [hoverBar, setHoverBar] = React.useState(null);
+
+  const handleLineMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * W;
+    const ratio = Math.min(1, Math.max(0, (x - padL) / plotW));
+    setHoverIdx(Math.round(ratio * (n - 1)));
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }} onClick={onClose}>
+      <div className="glass" style={{ width: '1080px', maxWidth: '100%', maxHeight: '94vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+        <div className="glass-header" style={{ padding: '20px 26px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{person.name[0]}</div>
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text)', textTransform: 'none', letterSpacing: 'normal' }}>{person.name}</div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600, marginTop: '2px' }}>Monthly performance trend · Last 6 months</div>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }} title="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+
+        <div style={{ padding: '28px' }}>
+          {/* KPI summary */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '28px' }}>
+            {[
+              { label: 'Calls', value: person.leads },
+              { label: 'Deals', value: person.deals },
+              { label: 'Target', value: person.target },
+              { label: 'Conversion', value: `${Math.round((person.deals / person.leads) * 100)}%` },
+            ].map((s, i) => (
+              <div key={i} style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</div>
+                <div style={{ fontSize: '20px', color: 'var(--text)', fontWeight: 800, marginTop: '4px' }}>{s.value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px' }}>
+            {/* Avg Quality Score trend (line) */}
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>Avg Quality Score</div>
+              <div style={{ position: 'relative' }}>
+                <svg width="100%" viewBox={`0 0 ${W} ${H}`} onMouseMove={handleLineMove} onMouseLeave={() => setHoverIdx(null)} style={{ display: 'block', cursor: 'crosshair' }}>
+                  {[0, 1, 2, 3, 4, 5].map(t => (
+                    <line key={t} x1={padL} x2={W - padR} y1={yScore(t)} y2={yScore(t)} stroke="var(--gb)" strokeWidth="1" />
+                  ))}
+                  {[0, 1, 2, 3, 4, 5].map(t => (
+                    <text key={t} x={padL - 8} y={yScore(t) + 4} fontSize="11" fill="var(--muted)" textAnchor="end">{t}</text>
+                  ))}
+                  <path d={areaPath} fill="var(--accent)" opacity="0.1" stroke="none" />
+                  <path d={linePath} fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  {hoverIdx !== null && (
+                    <line x1={xAt(hoverIdx)} x2={xAt(hoverIdx)} y1={padT} y2={padT + plotH} stroke="var(--muted)" strokeWidth="1" strokeDasharray="3 3" />
+                  )}
+                  {data.map((d, i) => (
+                    <circle key={i} cx={xAt(i)} cy={yScore(d.avgScore)} r={i === hoverIdx ? 7 : 5.5} fill="var(--accent)" stroke="var(--card-bg)" strokeWidth="2.5" />
+                  ))}
+                  {data.map((d, i) => (
+                    <text key={i} x={xAt(i)} y={H - 6} fontSize="11" fill="var(--muted)" textAnchor="middle">{d.month}</text>
+                  ))}
+                  <text x={xAt(n - 1)} y={yScore(data[n - 1].avgScore) - 14} fontSize="13" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].avgScore.toFixed(1)}</text>
+                </svg>
+                {hoverIdx !== null && (
+                  <div style={{ position: 'absolute', left: `${(xAt(hoverIdx) / W) * 100}%`, top: 0, transform: 'translate(-50%, -100%)', background: 'var(--card-bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
+                    <div style={{ color: 'var(--muted)', fontWeight: 700, marginBottom: '3px' }}>{data[hoverIdx].month}</div>
+                    <div style={{ color: 'var(--text)', fontWeight: 800 }}>{data[hoverIdx].avgScore.toFixed(1)} avg score</div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Calls volume (bar) */}
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>Calls Volume</div>
+              <div style={{ position: 'relative' }}>
+                <svg width="100%" viewBox={`0 0 ${W} ${H2}`} style={{ display: 'block' }}>
+                  {[0, 0.5, 1].map(t => (
+                    <line key={t} x1={padL} x2={W - padR} y1={padT2 + plotH2 * (1 - t)} y2={padT2 + plotH2 * (1 - t)} stroke="var(--gb)" strokeWidth="1" />
+                  ))}
+                  {data.map((d, i) => {
+                    const x = xAt(i) - barW / 2;
+                    const y = yCalls(d.calls);
+                    const h = padT2 + plotH2 - y;
+                    return (
+                      <path
+                        key={i}
+                        d={roundedTopBarPath(x, y, barW, h, 5)}
+                        fill="var(--accent)"
+                        opacity={hoverBar === null || hoverBar === i ? 1 : 0.55}
+                        onMouseEnter={() => setHoverBar(i)}
+                        onMouseLeave={() => setHoverBar(null)}
+                        style={{ cursor: 'pointer', transition: 'opacity 0.15s' }}
+                      />
+                    );
+                  })}
+                  {data.map((d, i) => (
+                    <text key={i} x={xAt(i)} y={H2 - 6} fontSize="11" fill="var(--muted)" textAnchor="middle">{d.month}</text>
+                  ))}
+                  <text x={xAt(n - 1)} y={yCalls(data[n - 1].calls) - 8} fontSize="13" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].calls}</text>
+                </svg>
+                {hoverBar !== null && (
+                  <div style={{ position: 'absolute', left: `${(xAt(hoverBar) / W) * 100}%`, top: `${(yCalls(data[hoverBar].calls) / H2) * 100}%`, transform: 'translate(-50%, -130%)', background: 'var(--card-bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
+                    <div style={{ color: 'var(--muted)', fontWeight: 700, marginBottom: '3px' }}>{data[hoverBar].month}</div>
+                    <div style={{ color: 'var(--text)', fontWeight: 800 }}>{data[hoverBar].calls} calls</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div
+            onClick={() => setShowTable(!showTable)}
+            style={{ marginTop: '22px', fontSize: '12px', fontWeight: 700, color: 'var(--accent)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+          >
+            {showTable ? 'Hide' : 'View'} as table
+            <ChevronDown size={13} style={{ transition: 'transform 0.2s', transform: showTable ? 'rotate(180deg)' : 'none' }} />
+          </div>
+          {showTable && (
+            <table className="lb-table" style={{ marginTop: '10px', width: '100%' }}>
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Calls</th>
+                  <th>Avg Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((d, i) => (
+                  <tr key={i}>
+                    <td style={{ color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
+                    <td>{d.calls}</td>
+                    <td>{d.avgScore.toFixed(1)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Top AI scores
 const ALL_AI = [...SALES_DATA]
   .filter(a => AI_SCORES[a.name])
@@ -106,7 +353,7 @@ const TOTAL = {
 
 const TOP5 = [...SALES_DATA].sort((a, b) => b.deals - a.deals).slice(0, 5);
 
-const PreSalesDashboard = ({ onBack }) => {
+const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
   const [hoveredBar, setHoveredBar] = React.useState(null);
   const [hoveredFunnel, setHoveredFunnel] = React.useState(null);
   const [hoveredTop, setHoveredTop] = React.useState(null);
@@ -116,6 +363,11 @@ const PreSalesDashboard = ({ onBack }) => {
   const [coldTooltip, setColdTooltip] = React.useState(null);
   const [expandedRows, setExpandedRows] = React.useState({});
   const [showAllLeaderboard, setShowAllLeaderboard] = React.useState(false);
+  const [leaderboardOpen, setLeaderboardOpen] = React.useState(false);
+  const [execPerfOpen, setExecPerfOpen] = React.useState(false);
+  const [trendAgent, setTrendAgent] = React.useState(null);
+  const [execSort, setExecSort] = React.useState({ key: null, dir: 'desc' });
+  const [leaderSort, setLeaderSort] = React.useState({ key: null, dir: 'desc' });
   const [devDropdown, setDevDropdown] = React.useState(false);
   const [projDropdown, setProjDropdown] = React.useState(false);
   const [devSearch, setDevSearch] = React.useState('');
@@ -138,7 +390,27 @@ const PreSalesDashboard = ({ onBack }) => {
     URL.revokeObjectURL(url);
   };
 
+  const execRows = SALES_DATA
+    .map((p) => ({
+      ...p,
+      avgScore: parseFloat((p.deals / p.leads * 10).toFixed(1)),
+      perfPct: Math.min((p.deals / p.target) * 100, 100),
+      hot: Math.max(1, Math.round(p.leads * 0.02)),
+      warm: Math.round(p.leads * 0.19),
+      answered: Math.floor(p.leads * 0.75),
+      unanswered: p.leads - Math.floor(p.leads * 0.75),
+      coldTotal: Math.floor(p.leads * 0.4),
+    }))
+    .filter(p => p.name.toLowerCase().includes(execSearch.toLowerCase()));
+  const sortedExecRows = sortByKey(execRows, execSort, (row, key) => (key === 'name' ? row.name : key === 'calls' ? row.leads : key === 'cold' ? row.coldTotal : row[key]));
+
+  const leaderRows = ALL_AI
+    .map((a) => ({ ...a, avgScore: getAgentAvgAI(a.name), scores: AI_SCORES[a.name] }))
+    .filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase()));
+  const sortedLeaderRows = sortByKey(leaderRows, leaderSort, (row, key) => (key === 'name' ? row.name : key === 'avgScore' ? row.avgScore : row.scores[key]));
+
   return (
+    <>
     <div className="main-content no-scrollbar">
       {/* Header */}
       <div className="topbar" style={{ marginBottom: '24px', borderBottom: 'none', padding: 0 }}>
@@ -227,15 +499,14 @@ const PreSalesDashboard = ({ onBack }) => {
 
       {/* 🏆 Top Performers & Lead Distribution - Grid Layout */}
       <div className="glass" style={{ marginBottom: '20px' }}>
-        <div className="glass-header" style={{ padding: '24px', borderBottom: 'none' }}>
+        <div className="glass-header" style={{ padding: '24px', borderBottom: 'none', cursor: 'pointer' }} onClick={() => setLeaderboardOpen(!leaderboardOpen)}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-            <span style={{ fontSize: '24px' }}>🏆</span>
             <div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)', letterSpacing: 'normal', textTransform: 'none' }}>Leaderboard</div>
               <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600, marginTop: '4px' }}>Overall call quality score</div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={(e) => e.stopPropagation()}>
             <SectionTimeFilter active="ALL" />
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '6px 12px', gap: '8px', width: '160px' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
@@ -248,24 +519,31 @@ const PreSalesDashboard = ({ onBack }) => {
             )} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--accent)', cursor: 'pointer', transition: 'all 0.2s' }} title="Export">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
             </button>
+            <button onClick={() => setLeaderboardOpen(!leaderboardOpen)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }} title={leaderboardOpen ? 'Collapse' : 'Expand'}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', transform: leaderboardOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
           </div>
         </div>
 
+        {leaderboardOpen && (
+        <>
         {showAllLeaderboard ? (
           <div style={{ padding: '0 24px 24px', overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }} className="no-scrollbar">
             <table className="lb-table" style={{ minWidth: '1200px' }}>
               <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
                 <tr>
                   <th style={{ width: '40px' }}>#</th>
-                  <th>Executive</th>
-                  <th>Score</th>
-                  {QUALITY_PARAMS.map(p => <th key={p.key}>{p.label}</th>)}
+                  <SortableTh label="Executive" sortKey="name" sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />
+                  <SortableTh label="Score" sortKey="avgScore" sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />
+                  {QUALITY_PARAMS.map(p => <SortableTh key={p.key} label={p.label} sortKey={p.key} sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />)}
                 </tr>
               </thead>
               <tbody>
-                {ALL_AI.filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase())).map((agent, i) => {
-                  const avgScore = getAgentAvgAI(agent.name);
-                  const scores = AI_SCORES[agent.name];
+                {sortedLeaderRows.map((agent, i) => {
+                  const avgScore = agent.avgScore;
+                  const scores = agent.scores;
                   return (
                     <tr key={agent.name} style={{ transition: 'background 0.15s' }}>
                       <td style={{ color: 'var(--muted)', fontWeight: 700 }}>{i + 1}</td>
@@ -419,73 +697,101 @@ const PreSalesDashboard = ({ onBack }) => {
             </svg>
           </button>
         </div>
+        </>
+        )}
       </div>
 
       {/* Executive Performance Table - Above */}
       <div className="glass" style={{ marginBottom: '20px' }}>
-        <div className="glass-header">
+        <div className="glass-header" style={{ cursor: 'pointer' }} onClick={() => setExecPerfOpen(!execPerfOpen)}>
           <div className="glass-title">Executive Performance</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
             <SectionTimeFilter />
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '5px 10px', gap: '6px', width: '140px' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
               <input type="text" placeholder="Search..." value={execSearch} onChange={(e) => setExecSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '10px', fontWeight: 600, width: '100%' }} />
             </div>
             <button onClick={() => handleExport(
-              ['#', 'Executive', 'Calls', 'Avg Score', 'Site Visit', 'EOI', 'Follow-up', 'Cold', 'Answered', 'Unanswered', 'Performance'],
-              SALES_DATA.map((p, i) => [i + 1, p.name, p.leads, (p.deals / p.leads * 10).toFixed(1), p.deals, Math.floor(p.interested * 0.6), Math.floor(p.leads * 0.2), Math.floor(p.leads * 0.4), Math.floor(p.leads * 0.75), p.leads - Math.floor(p.leads * 0.75), Math.min((p.deals / p.target) * 100, 100).toFixed(0) + '%']),
+              ['#', 'Executive', 'Calls', 'Avg Score', 'Hot', 'Warm', 'Cold', 'Answered', 'Unanswered', 'Performance'],
+              SALES_DATA.map((p, i) => [i + 1, p.name, p.leads, (p.deals / p.leads * 10).toFixed(1), Math.max(1, Math.round(p.leads * 0.02)), Math.round(p.leads * 0.19), Math.floor(p.leads * 0.4), Math.floor(p.leads * 0.75), p.leads - Math.floor(p.leads * 0.75), Math.min((p.deals / p.target) * 100, 100).toFixed(0) + '%']),
               'executive-performance'
             )} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', cursor: 'pointer' }} title="Export">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
             </button>
+            <button onClick={() => setExecPerfOpen(!execPerfOpen)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }} title={execPerfOpen ? 'Collapse' : 'Expand'}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', transform: execPerfOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
           </div>
         </div>
+        {execPerfOpen && (
         <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto', position: 'relative' }} className="no-scrollbar">
           <table className="lb-table" style={{ minWidth: '700px' }}>
             <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
               <tr>
                 <th style={{ width: '40px' }}>#</th>
-                <th>Executive</th>
-                <th>Calls</th>
-                <th>Avg Score</th>
-                <th>Site Visit</th>
-                <th>EOI</th>
-                <th>Follow-up</th>
-                <th>Cold</th>
-                <th>Answered</th>
-                <th>Unanswered</th>
-                <th>Performance</th>
+                <SortableTh label="Executive" sortKey="name" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                <SortableTh label="Calls" sortKey="calls" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                <SortableTh label="Avg Score" sortKey="avgScore" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                <SortableTh label="Hot" sortKey="hot" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                <SortableTh label="Warm" sortKey="warm" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                <SortableTh label="Cold" sortKey="cold" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                <SortableTh label="Answered" sortKey="answered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                <SortableTh label="Unanswered" sortKey="unanswered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                <SortableTh label="Performance" sortKey="perfPct" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
               </tr>
             </thead>
             <tbody>
-              {SALES_DATA.filter(p => p.name.toLowerCase().includes(execSearch.toLowerCase())).map((person, i) => {
-                const avgScore = (person.deals / person.leads * 10).toFixed(1);
-                const followUp = Math.floor(person.leads * 0.2);
-                const flagged = Math.max(0, Math.floor(person.leads * 0.05));
-                const perfPct = Math.min((person.deals / person.target) * 100, 100);
-                const eoi = Math.floor(person.interested * 0.6);
-                const answered = Math.floor(person.leads * 0.75);
-                const unanswered = person.leads - answered;
-                const coldTotal = Math.floor(person.leads * 0.4);
+              {sortedExecRows.map((person, i) => {
+                const avgScore = person.avgScore.toFixed(1);
+                const perfPct = person.perfPct;
+                const hot = person.hot;
+                const warm = person.warm;
+                const answered = person.answered;
+                const unanswered = person.unanswered;
+                const coldTotal = person.coldTotal;
                 return (
                   <tr key={i} style={{ transition: 'background 0.15s' }}>
                     <td style={{ color: 'var(--muted)', fontWeight: 700 }}>{i + 1}</td>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', width: 'fit-content' }}
+                        onClick={() => setTrendAgent(person)}
+                        title="View monthly performance trend"
+                      >
                         <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{person.name[0]}</div>
-                        <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '13px' }}>{person.name}</span>
+                        <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '13px', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}>{person.name}</span>
                       </div>
                     </td>
-                    <td style={{ fontWeight: 700, color: 'var(--text)' }}>{person.leads}</td>
+                    <td
+                      style={{ fontWeight: 700, color: 'var(--text)', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                      title="View all call records"
+                      onClick={() => onNavigateToCallRecords(null)}
+                    >
+                      {person.leads}
+                    </td>
                     <td>
                       <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, background: parseFloat(avgScore) >= 1.2 ? 'rgba(52,211,153,0.12)' : parseFloat(avgScore) >= 0.8 ? 'rgba(251,191,36,0.12)' : 'rgba(248,113,113,0.12)', color: parseFloat(avgScore) >= 1.2 ? '#34d399' : parseFloat(avgScore) >= 0.8 ? '#fbbf24' : '#f87171' }}>{avgScore}</span>
                     </td>
-                    <td style={{ color: '#34d399', fontWeight: 700 }}>{person.deals}</td>
-                    <td style={{ color: '#06b6d4', fontWeight: 700 }}>{eoi}</td>
-                    <td style={{ color: 'var(--muted)' }}>{followUp}</td>
+                    <td
+                      style={{ color: '#f87171', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                      title="View Hot call records"
+                      onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Hot' })}
+                    >
+                      {hot}
+                    </td>
+                    <td
+                      style={{ color: '#fbbf24', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                      title="View Warm call records"
+                      onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Warm' })}
+                    >
+                      {warm}
+                    </td>
                     <td>
                       <span
                         style={{ padding: '2px 7px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, background: 'rgba(96,165,250,0.12)', color: '#60a5fa', cursor: 'pointer' }}
+                        title="View Cold call records"
                         onMouseEnter={(e) => {
                           const rect = e.target.getBoundingClientRect();
                           const budget = Math.floor(coldTotal * 0.15);
@@ -501,12 +807,25 @@ const PreSalesDashboard = ({ onBack }) => {
                           });
                         }}
                         onMouseLeave={() => setColdTooltip(null)}
+                        onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Cold' })}
                       >
                         {coldTotal}
                       </span>
                     </td>
-                    <td style={{ color: '#34d399', fontWeight: 700 }}>{answered}</td>
-                    <td style={{ color: '#f87171', fontWeight: 700 }}>{unanswered}</td>
+                    <td
+                      style={{ color: '#34d399', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                      title="View Answered call records"
+                      onClick={() => onNavigateToCallRecords({ type: 'outcome', value: 'Answered' })}
+                    >
+                      {answered}
+                    </td>
+                    <td
+                      style={{ color: '#f87171', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                      title="View Unanswered call records"
+                      onClick={() => onNavigateToCallRecords({ type: 'outcome', value: 'Unanswered' })}
+                    >
+                      {unanswered}
+                    </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{ width: '60px', height: '6px', borderRadius: '3px', background: 'var(--gb)', overflow: 'hidden' }}>
@@ -521,6 +840,7 @@ const PreSalesDashboard = ({ onBack }) => {
             </tbody>
           </table>
         </div>
+        )}
       </div>
 
       {/* Bottom Row */}
@@ -673,6 +993,8 @@ const PreSalesDashboard = ({ onBack }) => {
         </div>
       )}
     </div>
+    {trendAgent && <AgentTrendModal person={trendAgent} onClose={() => setTrendAgent(null)} />}
+    </>
   );
 };
 
