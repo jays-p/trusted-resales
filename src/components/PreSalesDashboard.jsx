@@ -503,7 +503,6 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
             <div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)', letterSpacing: 'normal', textTransform: 'none' }}>Leaderboard</div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600, marginTop: '4px' }}>Overall call quality score</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={(e) => e.stopPropagation()}>
@@ -851,7 +850,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
             <div className="glass-title" style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Target vs Achievement</div>
             <SectionTimeFilter />
           </div>
-          <div style={{ padding: '16px 20px', maxHeight: '260px', overflowY: 'auto' }} className="no-scrollbar">
+          <div style={{ padding: '16px 20px', maxHeight: '260px', overflowY: 'auto' }} className="thin-scrollbar">
             {SALES_DATA.map((person, i) => {
               const pct = Math.min((person.deals / person.target) * 100, 100);
               const achieved = person.deals >= person.target;
