@@ -52,12 +52,31 @@ const STATIC_DATA = {
     hot: { val: 44, last: 'Vs 0', delta: '↑ 100%', positive: true },
     confidence: { val: '89.9%', last: 'Vs 0%', delta: '↑ 100%', positive: true },
   },
-  callDuration: [
-    { label: 'Very Short', sub: '0 - 15 sec', value: 852, pct: 39, color: '#f87171' },
-    { label: 'Short', sub: '16 - 30 sec', value: 433, pct: 20, color: '#fbbf24' },
-    { label: 'Medium', sub: '30 sec - 1 min', value: 436, pct: 20, color: '#818cf8' },
-    { label: 'Long', sub: '> 1 minute', value: 468, pct: 21, color: '#34d399' },
+  leadTemperature: [
+    { label: 'Hot', sub: 'Highly interested leads', value: 44, pct: 2.0, color: '#f87171' },
+    { label: 'Warm', sub: 'Moderately interested', value: 411, pct: 18.8, color: '#fbbf24' },
+    { label: 'Cold', sub: 'Low interest / not engaged', value: 889, pct: 40.6, color: '#60a5fa' },
   ],
+  durationByTemperature: {
+    Hot: [
+      { label: 'Very Short', sub: '0 - 15 sec', value: 17, pct: 39, color: '#f87171' },
+      { label: 'Short', sub: '16 - 30 sec', value: 9, pct: 20, color: '#fbbf24' },
+      { label: 'Medium', sub: '30 sec - 1 min', value: 9, pct: 20, color: '#818cf8' },
+      { label: 'Long', sub: '> 1 minute', value: 9, pct: 21, color: '#34d399' },
+    ],
+    Warm: [
+      { label: 'Very Short', sub: '0 - 15 sec', value: 160, pct: 39, color: '#f87171' },
+      { label: 'Short', sub: '16 - 30 sec', value: 82, pct: 20, color: '#fbbf24' },
+      { label: 'Medium', sub: '30 sec - 1 min', value: 82, pct: 20, color: '#818cf8' },
+      { label: 'Long', sub: '> 1 minute', value: 87, pct: 21, color: '#34d399' },
+    ],
+    Cold: [
+      { label: 'Very Short', sub: '0 - 15 sec', value: 347, pct: 39, color: '#f87171' },
+      { label: 'Short', sub: '16 - 30 sec', value: 178, pct: 20, color: '#fbbf24' },
+      { label: 'Medium', sub: '30 sec - 1 min', value: 178, pct: 20, color: '#818cf8' },
+      { label: 'Long', sub: '> 1 minute', value: 186, pct: 21, color: '#34d399' },
+    ],
+  },
   projectPerformance: [
     { rank: 1, project: 'M3m', calls: 561, hot: 7, warm: 78, cold: 144, svSchedule: 0, svConverted: '0 (0.00)' },
     { rank: 2, project: 'Smartworld Sky Arc', calls: 96, hot: 0, warm: 9, cold: 9, svSchedule: 0, svConverted: '0 (0.00)' },
@@ -126,6 +145,7 @@ const PlatformDashboard = () => {
   const [projPerfSearch, setProjPerfSearch] = useState('');
   const [creditSearch, setCreditSearch] = useState('');
   const [recentCallsSearch, setRecentCallsSearch] = useState('');
+  const [expandedTemp, setExpandedTemp] = useState(null);
   const data = STATIC_DATA;
 
   const timeLabels = {
@@ -407,29 +427,58 @@ const PlatformDashboard = () => {
 
           <div className="glass">
             <div className="glass-header">
-              <div className="glass-title">Call Duration Distribution</div>
-              <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 700 }}>{data.ticker.calls.toLocaleString()} CALLS</span>
+              <div className="glass-title">Lead Temperature Distribution</div>
             </div>
             <div className="glass-body">
-              {data.callDuration.map((item, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: i < data.callDuration.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '170px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: item.color }} />
-                    <div>
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)' }}>{item.label}</div>
-                      <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{item.sub}</div>
-                    </div>
-                  </div>
-                  <div style={{ flex: 1, height: '8px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
-                    <div style={{ width: `${item.pct}%`, height: '100%', borderRadius: '4px', background: item.color, transition: 'width 0.8s ease' }} />
-                  </div>
-                  <div style={{ width: '70px', textAlign: 'right' }}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 800, color: 'var(--text)' }}>{item.value}</span>
-                    <span style={{ fontSize: '10px', color: 'var(--muted)', marginLeft: '4px' }}>{item.pct}%</span>
-                  </div>
-                  <span style={{ fontSize: '11px', color: 'var(--muted)', cursor: 'pointer' }}>→</span>
-                </div>
-              ))}
+              {(() => {
+                const items = data.leadTemperature;
+                return items.map((item, i) => {
+                  const isExpanded = expandedTemp === item.label;
+                  return (
+                    <React.Fragment key={i}>
+                      <div
+                        onClick={() => setExpandedTemp(isExpanded ? null : item.label)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: (!isExpanded && i < items.length - 1) ? '1px solid rgba(255,255,255,0.03)' : 'none', cursor: 'pointer' }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '170px' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: item.color }} />
+                          <div>
+                            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)' }}>{item.label}</div>
+                            <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{item.sub}</div>
+                          </div>
+                        </div>
+                        <div style={{ flex: 1, height: '8px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                          <div style={{ width: `${item.pct}%`, height: '100%', borderRadius: '4px', background: item.color, transition: 'width 0.8s ease' }} />
+                        </div>
+                        <div style={{ width: '70px', textAlign: 'right' }}>
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 800, color: 'var(--text)' }}>{item.value}</span>
+                          <span style={{ fontSize: '10px', color: 'var(--muted)', marginLeft: '4px' }}>{item.pct}%</span>
+                        </div>
+                        <span style={{ fontSize: '11px', color: 'var(--muted)', cursor: 'pointer', display: 'inline-block', transition: 'transform 0.15s ease', transform: isExpanded ? 'rotate(90deg)' : 'none' }}>→</span>
+                      </div>
+                      {isExpanded && (
+                        <div style={{ padding: '2px 0 14px 24px', borderBottom: i < items.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none' }}>
+                          {data.durationByTemperature[item.label].map((sub, j) => (
+                            <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '150px' }}>
+                                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: sub.color }} />
+                                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--dim)' }}>{sub.label}</span>
+                              </div>
+                              <div style={{ flex: 1, height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                                <div style={{ width: `${sub.pct}%`, height: '100%', borderRadius: '3px', background: sub.color }} />
+                              </div>
+                              <div style={{ width: '60px', textAlign: 'right' }}>
+                                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 700, color: 'var(--text)' }}>{sub.value}</span>
+                                <span style={{ fontSize: '9px', color: 'var(--muted)', marginLeft: '3px' }}>{sub.pct}%</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </React.Fragment>
+                  );
+                });
+              })()}
             </div>
           </div>
         </div>
