@@ -13,6 +13,9 @@ import {
   LogOut,
   ChevronDown,
   Pin,
+  Building2,
+  Boxes,
+  Megaphone,
 } from 'lucide-react';
 import convoAILogo from '../assets/convoAI-purple.svg';
 
@@ -33,6 +36,13 @@ const Sidebar = ({ activePage = 'dashboard', onNavigate = () => {} }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, active: activePage === 'dashboard' },
     { id: 'presales', label: 'Pre Sales', icon: <PieChart className="w-4 h-4" />, active: activePage === 'presales' },
+    { id: 'developers', label: 'Developers', icon: <Users className="w-4 h-4" />, active: activePage === 'developers' },
+    { id: 'channel-partners', label: 'Channel Partners', icon: <Building2 className="w-4 h-4" />, active: activePage === 'channel-partners' },
+    { id: 'projects', label: 'Projects', icon: <Boxes className="w-4 h-4" />, active: activePage === 'projects' },
+    { id: 'segments', label: 'Segments', icon: <Flag className="w-4 h-4" />, active: activePage === 'segments' },
+    { id: 'campaigns', label: 'Campaigns', icon: <Megaphone className="w-4 h-4" />, active: activePage === 'campaigns' },
+    { id: 'call-logs', label: 'Call Logs', icon: <PhoneCall className="w-4 h-4" />, active: activePage === 'call-logs' },
+    { id: 'transactions', label: 'Transactions', icon: <History className="w-4 h-4" />, active: activePage === 'transactions' },
   ];
 
   return (
@@ -71,10 +81,13 @@ const Sidebar = ({ activePage = 'dashboard', onNavigate = () => {} }) => {
         </div>
 
         <div className="user-info">
-          <div className="user-avatar">TA</div>
+          <div className="user-avatar">UA</div>
           <div>
-            <div className="user-name">Trusted Ad...</div>
-            <div className="user-email">aryanq@gmai...</div>
+            <div className="user-name">
+              Urban Axis
+              <span style={{ marginLeft: '6px', fontSize: '9px', fontWeight: 700, color: 'var(--accent)', background: 'rgba(124,58,237,0.15)', padding: '1px 6px', borderRadius: '4px', verticalAlign: 'middle' }}>DEV</span>
+            </div>
+            <div className="user-email">urbanaxis@convoai.in</div>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
             <Bell className="w-3.5 h-3.5" style={{ color: 'var(--muted)', cursor: 'pointer' }} />
