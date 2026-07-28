@@ -10,7 +10,7 @@ import './PlatformDashboard.css';
 // Static data matching screenshots
 const STATIC_DATA = {
   overview: {
-    totalCalls: 871,
+    totalCalls: 2189,
     avgDur: '2m 10s',
     totalTalkTime: '850 min',
     siteVisitSuccess: '2.8%',
