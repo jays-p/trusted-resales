@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import CallsChart from './CallsChart';
 import PreSalesDashboard from './PreSalesDashboard';
 import { DevelopersPage, ChannelPartnersPage, ProjectsPage, SegmentsPage, CampaignsPage, CallLogsPage, TransactionsPage } from './StaticPages';
+import { AllCallRecordsPage, StrategicMatrixPage, FlaggedReportsPage, TrustedTransactionsPage } from './TrustedPages';
 import './PlatformDashboard.css';
 
 // Static data matching screenshots
@@ -182,6 +183,10 @@ const PlatformDashboard = () => {
     campaigns: CampaignsPage,
     'call-logs': CallLogsPage,
     transactions: TransactionsPage,
+    'all-call-records': AllCallRecordsPage,
+    'strategic-matrix': StrategicMatrixPage,
+    'flagged-reports': FlaggedReportsPage,
+    'trusted-transactions': TrustedTransactionsPage,
   };
   const StaticPage = staticPages[activePage];
 

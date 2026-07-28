@@ -1,20 +1,16 @@
 import React from 'react';
 import {
   LayoutDashboard,
-  PhoneCall,
+  Star,
+  Phone,
   PieChart,
   Flag,
   History,
-  Users,
   Moon,
   Bell,
   LogOut,
-  ChevronDown,
-  ChevronUp,
+  Upload,
   Pin,
-  Building2,
-  Boxes,
-  Megaphone,
 } from 'lucide-react';
 import convoAILogo from '../assets/convoAI-purple.svg';
 
@@ -22,8 +18,6 @@ const Sidebar = ({ activePage = 'dashboard', onNavigate = () => {} }) => {
   const [isDark, setIsDark] = React.useState(() => {
     return !document.body.classList.contains('light-mode');
   });
-  const [channelPartnersOpen, setChannelPartnersOpen] = React.useState(true);
-  const [projectsOpen, setProjectsOpen] = React.useState(true);
 
   React.useEffect(() => {
     if (isDark) {
@@ -33,17 +27,13 @@ const Sidebar = ({ activePage = 'dashboard', onNavigate = () => {} }) => {
     }
   }, [isDark]);
 
-  const topItems = [
-    { id: 'dashboard', label: 'Customer Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { id: 'presales', label: 'Pre Sales', icon: <PieChart className="w-4 h-4" /> },
-    { id: 'developers', label: 'Developers', icon: <Users className="w-4 h-4" /> },
-  ];
-
-  const tailItems = [
-    { id: 'segments', label: 'Segments', icon: <Flag className="w-4 h-4" /> },
-    { id: 'campaigns', label: 'Campaigns', icon: <Megaphone className="w-4 h-4" /> },
-    { id: 'call-logs', label: 'Call Logs', icon: <PhoneCall className="w-4 h-4" /> },
-    { id: 'transactions', label: 'Transactions', icon: <History className="w-4 h-4" /> },
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { id: 'presales', label: 'Pre Sales', icon: <Star className="w-4 h-4" /> },
+    { id: 'all-call-records', label: 'All Call Records', icon: <Phone className="w-4 h-4" /> },
+    { id: 'strategic-matrix', label: 'Strategic Performance Matrix', icon: <PieChart className="w-4 h-4" /> },
+    { id: 'flagged-reports', label: 'Flagged Reports', icon: <Flag className="w-4 h-4" /> },
+    { id: 'trusted-transactions', label: 'Transactions', icon: <History className="w-4 h-4" /> },
   ];
 
   const renderItem = (item) => (
@@ -51,25 +41,6 @@ const Sidebar = ({ activePage = 'dashboard', onNavigate = () => {} }) => {
       {item.icon}
       <span>{item.label}</span>
       {activePage === item.id && <span style={{ marginLeft: 'auto', fontSize: '10px', color: 'var(--accent)' }}>›</span>}
-    </div>
-  );
-
-  const renderGroup = (label, icon, open, setOpen, childId, childLabel) => (
-    <div key={childId}>
-      <div className="nav-item" onClick={() => setOpen(!open)} style={{ cursor: 'pointer' }}>
-        {icon}
-        <span>{label}</span>
-        {open ? <ChevronUp className="w-3.5 h-3.5" style={{ marginLeft: 'auto', color: 'var(--muted)' }} /> : <ChevronDown className="w-3.5 h-3.5" style={{ marginLeft: 'auto', color: 'var(--muted)' }} />}
-      </div>
-      {open && (
-        <div
-          onClick={() => onNavigate(childId)}
-          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 14px 9px 34px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', color: activePage === childId ? '#818cf8' : 'var(--muted)', background: activePage === childId ? 'rgba(129,140,248,0.08)' : 'transparent' }}
-        >
-          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
-          <span style={{ textTransform: 'uppercase', letterSpacing: '0.02em' }}>{childLabel}</span>
-        </div>
-      )}
     </div>
   );
 
@@ -87,14 +58,18 @@ const Sidebar = ({ activePage = 'dashboard', onNavigate = () => {} }) => {
 
       {/* Navigation */}
       <div className="nav">
-        {topItems.map(renderItem)}
-        {renderGroup('Channel Partners', <Building2 className="w-4 h-4" />, channelPartnersOpen, setChannelPartnersOpen, 'channel-partners', 'Channel Partner')}
-        {renderGroup('Projects', <Boxes className="w-4 h-4" />, projectsOpen, setProjectsOpen, 'projects', 'Project Lists')}
-        {tailItems.map(renderItem)}
+        {menuItems.map(renderItem)}
       </div>
 
       {/* Bottom Section */}
       <div className="sidebar-bottom">
+        <button
+          onClick={() => onNavigate('upload-call')}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '12px', borderRadius: '10px', background: 'var(--card-bg-alt)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', marginBottom: '14px' }}
+        >
+          <Upload className="w-4 h-4" /> Upload Call
+        </button>
+
         <div className="dark-mode-toggle" onClick={() => setIsDark(!isDark)} style={{ cursor: 'pointer' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Moon className="w-3.5 h-3.5" />
@@ -106,13 +81,10 @@ const Sidebar = ({ activePage = 'dashboard', onNavigate = () => {} }) => {
         </div>
 
         <div className="user-info">
-          <div className="user-avatar">UA</div>
+          <div className="user-avatar">M</div>
           <div>
-            <div className="user-name">
-              Urban Axis
-              <span style={{ marginLeft: '6px', fontSize: '9px', fontWeight: 700, color: 'var(--accent)', background: 'rgba(124,58,237,0.15)', padding: '1px 6px', borderRadius: '4px', verticalAlign: 'middle' }}>DEV</span>
-            </div>
-            <div className="user-email">urbanaxis@convoai.in</div>
+            <div className="user-name">M3M</div>
+            <div className="user-email">m3m@gmail.com</div>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
             <Bell className="w-3.5 h-3.5" style={{ color: 'var(--muted)', cursor: 'pointer' }} />
