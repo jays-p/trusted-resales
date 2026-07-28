@@ -1083,7 +1083,7 @@ const StarRating = ({ score, maxStars = 5, size = 14, color = '#fbbf24' }) => {
 
 // Sub components
 const KpiCard = ({ label, value, color }) => (
-  <div style={{ background: 'var(--bg)', border: '1px solid var(--gb)', borderRadius: '14px', padding: '20px 16px', textAlign: 'center' }}>
+  <div style={{ background: '#1a2030', border: '1px solid var(--gb)', borderRadius: '14px', padding: '20px 16px', textAlign: 'center' }}>
     <div style={{ fontSize: '26px', fontWeight: 800, fontStyle: 'italic', color, letterSpacing: '-0.5px' }}>{value}</div>
     <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '6px' }}>{label}</div>
   </div>
@@ -1139,7 +1139,7 @@ const MainTimeFilter = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg)', border: '1px solid var(--gb)', borderRadius: '14px', padding: '12px 20px', marginBottom: '24px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1a2030', border: '1px solid var(--gb)', borderRadius: '14px', padding: '12px 20px', marginBottom: '24px' }}>
       <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>TIME RANGE</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} ref={ref}>
         {options.map(opt => (
