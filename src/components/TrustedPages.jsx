@@ -48,6 +48,7 @@ const CALL_RECORDS_STATS = [
 
 const CALL_RECORDS_DATA = Array.from({ length: 8 }, (_, i) => ({
   id: `6a630${i}56997bf2e4e89${(641 - i * 4).toString().padStart(3, '0')}d`,
+  leadId: `6a4603ca3a93681cadae2${(500 + i * 7).toString().padStart(3, '0')}`,
   project: 'M3m',
   date: '24 Jul 2026',
   time: `${12 - Math.floor(i / 4)}:${(30 - i * 3).toString().padStart(2, '0')} PM`,
@@ -134,7 +135,7 @@ export const AllCallRecordsPage = () => {
           <table className="lb-table">
             <thead>
               <tr>
-                {['#', 'PROJECT', 'CALL ID', 'STATUS', 'RATING', 'DURATION', 'TOTAL USED', 'DATE ANALYZED', 'ACTION'].map((c, i) => (
+                {['#', 'PROJECT', 'CALL ID', 'LEAD ID', 'STATUS', 'RATING', 'DURATION', 'TOTAL USED', 'DATE ANALYZED', 'ACTION'].map((c, i) => (
                   <th key={i} style={{ whiteSpace: 'nowrap' }}>{c}</th>
                 ))}
               </tr>
@@ -145,6 +146,7 @@ export const AllCallRecordsPage = () => {
                   <td style={{ color: 'var(--muted)' }}>{i + 1}</td>
                   <td style={{ fontWeight: 700, color: 'var(--text)' }}>{r.project}</td>
                   <td><IdBadge id={r.id} /></td>
+                  <td><IdBadge id={r.leadId} /></td>
                   <td><StatusBadge label="Queued" color="#fbbf24" /></td>
                   <td style={{ color: 'var(--muted)' }}>—</td>
                   <td style={{ color: 'var(--muted)' }}>—</td>
@@ -216,7 +218,7 @@ export const StrategicMatrixPage = () => (
                   {gridLines.map((g) => (
                     <div key={g} style={{ position: 'absolute', left: 0, right: 0, top: `${PLOT_H - (g / 100) * PLOT_H}px`, borderTop: g === 0 ? '1px solid rgba(255,255,255,0.12)' : '1px dashed rgba(255,255,255,0.05)' }} />
                   ))}
-                  <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: 0, display: 'flex', alignItems: 'flex-end', gap: '48px', paddingLeft: '24px' }}>
+                  <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '48px' }}>
                     {MATRIX_DATA.map((m, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'flex-end', gap: '6px' }}>
                         {[
@@ -233,7 +235,7 @@ export const StrategicMatrixPage = () => (
                     ))}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '48px', paddingLeft: '24px', marginTop: '10px' }}>
+                <div style={{ display: 'flex', gap: '48px', justifyContent: 'center', marginTop: '10px' }}>
                   {MATRIX_DATA.map((m, i) => (
                     <span key={i} style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', width: '106px', textAlign: 'center' }}>{m.project}</span>
                   ))}
