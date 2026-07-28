@@ -3,6 +3,7 @@ import { Settings2, ChevronDown, Calendar } from 'lucide-react';
 import Sidebar from './Sidebar';
 import CallsChart from './CallsChart';
 import PreSalesDashboard from './PreSalesDashboard';
+import { DevelopersPage, ChannelPartnersPage, ProjectsPage, SegmentsPage, CampaignsPage, CallLogsPage, TransactionsPage } from './StaticPages';
 import './PlatformDashboard.css';
 
 // Static data matching screenshots
@@ -153,11 +154,24 @@ const PlatformDashboard = () => {
     URL.revokeObjectURL(url);
   };
 
+  const staticPages = {
+    developers: DevelopersPage,
+    'channel-partners': ChannelPartnersPage,
+    projects: ProjectsPage,
+    segments: SegmentsPage,
+    campaigns: CampaignsPage,
+    'call-logs': CallLogsPage,
+    transactions: TransactionsPage,
+  };
+  const StaticPage = staticPages[activePage];
+
   return (
     <div className="platform-dashboard-container">
       <Sidebar activePage={activePage} onNavigate={setActivePage} />
       {activePage === 'presales' ? (
         <PreSalesDashboard onBack={() => setActivePage('dashboard')} />
+      ) : StaticPage ? (
+        <StaticPage />
       ) : (
       <div className="main-content no-scrollbar">
         {/* Topbar */}
