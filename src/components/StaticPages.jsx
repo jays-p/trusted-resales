@@ -1,7 +1,7 @@
 import React from 'react';
-import { Phone, Mail, Settings2, MoreVertical, Users, Clock, PhoneOff, RefreshCw, Filter, Repeat, ArrowUpRight, Wallet, IndianRupee, Download, Plus, Target } from 'lucide-react';
+import { Phone, Mail, Settings2, MoreVertical, Users, Clock, PhoneOff, RefreshCw, Filter, ArrowUpRight, Wallet, IndianRupee, Download, Plus, Target, ChevronDown, Play, ArrowUpDown, Flame, Sun, Snowflake, PhoneCall, X, Search } from 'lucide-react';
 import StaticListPage from './StaticListPage';
-import RichListPage, { GhostButton, GhostIconButton, PrimaryButton, SummaryCard } from './RichListPage';
+import RichListPage, { GhostIconButton, PrimaryButton, SummaryCard } from './RichListPage';
 
 const Avatar = ({ label, color = '#7c3aed' }) => (
   <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: color, color: '#fff', fontSize: '12px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -90,6 +90,44 @@ const ParticularBadge = ({ label }) => {
   return <span className="lb-badge" style={{ background: `${color}20`, color, whiteSpace: 'nowrap' }}>{label}</span>;
 };
 
+const StatCard = ({ label, value, icon: Icon, color }) => (
+  <div className="glass" style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
+      <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: `${color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon className="w-3.5 h-3.5" style={{ color }} />
+      </div>
+    </div>
+    <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>{value}</div>
+  </div>
+);
+
+const PlainPill = ({ label, active }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 14px', borderRadius: '10px', background: active ? 'rgba(124,58,237,0.12)' : 'var(--card-bg-alt)', border: active ? '1px solid rgba(124,58,237,0.3)' : '1px solid rgba(255,255,255,0.08)', color: active ? 'var(--accent)' : 'var(--text)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+    {label}
+    <ChevronDown className="w-3 h-3" />
+  </div>
+);
+
+const RecordingCell = ({ playing, duration }) => {
+  if (!playing) return <span style={{ color: 'var(--muted)' }}>—</span>;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <button style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', borderRadius: '8px', background: 'linear-gradient(135deg, #a78bfa, #7c3aed)', border: 'none', color: '#fff', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}>
+        <Play className="w-3 h-3" fill="currentColor" /> PLAY <span style={{ opacity: 0.85 }}>{duration}</span>
+      </button>
+      <Download className="w-3.5 h-3.5" style={{ color: 'var(--muted)', cursor: 'pointer' }} />
+    </div>
+  );
+};
+
+const CallEndBadge = ({ label }) => {
+  if (!label || label === '-') return <span style={{ color: 'var(--muted)' }}>-</span>;
+  const colors = { Unanswered: '#94a3b8', 'Client Hangup': '#f87171' };
+  const color = colors[label] || '#94a3b8';
+  return <span className="lb-badge" style={{ background: `${color}20`, color }}>{label}</span>;
+};
+
 export const DevelopersPage = () => (
   <StaticListPage
     title="DEVELOPERS"
@@ -113,57 +151,46 @@ export const DevelopersPage = () => (
 );
 
 export const ChannelPartnersPage = () => (
-  <StaticListPage
-    title="CHANNEL PARTNERS"
-    searchPlaceholder="Search Channel Partners"
-    columns={['ID', 'NAME', 'CONTACT INFORMATION', 'DEVELOPERS MAPPED', 'CITY', 'CREATED DATE']}
+  <RichListPage
+    title="CHANNEL PARTNER"
+    searchPlaceholder="Search CP"
+    actions={<PrimaryButton icon={Plus}>ADD</PrimaryButton>}
+    entrySeparator=" to "
+    columns={['ID', 'NAME', 'CONTACT INFORMATION', 'PROJECT', 'DATE']}
     rows={[
-      {
-        searchText: 'Square Yards Realty',
-        cells: [
-          <IdBadge id="7a12fd3c8e21a5b0c44..." />,
-          <NameCell avatar="S" name="Square Yards Realty" color="#0ea5e9" />,
-          <ContactCell phone="[+91] 9811******" email="partners@squareyards.in" />,
-          <span style={{ color: 'var(--dim)' }}>Smartworld, M3m</span>,
-          <span style={{ color: 'var(--dim)' }}>Gurugram</span>,
-          <DateCell date="02 Feb 2026" time="11:20 am" />,
-        ],
-      },
-      {
-        searchText: 'Anarock Advisors',
-        cells: [
-          <IdBadge id="c3e40b91f7d62a1e903..." />,
-          <NameCell avatar="A" name="Anarock Advisors" color="#f97316" />,
-          <ContactCell phone="[+91] 9922******" email="channel@anarock.com" />,
-          <span style={{ color: 'var(--dim)' }}>DTC Group, BPTP Ltd</span>,
-          <span style={{ color: 'var(--dim)' }}>Delhi</span>,
-          <DateCell date="14 Jan 2026" time="04:05 pm" />,
-        ],
-      },
-    ]}
+      { id: '6a479cbcecf68e48dfd4a405', name: 'Realty Mozart', avatar: 'R', color: '#7c3aed', phone: '(+91) 6985......', email: 'Realtymozart@gmail.com', date: '03 Jul 2026', time: '04:57 PM' },
+      { id: '6a479c7eecf68e48dfd4a37f', name: 'Great PropDeal', avatar: 'G', color: '#7c3aed', phone: '(+91) 8974......', email: 'Greatpropdeal@gmail.com', date: '03 Jul 2026', time: '04:56 PM' },
+    ].map((cp) => ({
+      searchText: cp.name,
+      cells: [
+        <IdBadge id={cp.id} />,
+        <NameCell avatar={cp.avatar} name={cp.name} color={cp.color} />,
+        <ContactCell phone={cp.phone} email={cp.email} />,
+        <span style={{ color: 'var(--dim)' }}>Joy Street</span>,
+        <DateCell date={cp.date} time={cp.time} />,
+      ],
+    }))}
   />
 );
 
 export const ProjectsPage = () => (
-  <StaticListPage
+  <RichListPage
     title="PROJECTS"
-    searchPlaceholder="Search Projects"
-    columns={['ID', 'PROJECT NAME', 'DEVELOPER', 'CITY', 'STATUS', 'CREATED DATE']}
+    searchPlaceholder="Search project"
+    columns={['ACTION', 'ID', 'DEVELOPER NAME', 'PROJECT NAME', 'TOTAL CREDIT', 'USED CREDIT', 'AVAILABLE', 'CREATED DATE']}
     rows={[
-      { name: 'Smartworld Sky Arc', dev: 'Smartworld', city: 'Gurugram', status: 'Active', color: '#34d399' },
-      { name: 'Smartworld One Dxp', dev: 'Smartworld', city: 'Gurugram', status: 'Active', color: '#34d399' },
-      { name: 'M3m Crown', dev: 'M3m Developer', city: 'Gurugram', status: 'Active', color: '#34d399' },
-      { name: 'DTC Downtown', dev: 'DTC Group', city: 'Panchkula', status: 'Upcoming', color: '#fbbf24' },
-      { name: 'BPTP Smartworld Pride', dev: 'BPTP Ltd', city: 'Faridabad', status: 'Active', color: '#34d399' },
-    ].map((p, i) => ({
-      searchText: p.name,
+      { id: '69b91efd9b392d1...', dev: 'Urban Axis', project: 'Joy Street', total: '₹1,35,000', used: '₹1,04,808', available: '₹30,192', date: '17 Mar 2026', time: '02:59 pm' },
+    ].map((p) => ({
+      searchText: p.project,
       cells: [
-        <IdBadge id={`prj_${String(i + 1).padStart(4, '0')}...`} />,
-        <span style={{ fontWeight: 700, color: 'var(--text)' }}>{p.name}</span>,
-        <span style={{ color: 'var(--dim)' }}>{p.dev}</span>,
-        <span style={{ color: 'var(--dim)' }}>{p.city}</span>,
-        <StatusBadge label={p.status} color={p.color} />,
-        <DateCell date="21 Mar 2026" time="10:15 am" />,
+        <ActionDots />,
+        <IdBadge id={p.id} />,
+        <NameCell avatar="U" name={p.dev} />,
+        <span style={{ fontWeight: 700, color: 'var(--text)' }}>{p.project}</span>,
+        <span style={{ color: 'var(--dim)' }}>{p.total}</span>,
+        <span style={{ color: '#f87171', fontWeight: 700 }}>{p.used}</span>,
+        <span style={{ color: '#34d399', fontWeight: 700 }}>{p.available}</span>,
+        <DateCell date={p.date} time={p.time} />,
       ],
     }))}
   />
@@ -185,9 +212,7 @@ const SEGMENTS_DATA = [
 export const SegmentsPage = () => (
   <RichListPage
     title="SEGMENTS"
-    filters={['Urban Axis', 'Joy Street']}
-    searchValue=""
-    onSearch={() => {}}
+    filters={['Joy Street']}
     searchPlaceholder="Search segments..."
     actions={<PrimaryButton icon={Plus}>ADD SEGMENT</PrimaryButton>}
     totalEntries={47}
@@ -223,9 +248,7 @@ const CAMPAIGNS_DATA = [
 export const CampaignsPage = () => (
   <RichListPage
     title="CAMPAIGNS"
-    filters={['Urban Axis', 'Joy Street']}
-    searchValue=""
-    onSearch={() => {}}
+    filters={['Joy Street']}
     searchPlaceholder="Search Campaigns"
     actions={<>
       <GhostIconButton icon={RefreshCw} />
@@ -251,28 +274,105 @@ export const CampaignsPage = () => (
   />
 );
 
-export const CallLogsPage = () => (
-  <StaticListPage
-    title="CALL LOGS"
-    searchPlaceholder="Search Call Logs"
-    columns={['PROJECT', 'STATUS', 'RATING', 'DURATION', 'TOTAL USED', 'DATE & TIME']}
-    rows={[
-      { project: 'SFDC_00Tfw0000ecqAZEAY', status: 'QUEUED', date: '24 Jul 26 03:52 PM' },
-      { project: 'SFDC_00Tfw0000ed3alEAA', status: 'QUEUED', date: '24 Jul 26 03:52 PM' },
-      { project: 'SFDC_00TOX00000x8wfV2A0', status: 'QUEUED', date: '24 Jul 26 03:52 PM' },
-    ].map((c, i) => ({
-      searchText: c.project,
-      cells: [
-        <span style={{ fontWeight: 600, color: 'var(--text)', fontSize: '11px' }}>{c.project}</span>,
-        <StatusBadge label={c.status} color="#fbbf24" />,
-        <span style={{ color: 'var(--muted)' }}>—</span>,
-        <span style={{ color: 'var(--muted)' }}>—</span>,
-        <span style={{ color: 'var(--muted)' }}>—</span>,
-        <span style={{ fontSize: '10px', color: 'var(--muted)' }}>{c.date}</span>,
-      ],
-    }))}
-  />
-);
+const CALL_LOGS_STATS = [
+  { label: 'Total Calls', value: '11,046', icon: PhoneCall, color: '#818cf8' },
+  { label: 'Answered', value: '3,403', icon: Phone, color: '#34d399' },
+  { label: 'Unanswered', value: '5,950', icon: PhoneOff, color: '#f87171' },
+  { label: 'Amount Used', value: '₹1,04,808', icon: IndianRupee, color: '#fbbf24' },
+  { label: 'Hot Leads', value: '0', icon: Flame, color: '#fb923c' },
+  { label: 'Warm Leads', value: '0', icon: Sun, color: '#facc15' },
+  { label: 'Cold Leads', value: '0', icon: Snowflake, color: '#60a5fa' },
+];
+
+const CALL_LOGS_DATA = [
+  { id: '6a632c272055a904724874a2', campaign: 'Joy_Street_21_07', phone: '(+91) 99999*****', endReason: '-' },
+  { id: '6a632bdc6df199f32b95362b', campaign: 'Joy_Street_21_07', phone: '(+91) 99999*****', endReason: '-' },
+  { id: '6a61fd402af9fcd4112513b5', campaign: 'Joy_Street_21_07', phone: '(+91) 94514*****', endReason: 'Unanswered' },
+  { id: '6a61fd402af9fcd4112513b4', campaign: 'Joy_Street_21_07', phone: '(+91) 93054*****', endReason: 'Unanswered' },
+  { id: '6a61fd402af9fcd4112513b3', campaign: 'Joy_Street_21_07', phone: '(+91) 94154*****', endReason: 'Unanswered' },
+  { id: '6a61fd402af9fcd4112513b2', campaign: 'Joy_Street_21_07', phone: '(+91) 94510*****', endReason: 'Unanswered' },
+  { id: '6a61fd402af9fcd4112513b1', campaign: 'Joy_Street_21_07', phone: '(+91) 98893*****', endReason: 'Client Hangup', playing: true, duration: '0:08' },
+  { id: '6a61fd402af9fcd4112513b0', campaign: 'Joy_Street_21_07', phone: '(+91) 99363*****', endReason: 'Unanswered' },
+];
+
+export const CallLogsPage = () => {
+  const [search, setSearch] = React.useState('');
+  const rows = CALL_LOGS_DATA.filter(c => c.phone.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="main-content no-scrollbar">
+      <div className="topbar">
+        <div className="topbar-left"><h2>CALL LOGS</h2></div>
+      </div>
+
+      <div className="g2" style={{ gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: '20px' }}>
+        {CALL_LOGS_STATS.map((s, i) => <StatCard key={i} {...s} />)}
+      </div>
+
+      <div className="glass" style={{ padding: '14px 16px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: '220px', display: 'flex', alignItems: 'center', background: 'var(--card-bg-alt)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '9px 14px', gap: '8px' }}>
+            <Search className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
+            <input
+              type="text"
+              placeholder="Search by phone number or keyword..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '12px', fontWeight: 600, width: '100%' }}
+            />
+          </div>
+          <PlainPill label="Joy Street" active />
+          <PlainPill label="Duration" />
+          <PlainPill label="Segment" />
+          <PlainPill label="Campaign" />
+          <GhostIconButton icon={Filter} />
+          <GhostIconButton icon={ArrowUpDown} />
+          <GhostIconButton icon={Download} />
+          <button style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 14px', borderRadius: '10px', background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <X className="w-3.5 h-3.5" /> Clear all <span style={{ background: '#f87171', color: '#fff', borderRadius: '50%', width: '15px', height: '15px', fontSize: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
+          </button>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Active Filters:</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '8px', background: 'rgba(129,140,248,0.12)', color: '#818cf8', fontSize: '11px', fontWeight: 700 }}>
+            Proj: Joy Street <X className="w-3 h-3" style={{ cursor: 'pointer' }} />
+          </span>
+        </div>
+      </div>
+
+      <div className="glass">
+        <div style={{ overflowX: 'auto' }}>
+          <table className="lb-table">
+            <thead>
+              <tr>
+                {['ACTION', 'ID', 'DEVELOPER', 'PROJECT NAME', 'CAMPAIGN', 'PHONE NO', 'CALL RECORDING', 'CALL END REASON'].map((col, i) => (
+                  <th key={i} style={{ whiteSpace: 'nowrap' }}>{col}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((c, i) => (
+                <tr key={i}>
+                  <td><ActionDots /></td>
+                  <td><IdBadge id={c.id} /></td>
+                  <td><NameCell avatar="U" name="Urban Axis" /></td>
+                  <td style={{ color: 'var(--dim)' }}>Joy Street</td>
+                  <td style={{ color: 'var(--dim)' }}>{c.campaign}</td>
+                  <td style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--dim)' }}><Phone className="w-3 h-3" style={{ color: 'var(--muted)' }} />{c.phone}</td>
+                  <td><RecordingCell playing={c.playing} duration={c.duration} /></td>
+                  <td><CallEndBadge label={c.endReason} /></td>
+                </tr>
+              ))}
+              {rows.length === 0 && (
+                <tr><td colSpan={8} style={{ textAlign: 'center', padding: '24px', color: 'var(--muted)' }}>No entries found</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const TRANSACTIONS_DATA = [
   { id: '6a4e3404b169fa0dc44e...', logId: '6a4e326bb169fa0dc44e6e07', phone: '[+91] 78381*****', duration: '1:54', amount: '-₹0', particular: 'ANALYSIS', balance: '₹30,192', date: '08 Jul 2026', time: '04:57 pm' },
@@ -289,13 +389,10 @@ const TRANSACTIONS_DATA = [
 export const TransactionsPage = () => (
   <RichListPage
     title="TRANSACTIONS"
-    filters={['Urban Axis', 'Joy Street']}
+    filters={['Joy Street']}
     actions={<>
       <GhostIconButton icon={RefreshCw} />
       <GhostIconButton icon={Filter} />
-      <GhostButton>TRANSFER AMOUNT</GhostButton>
-      <GhostButton icon={Repeat}>AD-HOC</GhostButton>
-      <GhostButton icon={ArrowUpRight}>TOP-UP</GhostButton>
       <GhostIconButton icon={Download} />
     </>}
     extraRow={

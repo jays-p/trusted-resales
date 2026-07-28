@@ -55,9 +55,11 @@ export const SummaryCard = ({ label, value, icon: Icon, sub }) => (
   </div>
 );
 
-const RichListPage = ({ title, filters = [], searchValue, onSearch, searchPlaceholder, actions, extraRow, columns, rows, totalEntries }) => {
+const RichListPage = ({ title, filters = [], searchPlaceholder, actions, extraRow, columns, rows, totalEntries, entrySeparator = '–' }) => {
+  const [search, setSearch] = React.useState('');
+  const filteredRows = searchPlaceholder ? rows.filter(r => (r.searchText || '').toLowerCase().includes(search.toLowerCase())) : rows;
   const total = totalEntries ?? rows.length;
-  const shown = rows.length;
+  const shown = filteredRows.length;
   const pageCount = Math.min(5, Math.max(1, Math.ceil(total / 10)));
 
   return (
@@ -66,7 +68,7 @@ const RichListPage = ({ title, filters = [], searchValue, onSearch, searchPlaceh
         <div className="topbar-left"><h2>{title}</h2></div>
         <div className="topbar-right" style={{ flexWrap: 'wrap', rowGap: '10px' }}>
           {filters.map((f, i) => <FilterPill key={i} label={f} />)}
-          {onSearch && <SearchBox value={searchValue} onChange={onSearch} placeholder={searchPlaceholder} />}
+          {searchPlaceholder && <SearchBox value={search} onChange={setSearch} placeholder={searchPlaceholder} />}
           {actions}
         </div>
       </div>
@@ -82,12 +84,12 @@ const RichListPage = ({ title, filters = [], searchValue, onSearch, searchPlaceh
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, i) => (
+              {filteredRows.map((row, i) => (
                 <tr key={i}>
                   {row.cells.map((cell, j) => <td key={j} style={{ whiteSpace: 'nowrap' }}>{cell}</td>)}
                 </tr>
               ))}
-              {rows.length === 0 && (
+              {filteredRows.length === 0 && (
                 <tr><td colSpan={columns.length} style={{ textAlign: 'center', padding: '24px', color: 'var(--muted)' }}>No entries found</td></tr>
               )}
             </tbody>
@@ -100,7 +102,7 @@ const RichListPage = ({ title, filters = [], searchValue, onSearch, searchPlaceh
               Show 10 <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)' }} />
             </div>
             <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>
-              Showing <strong style={{ color: 'var(--text)' }}>{shown ? 1 : 0}–{shown}</strong> of <strong style={{ color: 'var(--text)' }}>{total}</strong> entries
+              Showing <strong style={{ color: 'var(--text)' }}>{shown ? 1 : 0}</strong>{entrySeparator}<strong style={{ color: 'var(--text)' }}>{shown}</strong> of <strong style={{ color: 'var(--text)' }}>{total}</strong> entries
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

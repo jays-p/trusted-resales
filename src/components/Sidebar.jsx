@@ -5,13 +5,12 @@ import {
   PieChart,
   Flag,
   History,
-  Settings,
   Users,
   Moon,
-  Upload,
   Bell,
   LogOut,
   ChevronDown,
+  ChevronUp,
   Pin,
   Building2,
   Boxes,
@@ -20,10 +19,11 @@ import {
 import convoAILogo from '../assets/convoAI-purple.svg';
 
 const Sidebar = ({ activePage = 'dashboard', onNavigate = () => {} }) => {
-  const [managementOpen, setManagementOpen] = React.useState(false);
   const [isDark, setIsDark] = React.useState(() => {
     return !document.body.classList.contains('light-mode');
   });
+  const [channelPartnersOpen, setChannelPartnersOpen] = React.useState(true);
+  const [projectsOpen, setProjectsOpen] = React.useState(true);
 
   React.useEffect(() => {
     if (isDark) {
@@ -33,17 +33,45 @@ const Sidebar = ({ activePage = 'dashboard', onNavigate = () => {} }) => {
     }
   }, [isDark]);
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, active: activePage === 'dashboard' },
-    { id: 'presales', label: 'Pre Sales', icon: <PieChart className="w-4 h-4" />, active: activePage === 'presales' },
-    { id: 'developers', label: 'Developers', icon: <Users className="w-4 h-4" />, active: activePage === 'developers' },
-    { id: 'channel-partners', label: 'Channel Partners', icon: <Building2 className="w-4 h-4" />, active: activePage === 'channel-partners' },
-    { id: 'projects', label: 'Projects', icon: <Boxes className="w-4 h-4" />, active: activePage === 'projects' },
-    { id: 'segments', label: 'Segments', icon: <Flag className="w-4 h-4" />, active: activePage === 'segments' },
-    { id: 'campaigns', label: 'Campaigns', icon: <Megaphone className="w-4 h-4" />, active: activePage === 'campaigns' },
-    { id: 'call-logs', label: 'Call Logs', icon: <PhoneCall className="w-4 h-4" />, active: activePage === 'call-logs' },
-    { id: 'transactions', label: 'Transactions', icon: <History className="w-4 h-4" />, active: activePage === 'transactions' },
+  const topItems = [
+    { id: 'dashboard', label: 'Customer Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { id: 'presales', label: 'Pre Sales', icon: <PieChart className="w-4 h-4" /> },
+    { id: 'developers', label: 'Developers', icon: <Users className="w-4 h-4" /> },
   ];
+
+  const tailItems = [
+    { id: 'segments', label: 'Segments', icon: <Flag className="w-4 h-4" /> },
+    { id: 'campaigns', label: 'Campaigns', icon: <Megaphone className="w-4 h-4" /> },
+    { id: 'call-logs', label: 'Call Logs', icon: <PhoneCall className="w-4 h-4" /> },
+    { id: 'transactions', label: 'Transactions', icon: <History className="w-4 h-4" /> },
+  ];
+
+  const renderItem = (item) => (
+    <div key={item.id} className={`nav-item ${activePage === item.id ? 'active' : ''}`} onClick={() => onNavigate(item.id)} style={{ cursor: 'pointer' }}>
+      {item.icon}
+      <span>{item.label}</span>
+      {activePage === item.id && <span style={{ marginLeft: 'auto', fontSize: '10px', color: 'var(--accent)' }}>›</span>}
+    </div>
+  );
+
+  const renderGroup = (label, icon, open, setOpen, childId, childLabel) => (
+    <div key={childId}>
+      <div className="nav-item" onClick={() => setOpen(!open)} style={{ cursor: 'pointer' }}>
+        {icon}
+        <span>{label}</span>
+        {open ? <ChevronUp className="w-3.5 h-3.5" style={{ marginLeft: 'auto', color: 'var(--muted)' }} /> : <ChevronDown className="w-3.5 h-3.5" style={{ marginLeft: 'auto', color: 'var(--muted)' }} />}
+      </div>
+      {open && (
+        <div
+          onClick={() => onNavigate(childId)}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 14px 9px 34px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', color: activePage === childId ? '#818cf8' : 'var(--muted)', background: activePage === childId ? 'rgba(129,140,248,0.08)' : 'transparent' }}
+        >
+          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
+          <span style={{ textTransform: 'uppercase', letterSpacing: '0.02em' }}>{childLabel}</span>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="sidebar">
@@ -59,13 +87,10 @@ const Sidebar = ({ activePage = 'dashboard', onNavigate = () => {} }) => {
 
       {/* Navigation */}
       <div className="nav">
-        {menuItems.map(item => (
-          <div key={item.id} className={`nav-item ${item.active ? 'active' : ''}`} onClick={() => onNavigate(item.id)} style={{ cursor: 'pointer' }}>
-            {item.icon}
-            <span>{item.label}</span>
-            {item.active && <span style={{ marginLeft: 'auto', fontSize: '10px', color: 'var(--accent)' }}>›</span>}
-          </div>
-        ))}
+        {topItems.map(renderItem)}
+        {renderGroup('Channel Partners', <Building2 className="w-4 h-4" />, channelPartnersOpen, setChannelPartnersOpen, 'channel-partners', 'Channel Partner')}
+        {renderGroup('Projects', <Boxes className="w-4 h-4" />, projectsOpen, setProjectsOpen, 'projects', 'Project Lists')}
+        {tailItems.map(renderItem)}
       </div>
 
       {/* Bottom Section */}
