@@ -209,22 +209,27 @@ const LEAD_TYPES = [
   { key: 'cold', label: 'Cold', color: '#60a5fa' },
 ];
 
+const LEADER_FILTERS = [
+  { key: 'all', label: 'All', color: 'var(--accent)' },
+  { key: 'hot', label: 'Hot', color: '#f87171' },
+  { key: 'warm', label: 'Warm', color: '#fbbf24' },
+  { key: 'cold', label: 'Cold', color: '#60a5fa' },
+];
+
 const LeadTrendChart = ({ data }) => {
-  const [hoverBar, setHoverBar] = React.useState(null);
   const [showTable, setShowTable] = React.useState(false);
   const n = data.length;
 
-  const W = 900, H = 190;
-  const padL = 40, padR = 16, padT = 16, padB = 26;
+  const W = 900, H = 150;
+  const padL = 36, padR = 16, padT = 14, padB = 22;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
   const xAt = (i) => padL + (n === 1 ? 0 : (i / (n - 1)) * plotW);
-  const barW = 80;
-  const gap = 2;
-  const baseline = padT + plotH;
 
-  const maxTotal = Math.max(...data.map(d => d.hot + d.warm + d.cold)) * 1.15;
-  const scale = (v) => (v / maxTotal) * plotH;
+  const maxVal = Math.max(...data.map(d => Math.max(d.hot, d.warm, d.cold))) * 1.2;
+  const yAt = (v) => padT + plotH - (v / maxVal) * plotH;
+
+  const linePath = (key) => data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xAt(i)} ${yAt(d[key])}`).join(' ');
 
   return (
     <div>
@@ -243,42 +248,23 @@ const LeadTrendChart = ({ data }) => {
             <line key={t} x1={padL} x2={W - padR} y1={padT + plotH * (1 - t)} y2={padT + plotH * (1 - t)} stroke="var(--gb)" strokeWidth="1" />
           ))}
           {[0, 0.25, 0.5, 0.75, 1].map(t => (
-            <text key={t} x={padL - 8} y={padT + plotH * (1 - t) + 4} fontSize="10" fill="var(--muted)" textAnchor="end">{Math.round(maxTotal * t)}</text>
+            <text key={t} x={padL - 8} y={padT + plotH * (1 - t) + 3} fontSize="9" fill="var(--muted)" textAnchor="end">{Math.round(maxVal * t)}</text>
           ))}
-          {data.map((d, i) => {
-            const x = xAt(i) - barW / 2;
-            const coldH = scale(d.cold);
-            const warmH = scale(d.warm);
-            const hotH = scale(d.hot);
-            const coldY = baseline - coldH;
-            const warmY = coldY - gap - warmH;
-            const hotY = warmY - gap - hotH;
-            const active = hoverBar === null || hoverBar === i;
-
-            return (
-              <g key={i} onMouseEnter={() => setHoverBar(i)} onMouseLeave={() => setHoverBar(null)} style={{ cursor: 'pointer', transition: 'opacity 0.15s' }} opacity={active ? 1 : 0.5}>
-                <rect x={x} y={coldY} width={barW} height={coldH} fill={LEAD_TYPES[2].color} />
-                <rect x={x} y={warmY} width={barW} height={warmH} fill={LEAD_TYPES[1].color} />
-                <path d={roundedTopBarPath(x, hotY, barW, hotH, 4)} fill={LEAD_TYPES[0].color} />
-              </g>
-            );
-          })}
+          {LEAD_TYPES.map(s => (
+            <path key={s.key} d={linePath(s.key)} fill="none" stroke={s.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          ))}
+          {LEAD_TYPES.map(s => (
+            data.map((d, i) => (
+              <circle key={`${s.key}-${i}`} cx={xAt(i)} cy={yAt(d[s.key])} r="3.5" fill={s.color} stroke="var(--card-bg)" strokeWidth="1.5" />
+            ))
+          ))}
+          {LEAD_TYPES.map(s => (
+            <text key={`${s.key}-label`} x={xAt(n - 1) + 8} y={yAt(data[n - 1][s.key]) + 3} fontSize="10" fontWeight="800" fill={s.color} textAnchor="start">{data[n - 1][s.key]}</text>
+          ))}
           {data.map((d, i) => (
-            <text key={i} x={xAt(i)} y={H - 8} fontSize="11" fill="var(--muted)" textAnchor="middle">{d.month}</text>
+            <text key={i} x={xAt(i)} y={H - 6} fontSize="10" fill="var(--muted)" textAnchor="middle">{d.month}</text>
           ))}
         </svg>
-        {hoverBar !== null && (
-          <div style={{ position: 'absolute', left: `${(xAt(hoverBar) / W) * 100}%`, top: 0, transform: 'translate(-50%, -100%)', background: 'var(--card-bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '8px 12px', fontSize: '11px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
-            <div style={{ color: 'var(--muted)', fontWeight: 700, marginBottom: '4px' }}>{data[hoverBar].month}</div>
-            {LEAD_TYPES.map(s => (
-              <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '8px', height: '2px', background: s.color, display: 'inline-block' }} />
-                <span style={{ color: 'var(--text)', fontWeight: 800 }}>{data[hoverBar][s.key]}</span>
-                <span style={{ color: 'var(--muted)' }}>{s.label.toLowerCase()}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       <div
@@ -321,8 +307,10 @@ const MonthlyTrendCharts = ({ data }) => {
   const n = data.length;
 
   // Line chart (avg quality score) — sized for a side-by-side half-width column
-  const W = 430, H = 210;
-  const padL = 30, padR = 14, padT = 16, padB = 26;
+  const lineColor = '#fb923c';
+  const barColor = '#2dd4bf';
+  const W = 340, H = 150;
+  const padL = 26, padR = 12, padT = 12, padB = 22;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
   const xAt = (i) => padL + (n === 1 ? 0 : (i / (n - 1)) * plotW);
@@ -331,12 +319,12 @@ const MonthlyTrendCharts = ({ data }) => {
   const areaPath = `${linePath} L ${xAt(n - 1)} ${padT + plotH} L ${xAt(0)} ${padT + plotH} Z`;
 
   // Bar chart (calls)
-  const H2 = 210;
-  const padT2 = 16, padB2 = 26;
+  const H2 = 150;
+  const padT2 = 12, padB2 = 22;
   const plotH2 = H2 - padT2 - padB2;
   const callsMax = Math.max(...data.map(d => d.calls)) * 1.2;
   const yCalls = (v) => padT2 + plotH2 - (v / callsMax) * plotH2;
-  const barW = 18;
+  const barW = 14;
 
   const handleLineMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -357,20 +345,20 @@ const MonthlyTrendCharts = ({ data }) => {
                 <line key={t} x1={padL} x2={W - padR} y1={yScore(t)} y2={yScore(t)} stroke="var(--gb)" strokeWidth="1" />
               ))}
               {[0, 1, 2, 3, 4, 5].map(t => (
-                <text key={t} x={padL - 8} y={yScore(t) + 4} fontSize="11" fill="var(--muted)" textAnchor="end">{t}</text>
+                <text key={t} x={padL - 7} y={yScore(t) + 3} fontSize="9" fill="var(--muted)" textAnchor="end">{t}</text>
               ))}
-              <path d={areaPath} fill="var(--accent)" opacity="0.1" stroke="none" />
-              <path d={linePath} fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d={areaPath} fill={lineColor} opacity="0.12" stroke="none" />
+              <path d={linePath} fill="none" stroke={lineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               {hoverIdx !== null && (
                 <line x1={xAt(hoverIdx)} x2={xAt(hoverIdx)} y1={padT} y2={padT + plotH} stroke="var(--muted)" strokeWidth="1" strokeDasharray="3 3" />
               )}
               {data.map((d, i) => (
-                <circle key={i} cx={xAt(i)} cy={yScore(d.avgScore)} r={i === hoverIdx ? 7 : 5.5} fill="var(--accent)" stroke="var(--card-bg)" strokeWidth="2.5" />
+                <circle key={i} cx={xAt(i)} cy={yScore(d.avgScore)} r={i === hoverIdx ? 5.5 : 4} fill={lineColor} stroke="var(--card-bg)" strokeWidth="2" />
               ))}
               {data.map((d, i) => (
-                <text key={i} x={xAt(i)} y={H - 6} fontSize="11" fill="var(--muted)" textAnchor="middle">{d.month}</text>
+                <text key={i} x={xAt(i)} y={H - 5} fontSize="9" fill="var(--muted)" textAnchor="middle">{d.month}</text>
               ))}
-              <text x={xAt(n - 1)} y={yScore(data[n - 1].avgScore) - 14} fontSize="13" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].avgScore.toFixed(1)}</text>
+              <text x={xAt(n - 1)} y={yScore(data[n - 1].avgScore) - 11} fontSize="11" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].avgScore.toFixed(1)}</text>
             </svg>
             {hoverIdx !== null && (
               <div style={{ position: 'absolute', left: `${(xAt(hoverIdx) / W) * 100}%`, top: 0, transform: 'translate(-50%, -100%)', background: 'var(--card-bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
@@ -396,8 +384,8 @@ const MonthlyTrendCharts = ({ data }) => {
                 return (
                   <path
                     key={i}
-                    d={roundedTopBarPath(x, y, barW, h, 5)}
-                    fill="var(--accent)"
+                    d={roundedTopBarPath(x, y, barW, h, 4)}
+                    fill={barColor}
                     opacity={hoverBar === null || hoverBar === i ? 1 : 0.55}
                     onMouseEnter={() => setHoverBar(i)}
                     onMouseLeave={() => setHoverBar(null)}
@@ -406,9 +394,9 @@ const MonthlyTrendCharts = ({ data }) => {
                 );
               })}
               {data.map((d, i) => (
-                <text key={i} x={xAt(i)} y={H2 - 6} fontSize="11" fill="var(--muted)" textAnchor="middle">{d.month}</text>
+                <text key={i} x={xAt(i)} y={H2 - 5} fontSize="9" fill="var(--muted)" textAnchor="middle">{d.month}</text>
               ))}
-              <text x={xAt(n - 1)} y={yCalls(data[n - 1].calls) - 8} fontSize="13" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].calls}</text>
+              <text x={xAt(n - 1)} y={yCalls(data[n - 1].calls) - 7} fontSize="11" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].calls}</text>
             </svg>
             {hoverBar !== null && (
               <div style={{ position: 'absolute', left: `${(xAt(hoverBar) / W) * 100}%`, top: `${(yCalls(data[hoverBar].calls) / H2) * 100}%`, transform: 'translate(-50%, -130%)', background: 'var(--card-bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
@@ -520,6 +508,19 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
   const [execSort, setExecSort] = React.useState({ key: null, dir: 'desc' });
   const [leaderSort, setLeaderSort] = React.useState({ key: null, dir: 'desc' });
   const [leaderFilter, setLeaderFilter] = React.useState('all');
+  const [leaderFilterDropdown, setLeaderFilterDropdown] = React.useState(false);
+  const leaderFilterDropdownRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!leaderFilterDropdown) return;
+    const handleClickOutside = (e) => {
+      if (leaderFilterDropdownRef.current && !leaderFilterDropdownRef.current.contains(e.target)) {
+        setLeaderFilterDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [leaderFilterDropdown]);
   const [leaderGraphOpen, setLeaderGraphOpen] = React.useState(false);
   const [leaderGraphSelected, setLeaderGraphSelected] = React.useState('all');
   const [leaderGraphDropdown, setLeaderGraphDropdown] = React.useState(false);
@@ -692,43 +693,45 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setLeaderGraphOpen(!leaderGraphOpen)}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '30px', padding: '0 12px', borderRadius: '8px', background: leaderGraphOpen ? 'var(--accent)' : 'var(--glass-xs)', border: `1px solid ${leaderGraphOpen ? 'var(--accent)' : 'var(--gb)'}`, color: leaderGraphOpen ? '#fff' : 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s', fontSize: '11px', fontWeight: 700 }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: leaderGraphOpen ? 'var(--accent)' : 'var(--glass-xs)', border: `1px solid ${leaderGraphOpen ? 'var(--accent)' : 'var(--gb)'}`, color: leaderGraphOpen ? '#fff' : 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }}
               title={leaderGraphOpen ? 'Switch to table view' : 'Switch to graph view'}
             >
-              {leaderGraphOpen ? <Table2 size={13} /> : <LineChart size={13} />}
-              {leaderGraphOpen ? 'Table' : 'Graph'}
+              {leaderGraphOpen ? <Table2 size={14} /> : <LineChart size={14} />}
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '9px', padding: '3px' }}>
-              {[
-                { key: 'all', label: 'All', color: 'var(--accent)' },
-                { key: 'hot', label: 'Hot', color: '#f87171' },
-                { key: 'warm', label: 'Warm', color: '#fbbf24' },
-                { key: 'cold', label: 'Cold', color: '#60a5fa' },
-              ].map(f => (
-                <button
-                  key={f.key}
-                  onClick={() => setLeaderFilter(f.key)}
-                  style={{
-                    padding: '5px 11px',
-                    borderRadius: '6px',
-                    background: leaderFilter === f.key ? f.color : 'transparent',
-                    border: 'none',
-                    color: leaderFilter === f.key ? 'var(--bg)' : 'var(--muted)',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                  title={f.key === 'all' ? 'Rank by call quality score' : `Rank by ${f.label} lead count`}
-                >
-                  {f.label}
-                </button>
-              ))}
+            <div className={`admin-dropdown ${leaderFilterDropdown ? 'open' : ''}`} onClick={() => setLeaderFilterDropdown(!leaderFilterDropdown)} ref={leaderFilterDropdownRef}>
+              {(() => {
+                const active = LEADER_FILTERS.find(f => f.key === leaderFilter);
+                return (
+                  <>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: active.color, display: 'inline-block', flexShrink: 0 }} />
+                    <span>{active.label}</span>
+                  </>
+                );
+              })()}
+              <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: leaderFilterDropdown ? 'rotate(180deg)' : '' }} />
+              {leaderFilterDropdown && (
+                <div className="dropdown-popup" style={{ minWidth: '160px' }} onClick={(e) => e.stopPropagation()}>
+                  <div className="dropdown-list">
+                    {LEADER_FILTERS.map(f => (
+                      <div
+                        key={f.key}
+                        className={`dropdown-item ${leaderFilter === f.key ? 'active' : ''}`}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                        onClick={() => { setLeaderFilter(f.key); setLeaderFilterDropdown(false); }}
+                        title={f.key === 'all' ? 'Rank by call quality score' : `Rank by ${f.label} lead count`}
+                      >
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: f.color, display: 'inline-block', flexShrink: 0 }} />
+                        {f.label}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <SectionTimeFilter active="ALL" />
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '6px 12px', gap: '8px', width: '160px' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-              <input type="text" placeholder="Search agent..." value={aiSearch} onChange={(e) => setAiSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
+              <input type="text" placeholder="Search..." value={aiSearch} onChange={(e) => setAiSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
             </div>
             <button onClick={() => handleExport(
               ['#', 'Agent', 'Calls', 'Hot', 'Warm', 'Cold', ...QUALITY_PARAMS.map(p => p.label), 'Avg'],
@@ -972,11 +975,10 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setExecGraphOpen(!execGraphOpen)}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '26px', padding: '0 10px', borderRadius: '8px', background: execGraphOpen ? 'var(--accent)' : 'var(--glass-xs)', border: `1px solid ${execGraphOpen ? 'var(--accent)' : 'var(--gb)'}`, color: execGraphOpen ? '#fff' : 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s', fontSize: '11px', fontWeight: 700 }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: execGraphOpen ? 'var(--accent)' : 'var(--glass-xs)', border: `1px solid ${execGraphOpen ? 'var(--accent)' : 'var(--gb)'}`, color: execGraphOpen ? '#fff' : 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }}
               title={execGraphOpen ? 'Switch to table view' : 'Switch to graph view'}
             >
               {execGraphOpen ? <Table2 size={13} /> : <LineChart size={13} />}
-              {execGraphOpen ? 'Table' : 'Graph'}
             </button>
             <SectionTimeFilter />
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '5px 10px', gap: '6px', width: '140px' }}>
@@ -1302,49 +1304,67 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
 
 
 // Section Time Filter with Custom popup
+const SECTION_TIME_PRESETS = [
+  { key: '7D', label: '7 Days' },
+  { key: '30D', label: '30 Days' },
+  { key: '90D', label: '90 Days' },
+  { key: 'YTD', label: 'FY' },
+  { key: 'ALL', label: 'All Time' },
+];
+
+const DateFieldIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+);
+
 const SectionTimeFilter = () => {
   const [active, setActive] = React.useState('ALL');
-  const [showCustom, setShowCustom] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
   const [startDate, setStartDate] = React.useState('');
   const [endDate, setEndDate] = React.useState('');
   const ref = React.useRef(null);
 
   React.useEffect(() => {
-    if (!showCustom) return;
+    if (!open) return;
     const handleClickOutside = (e) => {
       if (ref.current && !ref.current.contains(e.target)) {
-        setShowCustom(false);
+        setOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showCustom]);
+  }, [open]);
 
-  const labels = { '7D': '7D', '30D': '30D', '90D': '90D', 'YTD': 'FY', 'ALL': 'ALL' };
+  const activeLabel = active === 'CUSTOM'
+    ? (startDate && endDate ? `${startDate} - ${endDate}` : 'Custom Range')
+    : (SECTION_TIME_PRESETS.find(p => p.key === active)?.label || 'Select Time Range');
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', position: 'relative' }} ref={ref}>
-      {Object.entries(labels).map(([key, label]) => (
-        <div key={key} onClick={() => { setActive(key); setShowCustom(false); }} style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, color: active === key ? 'var(--text)' : 'var(--muted)', background: active === key ? '#3b82f6' : 'transparent', cursor: 'pointer', transition: 'all 0.15s' }}>{label}</div>
-      ))}
-      <div onClick={(e) => { e.stopPropagation(); setShowCustom(!showCustom); setActive(''); }} style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, color: showCustom ? 'var(--text)' : 'var(--muted)', background: showCustom ? '#3b82f6' : 'transparent', cursor: 'pointer', transition: 'all 0.15s' }}>Custom</div>
-      {showCustom && (
-        <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', background: 'var(--popup-bg)', border: '1px solid var(--glass-s)', borderRadius: '12px', padding: '14px 18px', zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', minWidth: '340px' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px', display: 'block' }}>Start Date</label>
-              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
-                <input type="text" placeholder="DD/MM/YYYY" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+    <div className={`admin-dropdown ${open ? 'open' : ''}`} onClick={() => setOpen(!open)} ref={ref} style={{ minWidth: '140px', justifyContent: 'space-between' }}>
+      <span>{activeLabel}</span>
+      <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : '' }} />
+      {open && (
+        <div className="dropdown-popup" style={{ minWidth: '300px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="dropdown-list" style={{ maxHeight: 'none' }}>
+            {SECTION_TIME_PRESETS.map(p => (
+              <div key={p.key} className={`dropdown-item ${active === p.key ? 'active' : ''}`} onClick={() => { setActive(p.key); setOpen(false); }}>
+                {p.label}
+              </div>
+            ))}
+          </div>
+          <div style={{ borderTop: '1px solid var(--gb)', marginTop: '6px', paddingTop: '10px' }}>
+            <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>Custom Range</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
+                <input type="text" placeholder="Dd-mm-yyyy" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
+                <DateFieldIcon />
+              </div>
+              <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 700 }}>TO</span>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
+                <input type="text" placeholder="Dd-mm-yyyy" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
+                <DateFieldIcon />
               </div>
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '5px', display: 'block' }}>End Date</label>
-              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '7px', padding: '7px 10px', gap: '6px' }}>
-                <input type="text" placeholder="DD/MM/YYYY" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-              </div>
-            </div>
-            <button onClick={() => setShowCustom(false)} style={{ padding: '8px 16px', borderRadius: '7px', background: 'linear-gradient(135deg, #818cf8, #6366f1)', border: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Apply</button>
+            <button onClick={() => { setActive('CUSTOM'); setOpen(false); }} style={{ marginTop: '10px', width: '100%', padding: '8px', borderRadius: '7px', background: 'linear-gradient(135deg, #818cf8, #6366f1)', border: 'none', color: '#fff', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>Apply</button>
           </div>
         </div>
       )}
