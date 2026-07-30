@@ -241,7 +241,7 @@ const LeadTrendChart = ({ data }) => {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '35% 65%', gap: '32px', width: '100%' }}>
       {/* Donut */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: '20px' }}>
         <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
           <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
             <circle cx={cx} cy={cy} r={r} fill="transparent" stroke="var(--gb)" strokeWidth={stroke} />
@@ -300,8 +300,8 @@ const LeadTrendChart = ({ data }) => {
       </div>
 
       {/* Monthly breakdown table */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-        <table className="lb-table" style={{ width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', height: '100%' }}>
+        <table className="lb-table" style={{ width: '100%', height: '100%' }}>
           <thead>
             <tr>
               <th style={{ padding: '6px 10px', fontSize: '8px' }}>Month</th>
@@ -398,7 +398,7 @@ const MonthlyTrendCharts = ({ data }) => {
         {/* Monthly Data Table */}
         <div>
           <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>Monthly Data</div>
-          <table className="lb-table" style={{ width: '100%' }}>
+          <table className="lb-table" style={{ width: '100%', height: '100%' }}>
             <thead>
               <tr>
                 <th style={{ padding: '6px 10px', fontSize: '8px', textAlign: 'left' }}>Month</th>
@@ -733,7 +733,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
 
           {leaderboardOpen && leaderGraphOpen && (
             <div style={{ padding: '20px 24px', borderBottom: 'none' }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 -24px 24px -24px', padding: '0 24px 16px 24px', borderBottom: '1px solid var(--gb)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 -24px 12px -24px', padding: '0 24px 16px 24px', borderBottom: '1px solid var(--gb)' }}>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Monthly Hot / Warm / Cold Trend</div>
                 <div className={`admin-dropdown ${leaderGraphDropdown ? 'open' : ''}`} onClick={() => setLeaderGraphDropdown(!leaderGraphDropdown)} ref={leaderGraphDropdownRef}>
                   <span>{leaderGraphSelected === 'all' ? 'All Executives' : leaderGraphSelected}</span>
@@ -983,7 +983,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
           </div>
           {execPerfOpen && execGraphOpen && (
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--gb)' }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 -24px 24px -24px', padding: '0 24px 16px 24px', borderBottom: '1px solid var(--gb)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 -24px 12px -24px', padding: '0 24px 16px 24px', borderBottom: '1px solid var(--gb)' }}>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)' }}>Monthly Performance</div>
                 <div className={`admin-dropdown ${execGraphDropdown ? 'open' : ''}`} onClick={() => setExecGraphDropdown(!execGraphDropdown)} ref={execGraphDropdownRef}>
                   <span>{execGraphSelected === 'all' ? 'All Executives' : execGraphSelected}</span>
