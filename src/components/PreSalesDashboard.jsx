@@ -395,72 +395,29 @@ const MonthlyTrendCharts = ({ data }) => {
           </div>
         </div>
 
-        {/* Calls volume (bar) */}
+        {/* Monthly Data Table */}
         <div>
-          <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>Calls Volume</div>
-          <div style={{ position: 'relative' }}>
-            <svg width="100%" viewBox={`0 0 ${W} ${H2}`} style={{ display: 'block' }}>
-              {[0, 0.5, 1].map(t => (
-                <line key={t} x1={padL} x2={W - padR} y1={padT2 + plotH2 * (1 - t)} y2={padT2 + plotH2 * (1 - t)} stroke="var(--gb)" strokeWidth="1" />
-              ))}
-              {data.map((d, i) => {
-                const x = xAt(i) - barW / 2;
-                const y = yCalls(d.calls);
-                const h = padT2 + plotH2 - y;
-                return (
-                  <path
-                    key={i}
-                    d={roundedTopBarPath(x, y, barW, h, 3)}
-                    fill={barColor}
-                    opacity={hoverBar === null || hoverBar === i ? 1 : 0.55}
-                    onMouseEnter={() => setHoverBar(i)}
-                    onMouseLeave={() => setHoverBar(null)}
-                    style={{ cursor: 'pointer', transition: 'opacity 0.15s' }}
-                  />
-                );
-              })}
+          <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>Monthly Data</div>
+          <table className="lb-table" style={{ width: '100%' }}>
+            <thead>
+              <tr>
+                <th style={{ padding: '6px 10px', fontSize: '8px', textAlign: 'left' }}>Month</th>
+                <th style={{ padding: '6px 10px', fontSize: '8px', textAlign: 'left' }}>Calls</th>
+                <th style={{ padding: '6px 10px', fontSize: '8px', textAlign: 'left' }}>Avg Score</th>
+              </tr>
+            </thead>
+            <tbody>
               {data.map((d, i) => (
-                <text key={i} x={xAt(i)} y={H2 - 4} fontSize="9" fill="var(--muted)" textAnchor="middle">{d.month}</text>
+                <tr key={i}>
+                  <td style={{ padding: '5px 10px', fontSize: '10px', color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
+                  <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.calls}</td>
+                  <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.avgScore.toFixed(1)}</td>
+                </tr>
               ))}
-              <text x={xAt(n - 1)} y={yCalls(data[n - 1].calls) - 8} fontSize="11" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].calls}</text>
-            </svg>
-            {hoverBar !== null && (
-              <div style={{ position: 'absolute', left: `${(xAt(hoverBar) / W) * 100}%`, top: `${(yCalls(data[hoverBar].calls) / H2) * 100}%`, transform: 'translate(-50%, -130%)', background: 'var(--card-bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '6px 9px', fontSize: '10px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
-                <div style={{ color: 'var(--muted)', fontWeight: 700, marginBottom: '3px' }}>{data[hoverBar].month}</div>
-                <div style={{ color: 'var(--text)', fontWeight: 800 }}>{data[hoverBar].calls} calls</div>
-              </div>
-            )}
-          </div>
+            </tbody>
+          </table>
         </div>
       </div>
-
-      <div
-        onClick={() => setShowTable(!showTable)}
-        style={{ marginTop: '16px', fontSize: '9px', fontWeight: 700, color: 'var(--accent)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-      >
-        {showTable ? 'Hide' : 'View'} as table
-        <ChevronDown size={9} style={{ transition: 'transform 0.2s', transform: showTable ? 'rotate(180deg)' : 'none' }} />
-      </div>
-      {showTable && (
-        <table className="lb-table" style={{ marginTop: '10px', width: '100%' }}>
-          <thead>
-            <tr>
-              <th>Month</th>
-              <th>Calls</th>
-              <th>Avg Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((d, i) => (
-              <tr key={i}>
-                <td style={{ color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
-                <td>{d.calls}</td>
-                <td>{d.avgScore.toFixed(1)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
     </div>
   );
 };
@@ -1026,7 +983,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
         </div>
         {execPerfOpen && execGraphOpen && (
           <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--gb)' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--glass-md)' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)' }}>Monthly Performance</div>
               <div className={`admin-dropdown ${execGraphDropdown ? 'open' : ''}`} onClick={() => setExecGraphDropdown(!execGraphDropdown)} ref={execGraphDropdownRef}>
                 <span>{execGraphSelected === 'all' ? 'All Executives' : execGraphSelected}</span>
