@@ -210,7 +210,7 @@ const LEAD_TYPES = [
 ];
 
 const LEADER_FILTERS = [
-  { key: 'all', label: 'All', color: 'var(--accent)' },
+  { key: 'all', label: 'Disposition', color: 'var(--accent)' },
   { key: 'hot', label: 'Hot', color: '#f87171' },
   { key: 'warm', label: 'Warm', color: '#fbbf24' },
   { key: 'cold', label: 'Cold', color: '#60a5fa' },
