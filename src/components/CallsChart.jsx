@@ -22,7 +22,7 @@ const CallsChart = ({ data = [] }) => {
 
       const W = rect.width;
       const H = rect.height;
-      const pad = { t: 28, b: 45, l: 36, r: 20 };
+      const pad = { t: 18, b: 28, l: 30, r: 14 };
       const cW = W - pad.l - pad.r;
       const cH = H - pad.t - pad.b;
 
@@ -45,7 +45,7 @@ const CallsChart = ({ data = [] }) => {
 
         // Y-axis labels
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        ctx.font = '10px JetBrains Mono, monospace';
+        ctx.font = '8px JetBrains Mono, monospace';
         ctx.textAlign = 'right';
         ctx.fillText(Math.round((i / 4) * max), pad.l - 8, y + 3);
       }
@@ -88,10 +88,10 @@ const CallsChart = ({ data = [] }) => {
       // Stroke
       createPath();
       ctx.strokeStyle = '#818cf8';
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 1.75;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 6;
       ctx.shadowColor = 'rgba(129, 140, 248, 0.5)';
       ctx.stroke();
       ctx.shadowBlur = 0;
@@ -104,19 +104,19 @@ const CallsChart = ({ data = [] }) => {
           const color = isMax ? '#34d399' : '#818cf8';
 
           ctx.beginPath();
-          ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
           ctx.fillStyle = '#0d1117';
           ctx.fill();
           ctx.strokeStyle = color;
-          ctx.lineWidth = 2;
+          ctx.lineWidth = 1.5;
           ctx.stroke();
 
           // Value labels for significant points
           if (values[i] > max * 0.15) {
             ctx.fillStyle = color;
-            ctx.font = 'bold 9px JetBrains Mono, monospace';
+            ctx.font = 'bold 8px JetBrains Mono, monospace';
             ctx.textAlign = 'center';
-            ctx.fillText(values[i], p.x, p.y - 10);
+            ctx.fillText(values[i], p.x, p.y - 8);
           }
         }
       });
@@ -124,7 +124,7 @@ const CallsChart = ({ data = [] }) => {
       // X-axis labels
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.textAlign = 'center';
-      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.font = '8px JetBrains Mono, monospace';
       const labelFreq = Math.max(1, Math.ceil(labels.length / 10));
       labels.forEach((l, i) => {
         if (i % labelFreq === 0) {
@@ -146,7 +146,7 @@ const CallsChart = ({ data = [] }) => {
 
       ctx.fillStyle = 'rgba(251, 191, 36, 0.6)';
       ctx.textAlign = 'right';
-      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.font = '8px JetBrains Mono, monospace';
       ctx.fillText(`avg ${avg.toFixed(0)}`, pad.l + cW, avgY - 5);
     };
 

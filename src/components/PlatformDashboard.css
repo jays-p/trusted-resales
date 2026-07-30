@@ -16,3 +16,24 @@
 .cold-cell:hover .cold-tooltip {
   display: block !important;
 }
+
+/* Theme Scrollbar */
+.theme-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.theme-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+.theme-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--gb, rgba(255, 255, 255, 0.15));
+  border-radius: 4px;
+}
+.theme-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--accent, #818cf8);
+}
+.theme-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gb, rgba(255, 255, 255, 0.15)) transparent;
+}

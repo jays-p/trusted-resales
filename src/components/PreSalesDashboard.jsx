@@ -217,85 +217,111 @@ const LEADER_FILTERS = [
 ];
 
 const LeadTrendChart = ({ data }) => {
-  const [showTable, setShowTable] = React.useState(false);
-  const n = data.length;
+  const [hoverSlice, setHoverSlice] = React.useState(null);
 
-  const W = 900, H = 150;
-  const padL = 36, padR = 16, padT = 14, padB = 22;
-  const plotW = W - padL - padR;
-  const plotH = H - padT - padB;
-  const xAt = (i) => padL + (n === 1 ? 0 : (i / (n - 1)) * plotW);
+  const totals = LEAD_TYPES.map(s => data.reduce((sum, d) => sum + d[s.key], 0));
+  const grandTotal = totals.reduce((a, b) => a + b, 0);
 
-  const maxVal = Math.max(...data.map(d => Math.max(d.hot, d.warm, d.cold))) * 1.2;
-  const yAt = (v) => padT + plotH - (v / maxVal) * plotH;
+  const size = 280;
+  const stroke = 36;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = cx - stroke / 2;
+  const circ = 2 * Math.PI * r;
 
-  const linePath = (key) => data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xAt(i)} ${yAt(d[key])}`).join(' ');
+  let offset = 0;
+  const segments = LEAD_TYPES.map((s, i) => {
+    const pct = grandTotal === 0 ? 0 : totals[i] / grandTotal;
+    const dash = circ * pct;
+    const seg = { ...s, value: totals[i], pct, dash, offset };
+    offset += dash;
+    return seg;
+  });
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '18px', marginBottom: '14px' }}>
-        {LEAD_TYPES.map(s => (
-          <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '3px', background: s.color, display: 'inline-block' }} />
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--muted)' }}>{s.label}</span>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', width: '100%' }}>
+      {/* Donut */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
+        <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
+            <circle cx={cx} cy={cy} r={r} fill="transparent" stroke="var(--gb)" strokeWidth={stroke} />
+            {segments.map((s, i) => {
+              const isHovered = hoverSlice === i;
+              return (
+                <circle
+                  key={s.key}
+                  cx={cx}
+                  cy={cy}
+                  r={r}
+                  fill="transparent"
+                  stroke={s.color}
+                  strokeWidth={isHovered ? stroke + 5 : stroke}
+                  strokeDasharray={`${s.dash} ${circ - s.dash}`}
+                  strokeDashoffset={-s.offset}
+                  style={{
+                    cursor: 'pointer',
+                    transition: 'stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease',
+                    opacity: hoverSlice !== null && !isHovered ? 0.4 : 1,
+                    filter: isHovered ? `drop-shadow(0 0 6px ${s.color})` : 'none',
+                  }}
+                  onMouseEnter={() => setHoverSlice(i)}
+                  onMouseLeave={() => setHoverSlice(null)}
+                />
+              );
+            })}
+          </svg>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+            {hoverSlice !== null ? (
+              <>
+                <div style={{ fontSize: '16px', fontWeight: 900, color: segments[hoverSlice].color }}>{segments[hoverSlice].value}</div>
+                <div style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>{segments[hoverSlice].label}</div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text)' }}>{grandTotal}</div>
+                <div style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Total</div>
+              </>
+            )}
           </div>
-        ))}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {segments.map((s, i) => (
+            <div
+              key={s.key}
+              onMouseEnter={() => setHoverSlice(i)}
+              onMouseLeave={() => setHoverSlice(null)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', background: hoverSlice === i ? 'rgba(129,140,248,0.08)' : 'transparent', transition: 'background 0.15s' }}
+            >
+              <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: s.color, display: 'inline-block', flexShrink: 0 }} />
+              <span style={{ fontSize: '10px', fontWeight: 700, color: hoverSlice === i ? 'var(--text)' : 'var(--muted)' }}>{s.label} ({s.value})</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div style={{ position: 'relative' }}>
-        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
-          {[0, 0.25, 0.5, 0.75, 1].map(t => (
-            <line key={t} x1={padL} x2={W - padR} y1={padT + plotH * (1 - t)} y2={padT + plotH * (1 - t)} stroke="var(--gb)" strokeWidth="1" />
-          ))}
-          {[0, 0.25, 0.5, 0.75, 1].map(t => (
-            <text key={t} x={padL - 8} y={padT + plotH * (1 - t) + 3} fontSize="9" fill="var(--muted)" textAnchor="end">{Math.round(maxVal * t)}</text>
-          ))}
-          {LEAD_TYPES.map(s => (
-            <path key={s.key} d={linePath(s.key)} fill="none" stroke={s.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          ))}
-          {LEAD_TYPES.map(s => (
-            data.map((d, i) => (
-              <circle key={`${s.key}-${i}`} cx={xAt(i)} cy={yAt(d[s.key])} r="3.5" fill={s.color} stroke="var(--card-bg)" strokeWidth="1.5" />
-            ))
-          ))}
-          {LEAD_TYPES.map(s => (
-            <text key={`${s.key}-label`} x={xAt(n - 1) + 8} y={yAt(data[n - 1][s.key]) + 3} fontSize="10" fontWeight="800" fill={s.color} textAnchor="start">{data[n - 1][s.key]}</text>
-          ))}
+      {/* Monthly breakdown table */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+        <table className="lb-table" style={{ width: '100%' }}>
+        <thead>
+          <tr>
+            <th style={{ padding: '6px 10px', fontSize: '8px' }}>Month</th>
+            <th style={{ padding: '6px 10px', fontSize: '8px' }}>Hot</th>
+            <th style={{ padding: '6px 10px', fontSize: '8px' }}>Warm</th>
+            <th style={{ padding: '6px 10px', fontSize: '8px' }}>Cold</th>
+          </tr>
+        </thead>
+        <tbody>
           {data.map((d, i) => (
-            <text key={i} x={xAt(i)} y={H - 6} fontSize="10" fill="var(--muted)" textAnchor="middle">{d.month}</text>
-          ))}
-        </svg>
-      </div>
-
-      <div
-        onClick={() => setShowTable(!showTable)}
-        style={{ marginTop: '18px', fontSize: '12px', fontWeight: 700, color: 'var(--accent)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-      >
-        {showTable ? 'Hide' : 'View'} as table
-        <ChevronDown size={13} style={{ transition: 'transform 0.2s', transform: showTable ? 'rotate(180deg)' : 'none' }} />
-      </div>
-      {showTable && (
-        <table className="lb-table" style={{ marginTop: '10px', width: '100%' }}>
-          <thead>
-            <tr>
-              <th>Month</th>
-              <th>Hot</th>
-              <th>Warm</th>
-              <th>Cold</th>
+            <tr key={i}>
+              <td style={{ padding: '5px 10px', fontSize: '10px', color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
+              <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.hot}</td>
+              <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.warm}</td>
+              <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.cold}</td>
             </tr>
-          </thead>
-          <tbody>
-            {data.map((d, i) => (
-              <tr key={i}>
-                <td style={{ color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
-                <td>{d.hot}</td>
-                <td>{d.warm}</td>
-                <td>{d.cold}</td>
-              </tr>
-            ))}
-          </tbody>
+          ))}
+        </tbody>
         </table>
-      )}
+      </div>
     </div>
   );
 };
@@ -309,8 +335,8 @@ const MonthlyTrendCharts = ({ data }) => {
   // Line chart (avg quality score) — sized for a side-by-side half-width column
   const lineColor = '#f472b6';
   const barColor = '#38bdf8';
-  const W = 280, H = 110;
-  const padL = 24, padR = 10, padT = 10, padB = 18;
+  const W = 500, H = 140;
+  const padL = 40, padR = 20, padT = 8, padB = 20;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
   const xAt = (i) => padL + (n === 1 ? 0 : (i / (n - 1)) * plotW);
@@ -319,12 +345,12 @@ const MonthlyTrendCharts = ({ data }) => {
   const areaPath = `${linePath} L ${xAt(n - 1)} ${padT + plotH} L ${xAt(0)} ${padT + plotH} Z`;
 
   // Bar chart (calls)
-  const H2 = 110;
-  const padT2 = 10, padB2 = 18;
+  const H2 = 140;
+  const padT2 = 8, padB2 = 20;
   const plotH2 = H2 - padT2 - padB2;
   const callsMax = Math.max(...data.map(d => d.calls)) * 1.2;
   const yCalls = (v) => padT2 + plotH2 - (v / callsMax) * plotH2;
-  const barW = 11;
+  const barW = 18;
 
   const handleLineMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -338,30 +364,30 @@ const MonthlyTrendCharts = ({ data }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px' }}>
         {/* Avg Quality Score trend (line) */}
         <div>
-          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>Avg Quality Score</div>
+          <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>Avg Quality Score</div>
           <div style={{ position: 'relative' }}>
             <svg width="100%" viewBox={`0 0 ${W} ${H}`} onMouseMove={handleLineMove} onMouseLeave={() => setHoverIdx(null)} style={{ display: 'block', cursor: 'crosshair' }}>
               {[0, 1, 2, 3, 4, 5].map(t => (
                 <line key={t} x1={padL} x2={W - padR} y1={yScore(t)} y2={yScore(t)} stroke="var(--gb)" strokeWidth="1" />
               ))}
               {[0, 1, 2, 3, 4, 5].map(t => (
-                <text key={t} x={padL - 7} y={yScore(t) + 3} fontSize="9" fill="var(--muted)" textAnchor="end">{t}</text>
+                <text key={t} x={padL - 6} y={yScore(t) + 3} fontSize="9" fill="var(--muted)" textAnchor="end">{t}</text>
               ))}
               <path d={areaPath} fill={lineColor} opacity="0.12" stroke="none" />
-              <path d={linePath} fill="none" stroke={lineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d={linePath} fill="none" stroke={lineColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               {hoverIdx !== null && (
                 <line x1={xAt(hoverIdx)} x2={xAt(hoverIdx)} y1={padT} y2={padT + plotH} stroke="var(--muted)" strokeWidth="1" strokeDasharray="3 3" />
               )}
               {data.map((d, i) => (
-                <circle key={i} cx={xAt(i)} cy={yScore(d.avgScore)} r={i === hoverIdx ? 5.5 : 4} fill={lineColor} stroke="var(--card-bg)" strokeWidth="2" />
+                <circle key={i} cx={xAt(i)} cy={yScore(d.avgScore)} r={i === hoverIdx ? 6 : 4} fill={lineColor} stroke="var(--card-bg)" strokeWidth="2" />
               ))}
               {data.map((d, i) => (
-                <text key={i} x={xAt(i)} y={H - 5} fontSize="9" fill="var(--muted)" textAnchor="middle">{d.month}</text>
+                <text key={i} x={xAt(i)} y={H - 4} fontSize="9" fill="var(--muted)" textAnchor="middle">{d.month}</text>
               ))}
-              <text x={xAt(n - 1)} y={yScore(data[n - 1].avgScore) - 11} fontSize="11" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].avgScore.toFixed(1)}</text>
+              <text x={xAt(n - 1)} y={yScore(data[n - 1].avgScore) - 10} fontSize="11" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].avgScore.toFixed(1)}</text>
             </svg>
             {hoverIdx !== null && (
-              <div style={{ position: 'absolute', left: `${(xAt(hoverIdx) / W) * 100}%`, top: 0, transform: 'translate(-50%, -100%)', background: 'var(--card-bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
+              <div style={{ position: 'absolute', left: `${(xAt(hoverIdx) / W) * 100}%`, top: 0, transform: 'translate(-50%, -100%)', background: 'var(--card-bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '6px 9px', fontSize: '10px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
                 <div style={{ color: 'var(--muted)', fontWeight: 700, marginBottom: '3px' }}>{data[hoverIdx].month}</div>
                 <div style={{ color: 'var(--text)', fontWeight: 800 }}>{data[hoverIdx].avgScore.toFixed(1)} avg score</div>
               </div>
@@ -371,7 +397,7 @@ const MonthlyTrendCharts = ({ data }) => {
 
         {/* Calls volume (bar) */}
         <div>
-          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>Calls Volume</div>
+          <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>Calls Volume</div>
           <div style={{ position: 'relative' }}>
             <svg width="100%" viewBox={`0 0 ${W} ${H2}`} style={{ display: 'block' }}>
               {[0, 0.5, 1].map(t => (
@@ -384,7 +410,7 @@ const MonthlyTrendCharts = ({ data }) => {
                 return (
                   <path
                     key={i}
-                    d={roundedTopBarPath(x, y, barW, h, 4)}
+                    d={roundedTopBarPath(x, y, barW, h, 3)}
                     fill={barColor}
                     opacity={hoverBar === null || hoverBar === i ? 1 : 0.55}
                     onMouseEnter={() => setHoverBar(i)}
@@ -394,12 +420,12 @@ const MonthlyTrendCharts = ({ data }) => {
                 );
               })}
               {data.map((d, i) => (
-                <text key={i} x={xAt(i)} y={H2 - 5} fontSize="9" fill="var(--muted)" textAnchor="middle">{d.month}</text>
+                <text key={i} x={xAt(i)} y={H2 - 4} fontSize="9" fill="var(--muted)" textAnchor="middle">{d.month}</text>
               ))}
-              <text x={xAt(n - 1)} y={yCalls(data[n - 1].calls) - 7} fontSize="11" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].calls}</text>
+              <text x={xAt(n - 1)} y={yCalls(data[n - 1].calls) - 8} fontSize="11" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].calls}</text>
             </svg>
             {hoverBar !== null && (
-              <div style={{ position: 'absolute', left: `${(xAt(hoverBar) / W) * 100}%`, top: `${(yCalls(data[hoverBar].calls) / H2) * 100}%`, transform: 'translate(-50%, -130%)', background: 'var(--card-bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
+              <div style={{ position: 'absolute', left: `${(xAt(hoverBar) / W) * 100}%`, top: `${(yCalls(data[hoverBar].calls) / H2) * 100}%`, transform: 'translate(-50%, -130%)', background: 'var(--card-bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '6px 9px', fontSize: '10px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
                 <div style={{ color: 'var(--muted)', fontWeight: 700, marginBottom: '3px' }}>{data[hoverBar].month}</div>
                 <div style={{ color: 'var(--text)', fontWeight: 800 }}>{data[hoverBar].calls} calls</div>
               </div>
@@ -410,10 +436,10 @@ const MonthlyTrendCharts = ({ data }) => {
 
       <div
         onClick={() => setShowTable(!showTable)}
-        style={{ marginTop: '22px', fontSize: '12px', fontWeight: 700, color: 'var(--accent)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+        style={{ marginTop: '16px', fontSize: '9px', fontWeight: 700, color: 'var(--accent)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
       >
         {showTable ? 'Hide' : 'View'} as table
-        <ChevronDown size={13} style={{ transition: 'transform 0.2s', transform: showTable ? 'rotate(180deg)' : 'none' }} />
+        <ChevronDown size={9} style={{ transition: 'transform 0.2s', transform: showTable ? 'rotate(180deg)' : 'none' }} />
       </div>
       {showTable && (
         <table className="lb-table" style={{ marginTop: '10px', width: '100%' }}>
@@ -779,14 +805,13 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
                 )}
               </div>
             </div>
-            {leaderGraphPerson && <PersonKpiCards person={leaderGraphPerson} />}
             <LeadTrendChart data={leaderGraphData} />
           </div>
         )}
         {leaderboardOpen && !leaderGraphOpen && (
         <>
         {showAllLeaderboard ? (
-          <div style={{ padding: '0 24px 24px', overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }} className="no-scrollbar">
+          <div style={{ padding: '0 24px 24px', overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }} className="theme-scrollbar">
             <table className="lb-table" style={{ minWidth: '1200px' }}>
               <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
                 <tr>
@@ -1002,7 +1027,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
         {execPerfOpen && execGraphOpen && (
           <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--gb)' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Monthly Performance</div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)' }}>Monthly Performance</div>
               <div className={`admin-dropdown ${execGraphDropdown ? 'open' : ''}`} onClick={() => setExecGraphDropdown(!execGraphDropdown)} ref={execGraphDropdownRef}>
                 <span>{execGraphSelected === 'all' ? 'All Executives' : execGraphSelected}</span>
                 <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: execGraphDropdown ? 'rotate(180deg)' : '' }} />
