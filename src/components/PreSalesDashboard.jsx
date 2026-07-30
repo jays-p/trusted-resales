@@ -307,10 +307,10 @@ const MonthlyTrendCharts = ({ data }) => {
   const n = data.length;
 
   // Line chart (avg quality score) — sized for a side-by-side half-width column
-  const lineColor = '#fb923c';
-  const barColor = '#2dd4bf';
-  const W = 340, H = 150;
-  const padL = 26, padR = 12, padT = 12, padB = 22;
+  const lineColor = '#f472b6';
+  const barColor = '#38bdf8';
+  const W = 280, H = 110;
+  const padL = 24, padR = 10, padT = 10, padB = 18;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
   const xAt = (i) => padL + (n === 1 ? 0 : (i / (n - 1)) * plotW);
@@ -319,12 +319,12 @@ const MonthlyTrendCharts = ({ data }) => {
   const areaPath = `${linePath} L ${xAt(n - 1)} ${padT + plotH} L ${xAt(0)} ${padT + plotH} Z`;
 
   // Bar chart (calls)
-  const H2 = 150;
-  const padT2 = 12, padB2 = 22;
+  const H2 = 110;
+  const padT2 = 10, padB2 = 18;
   const plotH2 = H2 - padT2 - padB2;
   const callsMax = Math.max(...data.map(d => d.calls)) * 1.2;
   const yCalls = (v) => padT2 + plotH2 - (v / callsMax) * plotH2;
-  const barW = 14;
+  const barW = 11;
 
   const handleLineMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -753,7 +753,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Monthly Hot / Warm / Cold Trend</div>
               <div className={`admin-dropdown ${leaderGraphDropdown ? 'open' : ''}`} onClick={() => setLeaderGraphDropdown(!leaderGraphDropdown)} ref={leaderGraphDropdownRef}>
-                <span>{leaderGraphSelected === 'all' ? 'All Agents' : leaderGraphSelected}</span>
+                <span>{leaderGraphSelected === 'all' ? 'All Executives' : leaderGraphSelected}</span>
                 <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: leaderGraphDropdown ? 'rotate(180deg)' : '' }} />
                 {leaderGraphDropdown && (
                   <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
@@ -767,7 +767,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
                     />
                     <div className="dropdown-list">
                       <div className={`dropdown-item ${leaderGraphSelected === 'all' ? 'active' : ''}`} onClick={() => { setLeaderGraphSelected('all'); setLeaderGraphDropdown(false); setLeaderGraphSearch(''); }}>
-                        All Agents
+                        All Executives
                       </div>
                       {ALL_AI.filter(p => p.name.toLowerCase().includes(leaderGraphSearch.toLowerCase())).map(p => (
                         <div key={p.name} className={`dropdown-item ${leaderGraphSelected === p.name ? 'active' : ''}`} onClick={() => { setLeaderGraphSelected(p.name); setLeaderGraphDropdown(false); setLeaderGraphSearch(''); }}>
