@@ -239,7 +239,7 @@ const LeadTrendChart = ({ data }) => {
   });
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', width: '100%' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '35% 65%', gap: '32px', width: '100%' }}>
       {/* Donut */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
         <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
@@ -302,24 +302,24 @@ const LeadTrendChart = ({ data }) => {
       {/* Monthly breakdown table */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
         <table className="lb-table" style={{ width: '100%' }}>
-        <thead>
-          <tr>
-            <th style={{ padding: '6px 10px', fontSize: '8px' }}>Month</th>
-            <th style={{ padding: '6px 10px', fontSize: '8px' }}>Hot</th>
-            <th style={{ padding: '6px 10px', fontSize: '8px' }}>Warm</th>
-            <th style={{ padding: '6px 10px', fontSize: '8px' }}>Cold</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((d, i) => (
-            <tr key={i}>
-              <td style={{ padding: '5px 10px', fontSize: '10px', color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
-              <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.hot}</td>
-              <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.warm}</td>
-              <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.cold}</td>
+          <thead>
+            <tr>
+              <th style={{ padding: '6px 10px', fontSize: '8px' }}>Month</th>
+              <th style={{ padding: '6px 10px', fontSize: '8px' }}>Hot</th>
+              <th style={{ padding: '6px 10px', fontSize: '8px' }}>Warm</th>
+              <th style={{ padding: '6px 10px', fontSize: '8px' }}>Cold</th>
             </tr>
-          ))}
-        </tbody>
+          </thead>
+          <tbody>
+            {data.map((d, i) => (
+              <tr key={i}>
+                <td style={{ padding: '5px 10px', fontSize: '10px', color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
+                <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.hot}</td>
+                <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.warm}</td>
+                <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.cold}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     </div>
@@ -460,7 +460,7 @@ const TOTAL = {
 
 const TOP5 = [...SALES_DATA].sort((a, b) => b.deals - a.deals).slice(0, 5);
 
-const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
+const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
   const [hoveredBar, setHoveredBar] = React.useState(null);
   const [hoveredFunnel, setHoveredFunnel] = React.useState(null);
   const [hoveredTop, setHoveredTop] = React.useState(null);
@@ -579,707 +579,707 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => {} }) => {
 
   return (
     <>
-    <div className="main-content no-scrollbar">
-      {/* Header */}
-      <div className="topbar" style={{ marginBottom: '24px', borderBottom: 'none', padding: 0 }}>
-        <div className="topbar-left">
-          <div>
-            <h2 style={{ fontSize: '22px', fontWeight: 900, fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.03em' }}>Pre Sales Analytics</h2>
-            <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: '2px' }}>Sales Team Performance Overview — {SALES_DATA.length} Members</p>
-          </div>
-        </div>
-        <div className="topbar-right">
-          {/* Developer Dropdown */}
-          <div className={`admin-dropdown ${devDropdown ? 'open' : ''}`} onClick={() => { setDevDropdown(!devDropdown); setProjDropdown(false); }}>
-            <Settings2 className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
-            <span>{selectedDev}</span>
-            <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: devDropdown ? 'rotate(180deg)' : '' }} />
-            {devDropdown && (
-              <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
-                <input
-                  className="dropdown-search"
-                  type="text"
-                  placeholder="Search..."
-                  value={devSearch}
-                  onChange={(e) => setDevSearch(e.target.value)}
-                  autoFocus
-                />
-                <div className="dropdown-list">
-                  <div className={`dropdown-item ${selectedDev === 'Enterprise View (All Developers)' ? 'active' : ''}`} onClick={() => { setSelectedDev('Enterprise View (All Developers)'); setDevDropdown(false); setDevSearch(''); }}>
-                    Enterprise View (All Developers)
-                  </div>
-                  {DEVELOPERS.filter(d => d.toLowerCase().includes(devSearch.toLowerCase())).map((dev, i) => (
-                    <div key={i} className={`dropdown-item ${selectedDev === dev ? 'active' : ''}`} onClick={() => { setSelectedDev(dev); setDevDropdown(false); setDevSearch(''); }}>
-                      {dev}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Project Dropdown */}
-          <div className={`admin-dropdown ${projDropdown ? 'open' : ''}`} onClick={() => { setProjDropdown(!projDropdown); setDevDropdown(false); }}>
-            <Settings2 className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
-            <span>{selectedProj}</span>
-            <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: projDropdown ? 'rotate(180deg)' : '' }} />
-            {projDropdown && (
-              <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
-                <input
-                  className="dropdown-search"
-                  type="text"
-                  placeholder="Search..."
-                  value={projSearch}
-                  onChange={(e) => setProjSearch(e.target.value)}
-                  autoFocus
-                />
-                <div className="dropdown-list">
-                  <div className={`dropdown-item ${selectedProj === 'All Projects' ? 'active' : ''}`} onClick={() => { setSelectedProj('All Projects'); setProjDropdown(false); setProjSearch(''); }}>
-                    All Projects
-                  </div>
-                  {PROJECTS.filter(p => p.toLowerCase().includes(projSearch.toLowerCase())).map((proj, i) => (
-                    <div key={i} className={`dropdown-item ${selectedProj === proj ? 'active' : ''}`} onClick={() => { setSelectedProj(proj); setProjDropdown(false); setProjSearch(''); }}>
-                      {proj}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <button onClick={onBack} style={{ padding: '8px 18px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', fontSize: '12px', fontWeight: 700, cursor: 'pointer', marginLeft: '12px' }}>
-            ← Back to Dashboard
-          </button>
-        </div>
-      </div>
-
-      {/* Main Time Filter */}
-      <MainTimeFilter />
-
-      {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px', marginBottom: '24px' }}>
-        <KpiCard label="Calls" value="2,189" color="var(--text)" />
-        <KpiCard label="Goals Met" value={455} color="#34d399" />
-        <KpiCard label="Hot" value={44} color="#f87171" />
-        <KpiCard label="Warm" value={411} color="#fbbf24" />
-        <KpiCard label="Cold" value={889} color="#60a5fa" />
-      </div>
-
-      {/* 🏆 Top Performers & Lead Distribution - Grid Layout */}
-      <div className="glass" style={{ marginBottom: '20px' }}>
-        <div className="glass-header" style={{ padding: '24px', borderBottom: 'none', cursor: 'pointer' }} onClick={() => setLeaderboardOpen(!leaderboardOpen)}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+      <div className="main-content no-scrollbar">
+        {/* Header */}
+        <div className="topbar" style={{ marginBottom: '24px', borderBottom: 'none', padding: 0 }}>
+          <div className="topbar-left">
             <div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)', letterSpacing: 'normal', textTransform: 'none' }}>Leaderboard</div>
+              <h2 style={{ fontSize: '22px', fontWeight: 900, fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.03em' }}>Pre Sales Analytics</h2>
+              <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: '2px' }}>Sales Team Performance Overview — {SALES_DATA.length} Members</p>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setLeaderGraphOpen(!leaderGraphOpen)}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: leaderGraphOpen ? 'var(--accent)' : 'var(--glass-xs)', border: `1px solid ${leaderGraphOpen ? 'var(--accent)' : 'var(--gb)'}`, color: leaderGraphOpen ? '#fff' : 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }}
-              title={leaderGraphOpen ? 'Switch to table view' : 'Switch to graph view'}
-            >
-              {leaderGraphOpen ? <Table2 size={14} /> : <LineChart size={14} />}
-            </button>
-            <div className={`admin-dropdown ${leaderFilterDropdown ? 'open' : ''}`} onClick={() => setLeaderFilterDropdown(!leaderFilterDropdown)} ref={leaderFilterDropdownRef}>
-              {(() => {
-                const active = LEADER_FILTERS.find(f => f.key === leaderFilter);
-                return (
-                  <>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: active.color, display: 'inline-block', flexShrink: 0 }} />
-                    <span>{active.label}</span>
-                  </>
-                );
-              })()}
-              <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: leaderFilterDropdown ? 'rotate(180deg)' : '' }} />
-              {leaderFilterDropdown && (
-                <div className="dropdown-popup" style={{ minWidth: '160px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="topbar-right">
+            {/* Developer Dropdown */}
+            <div className={`admin-dropdown ${devDropdown ? 'open' : ''}`} onClick={() => { setDevDropdown(!devDropdown); setProjDropdown(false); }}>
+              <Settings2 className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
+              <span>{selectedDev}</span>
+              <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: devDropdown ? 'rotate(180deg)' : '' }} />
+              {devDropdown && (
+                <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    className="dropdown-search"
+                    type="text"
+                    placeholder="Search..."
+                    value={devSearch}
+                    onChange={(e) => setDevSearch(e.target.value)}
+                    autoFocus
+                  />
                   <div className="dropdown-list">
-                    {LEADER_FILTERS.map(f => (
-                      <div
-                        key={f.key}
-                        className={`dropdown-item ${leaderFilter === f.key ? 'active' : ''}`}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                        onClick={() => { setLeaderFilter(f.key); setLeaderFilterDropdown(false); }}
-                        title={f.key === 'all' ? 'Rank by call quality score' : `Rank by ${f.label} lead count`}
-                      >
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: f.color, display: 'inline-block', flexShrink: 0 }} />
-                        {f.label}
+                    <div className={`dropdown-item ${selectedDev === 'Enterprise View (All Developers)' ? 'active' : ''}`} onClick={() => { setSelectedDev('Enterprise View (All Developers)'); setDevDropdown(false); setDevSearch(''); }}>
+                      Enterprise View (All Developers)
+                    </div>
+                    {DEVELOPERS.filter(d => d.toLowerCase().includes(devSearch.toLowerCase())).map((dev, i) => (
+                      <div key={i} className={`dropdown-item ${selectedDev === dev ? 'active' : ''}`} onClick={() => { setSelectedDev(dev); setDevDropdown(false); setDevSearch(''); }}>
+                        {dev}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-            <SectionTimeFilter active="ALL" />
-            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '6px 12px', gap: '8px', width: '160px' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-              <input type="text" placeholder="Search..." value={aiSearch} onChange={(e) => setAiSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
+
+            {/* Project Dropdown */}
+            <div className={`admin-dropdown ${projDropdown ? 'open' : ''}`} onClick={() => { setProjDropdown(!projDropdown); setDevDropdown(false); }}>
+              <Settings2 className="w-3.5 h-3.5" style={{ color: 'var(--muted)' }} />
+              <span>{selectedProj}</span>
+              <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: projDropdown ? 'rotate(180deg)' : '' }} />
+              {projDropdown && (
+                <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    className="dropdown-search"
+                    type="text"
+                    placeholder="Search..."
+                    value={projSearch}
+                    onChange={(e) => setProjSearch(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="dropdown-list">
+                    <div className={`dropdown-item ${selectedProj === 'All Projects' ? 'active' : ''}`} onClick={() => { setSelectedProj('All Projects'); setProjDropdown(false); setProjSearch(''); }}>
+                      All Projects
+                    </div>
+                    {PROJECTS.filter(p => p.toLowerCase().includes(projSearch.toLowerCase())).map((proj, i) => (
+                      <div key={i} className={`dropdown-item ${selectedProj === proj ? 'active' : ''}`} onClick={() => { setSelectedProj(proj); setProjDropdown(false); setProjSearch(''); }}>
+                        {proj}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            <button onClick={() => handleExport(
-              ['#', 'Agent', 'Calls', 'Hot', 'Warm', 'Cold', ...QUALITY_PARAMS.map(p => p.label), 'Avg'],
-              ALL_AI.map((a, i) => [i + 1, a.name, a.leads, a.hot, a.warm, a.cold, ...QUALITY_PARAMS.map(p => AI_SCORES[a.name][p.key].toFixed(1)), getAgentAvgAI(a.name).toFixed(1)]),
-              'leaderboard'
-            )} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--accent)', cursor: 'pointer', transition: 'all 0.2s' }} title="Export">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-            </button>
-            <button onClick={() => setLeaderboardOpen(!leaderboardOpen)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }} title={leaderboardOpen ? 'Collapse' : 'Expand'}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', transform: leaderboardOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
+
+            <button onClick={onBack} style={{ padding: '8px 18px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', fontSize: '12px', fontWeight: 700, cursor: 'pointer', marginLeft: '12px' }}>
+              ← Back to Dashboard
             </button>
           </div>
         </div>
 
-        {leaderboardOpen && leaderGraphOpen && (
-          <div style={{ padding: '20px 24px', borderBottom: 'none' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Monthly Hot / Warm / Cold Trend</div>
-              <div className={`admin-dropdown ${leaderGraphDropdown ? 'open' : ''}`} onClick={() => setLeaderGraphDropdown(!leaderGraphDropdown)} ref={leaderGraphDropdownRef}>
-                <span>{leaderGraphSelected === 'all' ? 'All Executives' : leaderGraphSelected}</span>
-                <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: leaderGraphDropdown ? 'rotate(180deg)' : '' }} />
-                {leaderGraphDropdown && (
-                  <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      className="dropdown-search"
-                      type="text"
-                      placeholder="Search..."
-                      value={leaderGraphSearch}
-                      onChange={(e) => setLeaderGraphSearch(e.target.value)}
-                      autoFocus
-                    />
+        {/* Main Time Filter */}
+        <MainTimeFilter />
+
+        {/* KPI Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px', marginBottom: '24px' }}>
+          <KpiCard label="Calls" value="2,189" color="var(--text)" />
+          <KpiCard label="Goals Met" value={455} color="#34d399" />
+          <KpiCard label="Hot" value={44} color="#f87171" />
+          <KpiCard label="Warm" value={411} color="#fbbf24" />
+          <KpiCard label="Cold" value={889} color="#60a5fa" />
+        </div>
+
+        {/* 🏆 Top Performers & Lead Distribution - Grid Layout */}
+        <div className="glass" style={{ marginBottom: '20px' }}>
+          <div className="glass-header" style={{ padding: '24px', borderBottom: (leaderboardOpen && leaderGraphOpen) ? '1px solid var(--gb)' : 'none', cursor: 'pointer' }} onClick={() => setLeaderboardOpen(!leaderboardOpen)}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)', letterSpacing: 'normal', textTransform: 'none' }}>Leaderboard</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setLeaderGraphOpen(!leaderGraphOpen)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: leaderGraphOpen ? 'var(--accent)' : 'var(--glass-xs)', border: `1px solid ${leaderGraphOpen ? 'var(--accent)' : 'var(--gb)'}`, color: leaderGraphOpen ? '#fff' : 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }}
+                title={leaderGraphOpen ? 'Switch to table view' : 'Switch to graph view'}
+              >
+                {leaderGraphOpen ? <Table2 size={14} /> : <LineChart size={14} />}
+              </button>
+              <div className={`admin-dropdown ${leaderFilterDropdown ? 'open' : ''}`} onClick={() => setLeaderFilterDropdown(!leaderFilterDropdown)} ref={leaderFilterDropdownRef}>
+                {(() => {
+                  const active = LEADER_FILTERS.find(f => f.key === leaderFilter);
+                  return (
+                    <>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: active.color, display: 'inline-block', flexShrink: 0 }} />
+                      <span>{active.label}</span>
+                    </>
+                  );
+                })()}
+                <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: leaderFilterDropdown ? 'rotate(180deg)' : '' }} />
+                {leaderFilterDropdown && (
+                  <div className="dropdown-popup" style={{ minWidth: '160px' }} onClick={(e) => e.stopPropagation()}>
                     <div className="dropdown-list">
-                      <div className={`dropdown-item ${leaderGraphSelected === 'all' ? 'active' : ''}`} onClick={() => { setLeaderGraphSelected('all'); setLeaderGraphDropdown(false); setLeaderGraphSearch(''); }}>
-                        All Executives
-                      </div>
-                      {ALL_AI.filter(p => p.name.toLowerCase().includes(leaderGraphSearch.toLowerCase())).map(p => (
-                        <div key={p.name} className={`dropdown-item ${leaderGraphSelected === p.name ? 'active' : ''}`} onClick={() => { setLeaderGraphSelected(p.name); setLeaderGraphDropdown(false); setLeaderGraphSearch(''); }}>
-                          {p.name}
+                      {LEADER_FILTERS.map(f => (
+                        <div
+                          key={f.key}
+                          className={`dropdown-item ${leaderFilter === f.key ? 'active' : ''}`}
+                          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                          onClick={() => { setLeaderFilter(f.key); setLeaderFilterDropdown(false); }}
+                          title={f.key === 'all' ? 'Rank by call quality score' : `Rank by ${f.label} lead count`}
+                        >
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: f.color, display: 'inline-block', flexShrink: 0 }} />
+                          {f.label}
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
               </div>
+              <SectionTimeFilter active="ALL" />
+              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '6px 12px', gap: '8px', width: '160px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                <input type="text" placeholder="Search..." value={aiSearch} onChange={(e) => setAiSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
+              </div>
+              <button onClick={() => handleExport(
+                ['#', 'Agent', 'Calls', 'Hot', 'Warm', 'Cold', ...QUALITY_PARAMS.map(p => p.label), 'Avg'],
+                ALL_AI.map((a, i) => [i + 1, a.name, a.leads, a.hot, a.warm, a.cold, ...QUALITY_PARAMS.map(p => AI_SCORES[a.name][p.key].toFixed(1)), getAgentAvgAI(a.name).toFixed(1)]),
+                'leaderboard'
+              )} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--accent)', cursor: 'pointer', transition: 'all 0.2s' }} title="Export">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              </button>
+              <button onClick={() => setLeaderboardOpen(!leaderboardOpen)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }} title={leaderboardOpen ? 'Collapse' : 'Expand'}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', transform: leaderboardOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
             </div>
-            <LeadTrendChart data={leaderGraphData} />
           </div>
-        )}
-        {leaderboardOpen && !leaderGraphOpen && (
-        <>
-        {showAllLeaderboard ? (
-          <div style={{ padding: '0 24px 24px', overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }} className="theme-scrollbar">
-            <table className="lb-table" style={{ minWidth: '1200px' }}>
-              <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
-                <tr>
-                  <th style={{ width: '40px' }}>#</th>
-                  <SortableTh label="Executive" sortKey="name" sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />
-                  <SortableTh label="Score" sortKey="avgScore" sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />
-                  <th style={{ color: leaderFilter === 'hot' ? '#f87171' : undefined }}>Hot</th>
-                  <th style={{ color: leaderFilter === 'warm' ? '#fbbf24' : undefined }}>Warm</th>
-                  <th style={{ color: leaderFilter === 'cold' ? '#60a5fa' : undefined }}>Cold</th>
-                  {QUALITY_PARAMS.map(p => <SortableTh key={p.key} label={p.label} sortKey={p.key} sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />)}
-                </tr>
-              </thead>
-              <tbody>
-                {sortedLeaderRows.map((agent, i) => {
-                  const avgScore = agent.avgScore;
-                  const scores = agent.scores;
-                  return (
-                    <tr key={agent.name} style={{ transition: 'background 0.15s' }}>
-                      <td style={{ color: 'var(--muted)', fontWeight: 700 }}>{i + 1}</td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: agent.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{agent.name[0]}</div>
-                          <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '12px' }}>{agent.name}</span>
+
+          {leaderboardOpen && leaderGraphOpen && (
+            <div style={{ padding: '20px 24px', borderBottom: 'none' }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 -24px 24px -24px', padding: '0 24px 16px 24px', borderBottom: '1px solid var(--gb)' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Monthly Hot / Warm / Cold Trend</div>
+                <div className={`admin-dropdown ${leaderGraphDropdown ? 'open' : ''}`} onClick={() => setLeaderGraphDropdown(!leaderGraphDropdown)} ref={leaderGraphDropdownRef}>
+                  <span>{leaderGraphSelected === 'all' ? 'All Executives' : leaderGraphSelected}</span>
+                  <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: leaderGraphDropdown ? 'rotate(180deg)' : '' }} />
+                  {leaderGraphDropdown && (
+                    <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        className="dropdown-search"
+                        type="text"
+                        placeholder="Search..."
+                        value={leaderGraphSearch}
+                        onChange={(e) => setLeaderGraphSearch(e.target.value)}
+                        autoFocus
+                      />
+                      <div className="dropdown-list">
+                        <div className={`dropdown-item ${leaderGraphSelected === 'all' ? 'active' : ''}`} onClick={() => { setLeaderGraphSelected('all'); setLeaderGraphDropdown(false); setLeaderGraphSearch(''); }}>
+                          All Executives
                         </div>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: avgScore >= 3.5 ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)', color: avgScore >= 3.5 ? '#34d399' : '#f87171' }}>
-                            {avgScore.toFixed(1)}
-                          </span>
-                          <StarRating score={avgScore} size={12} color={avgScore >= 3.5 ? '#34d399' : '#f87171'} />
-                        </div>
-                      </td>
-                      <td style={{ fontSize: '11px', fontWeight: 700, color: '#f87171' }}>{agent.hot}</td>
-                      <td style={{ fontSize: '11px', fontWeight: 700, color: '#fbbf24' }}>{agent.warm}</td>
-                      <td style={{ fontSize: '11px', fontWeight: 700, color: '#60a5fa' }}>{agent.cold}</td>
-                      {QUALITY_PARAMS.map(p => (
-                        <td key={p.key} style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 600 }}>{scores[p.key].toFixed(1)}</td>
-                      ))}
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-        <div style={{ padding: '0 24px 24px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-          {leaderTop3.filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase())).slice(0, 3).map((agent, i) => {
-            const scores = AI_SCORES[agent.name];
-            const avgScore = getAgentAvgAI(agent.name);
-            const ringColor = i === 0 ? '#fbbf24' : i === 1 ? '#8b5cf6' : '#fb923c'; // Gold, Purple, Peach/Orange
-
-            // Circular progress calculations
-            const size = 120;
-            const stroke = 10;
-            const cx = size / 2;
-            const cy = size / 2;
-            const r = cx - stroke;
-            const circumference = r * 2 * Math.PI;
-            const strokeDashoffset = circumference - (avgScore / 5) * circumference;
-
-            return (
-              <div key={i} style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-                {/* Rank Badge */}
-                <div style={{ position: 'absolute', top: '24px', left: '24px', width: '26px', height: '26px', background: ringColor, borderRadius: '0 12px 12px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontWeight: 800, fontSize: '14px' }}>
-                  {i + 1}
-                </div>
-
-                {/* Circular Score */}
-                <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '10px' }}>
-                  <svg height={size} width={size} style={{ transform: 'rotate(-90deg)' }}>
-                    <circle stroke={`${ringColor}20`} fill="transparent" strokeWidth={stroke} r={r} cx={cx} cy={cy} />
-                    <circle stroke={ringColor} fill="transparent" strokeWidth={stroke} strokeDasharray={circumference + ' ' + circumference} style={{ strokeDashoffset, transition: 'stroke-dashoffset 1s ease-in-out' }} strokeLinecap="round" r={r} cx={cx} cy={cy} />
-                  </svg>
-                  <div style={{ position: 'absolute', fontSize: '32px', fontWeight: 900, color: 'var(--text)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>
-                    {avgScore.toFixed(1)}
-                  </div>
-                </div>
-
-                {/* Agent Name & Calls */}
-                <div style={{ marginTop: '16px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)' }}>{agent.name}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>{agent.leads} calls</div>
-                  {leaderFilter !== 'all' && (
-                    <div style={{ fontSize: '10px', fontWeight: 700, color: ringColor, marginTop: '4px' }}>
-                      {leaderFilter === 'hot' ? '🔥' : leaderFilter === 'warm' ? '🌤️' : '❄️'} {agent[leaderFilter]} {leaderFilter} leads
+                        {ALL_AI.filter(p => p.name.toLowerCase().includes(leaderGraphSearch.toLowerCase())).map(p => (
+                          <div key={p.name} className={`dropdown-item ${leaderGraphSelected === p.name ? 'active' : ''}`} onClick={() => { setLeaderGraphSelected(p.name); setLeaderGraphDropdown(false); setLeaderGraphSearch(''); }}>
+                            {p.name}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
-
-                {/* Star Rating */}
-                <div style={{ marginTop: '12px', display: 'flex', gap: '4px' }}>
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <svg key={star} width="14" height="14" viewBox="0 0 24 24" fill={star <= Math.round(avgScore) ? ringColor : 'none'} stroke={star <= Math.round(avgScore) ? ringColor : 'var(--muted)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                    </svg>
-                  ))}
+              </div>
+              <LeadTrendChart data={leaderGraphData} />
+            </div>
+          )}
+          {leaderboardOpen && !leaderGraphOpen && (
+            <>
+              {showAllLeaderboard ? (
+                <div style={{ padding: '0 24px 24px', overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }} className="theme-scrollbar">
+                  <table className="lb-table" style={{ minWidth: '1200px' }}>
+                    <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
+                      <tr>
+                        <th style={{ width: '40px' }}>#</th>
+                        <SortableTh label="Executive" sortKey="name" sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />
+                        <SortableTh label="Score" sortKey="avgScore" sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />
+                        <th style={{ color: leaderFilter === 'hot' ? '#f87171' : undefined }}>Hot</th>
+                        <th style={{ color: leaderFilter === 'warm' ? '#fbbf24' : undefined }}>Warm</th>
+                        <th style={{ color: leaderFilter === 'cold' ? '#60a5fa' : undefined }}>Cold</th>
+                        {QUALITY_PARAMS.map(p => <SortableTh key={p.key} label={p.label} sortKey={p.key} sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedLeaderRows.map((agent, i) => {
+                        const avgScore = agent.avgScore;
+                        const scores = agent.scores;
+                        return (
+                          <tr key={agent.name} style={{ transition: 'background 0.15s' }}>
+                            <td style={{ color: 'var(--muted)', fontWeight: 700 }}>{i + 1}</td>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: agent.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{agent.name[0]}</div>
+                                <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '12px' }}>{agent.name}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: avgScore >= 3.5 ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)', color: avgScore >= 3.5 ? '#34d399' : '#f87171' }}>
+                                  {avgScore.toFixed(1)}
+                                </span>
+                                <StarRating score={avgScore} size={12} color={avgScore >= 3.5 ? '#34d399' : '#f87171'} />
+                              </div>
+                            </td>
+                            <td style={{ fontSize: '11px', fontWeight: 700, color: '#f87171' }}>{agent.hot}</td>
+                            <td style={{ fontSize: '11px', fontWeight: 700, color: '#fbbf24' }}>{agent.warm}</td>
+                            <td style={{ fontSize: '11px', fontWeight: 700, color: '#60a5fa' }}>{agent.cold}</td>
+                            {QUALITY_PARAMS.map(p => (
+                              <td key={p.key} style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 600 }}>{scores[p.key].toFixed(1)}</td>
+                            ))}
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
+              ) : (
+                <div style={{ padding: '0 24px 24px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+                  {leaderTop3.filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase())).slice(0, 3).map((agent, i) => {
+                    const scores = AI_SCORES[agent.name];
+                    const avgScore = getAgentAvgAI(agent.name);
+                    const ringColor = i === 0 ? '#fbbf24' : i === 1 ? '#8b5cf6' : '#fb923c'; // Gold, Purple, Peach/Orange
 
-                {/* Quality Metrics */}
-                <div style={{ width: '100%', marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {(expandedRows[i] ? QUALITY_PARAMS : QUALITY_PARAMS.slice(0, 5)).map((param, index) => {
-                    // Replace generic emoji with colored icons based on design
-                    const icons = [
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>,
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>,
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>,
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>,
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>,
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>,
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>,
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>,
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                    ];
+                    // Circular progress calculations
+                    const size = 120;
+                    const stroke = 10;
+                    const cx = size / 2;
+                    const cy = size / 2;
+                    const r = cx - stroke;
+                    const circumference = r * 2 * Math.PI;
+                    const strokeDashoffset = circumference - (avgScore / 5) * circumference;
+
                     return (
-                      <div key={param.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          {icons[index % icons.length]}
-                          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text)' }}>{param.label}</span>
+                      <div key={i} style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                        {/* Rank Badge */}
+                        <div style={{ position: 'absolute', top: '24px', left: '24px', width: '26px', height: '26px', background: ringColor, borderRadius: '0 12px 12px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontWeight: 800, fontSize: '14px' }}>
+                          {i + 1}
                         </div>
-                        <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)' }}>{scores[param.key].toFixed(1)}</span>
+
+                        {/* Circular Score */}
+                        <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '10px' }}>
+                          <svg height={size} width={size} style={{ transform: 'rotate(-90deg)' }}>
+                            <circle stroke={`${ringColor}20`} fill="transparent" strokeWidth={stroke} r={r} cx={cx} cy={cy} />
+                            <circle stroke={ringColor} fill="transparent" strokeWidth={stroke} strokeDasharray={circumference + ' ' + circumference} style={{ strokeDashoffset, transition: 'stroke-dashoffset 1s ease-in-out' }} strokeLinecap="round" r={r} cx={cx} cy={cy} />
+                          </svg>
+                          <div style={{ position: 'absolute', fontSize: '32px', fontWeight: 900, color: 'var(--text)', fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>
+                            {avgScore.toFixed(1)}
+                          </div>
+                        </div>
+
+                        {/* Agent Name & Calls */}
+                        <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)' }}>{agent.name}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>{agent.leads} calls</div>
+                          {leaderFilter !== 'all' && (
+                            <div style={{ fontSize: '10px', fontWeight: 700, color: ringColor, marginTop: '4px' }}>
+                              {leaderFilter === 'hot' ? '🔥' : leaderFilter === 'warm' ? '🌤️' : '❄️'} {agent[leaderFilter]} {leaderFilter} leads
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Star Rating */}
+                        <div style={{ marginTop: '12px', display: 'flex', gap: '4px' }}>
+                          {[1, 2, 3, 4, 5].map(star => (
+                            <svg key={star} width="14" height="14" viewBox="0 0 24 24" fill={star <= Math.round(avgScore) ? ringColor : 'none'} stroke={star <= Math.round(avgScore) ? ringColor : 'var(--muted)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                          ))}
+                        </div>
+
+                        {/* Quality Metrics */}
+                        <div style={{ width: '100%', marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                          {(expandedRows[i] ? QUALITY_PARAMS : QUALITY_PARAMS.slice(0, 5)).map((param, index) => {
+                            // Replace generic emoji with colored icons based on design
+                            const icons = [
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>,
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>,
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>,
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>,
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>,
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>,
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>,
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>,
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ringColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                            ];
+                            return (
+                              <div key={param.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  {icons[index % icons.length]}
+                                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text)' }}>{param.label}</span>
+                                </div>
+                                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)' }}>{scores[param.key].toFixed(1)}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Footer Button */}
+                        <div style={{ width: '100%', marginTop: '24px' }}>
+                          <div onClick={() => toggleRow(i)} style={{ background: 'var(--glass-s)', color: 'var(--text)', fontSize: '11px', fontWeight: 700, padding: '12px', borderRadius: '8px', textAlign: 'center', cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--glass)'} onMouseOut={e => e.currentTarget.style.background = 'var(--glass-s)'}>
+                            {expandedRows[i] ? 'Hide Metrics' : `+${QUALITY_PARAMS.length - 5} More Metrics`}
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-
-                {/* Footer Button */}
-                <div style={{ width: '100%', marginTop: '24px' }}>
-                  <div onClick={() => toggleRow(i)} style={{ background: 'var(--glass-s)', color: 'var(--text)', fontSize: '11px', fontWeight: 700, padding: '12px', borderRadius: '8px', textAlign: 'center', cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--glass)'} onMouseOut={e => e.currentTarget.style.background = 'var(--glass-s)'}>
-                    {expandedRows[i] ? 'Hide Metrics' : `+${QUALITY_PARAMS.length - 5} More Metrics`}
-                  </div>
-                </div>
+              )}
+              <div style={{ padding: '0 24px 24px', display: 'flex', justifyContent: 'center' }}>
+                <button
+                  onClick={() => setShowAllLeaderboard(!showAllLeaderboard)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 32px',
+                    borderRadius: '100px',
+                    background: 'rgba(129,140,248,0.1)',
+                    border: '1px solid rgba(129,140,248,0.25)',
+                    color: '#818cf8',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    letterSpacing: '0.03em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                  onMouseOver={e => {
+                    e.currentTarget.style.background = 'rgba(129,140,248,0.2)';
+                    e.currentTarget.style.borderColor = 'rgba(129,140,248,0.4)';
+                    e.currentTarget.style.transform = 'scale(1.02) translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px -6px rgba(129,140,248,0.4)';
+                  }}
+                  onMouseOut={e => {
+                    e.currentTarget.style.background = 'rgba(129,140,248,0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(129,140,248,0.25)';
+                    e.currentTarget.style.transform = 'scale(1) translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <span>{showAllLeaderboard ? 'Collapse to Top 3' : 'View Full Leaderboard'}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)', transform: showAllLeaderboard ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
               </div>
-            );
-          })}
+            </>
+          )}
         </div>
-        )}
-        <div style={{ padding: '0 24px 24px', display: 'flex', justifyContent: 'center' }}>
-          <button 
-            onClick={() => setShowAllLeaderboard(!showAllLeaderboard)} 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              padding: '12px 32px', 
-              borderRadius: '100px', 
-              background: 'rgba(129,140,248,0.1)', 
-              border: '1px solid rgba(129,140,248,0.25)', 
-              color: '#818cf8', 
-              fontSize: '12px', 
-              fontWeight: 800, 
-              letterSpacing: '0.03em',
-              textTransform: 'uppercase',
-              cursor: 'pointer', 
-              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-            }} 
-            onMouseOver={e => {
-              e.currentTarget.style.background = 'rgba(129,140,248,0.2)';
-              e.currentTarget.style.borderColor = 'rgba(129,140,248,0.4)';
-              e.currentTarget.style.transform = 'scale(1.02) translateY(-1px)';
-              e.currentTarget.style.boxShadow = '0 6px 20px -6px rgba(129,140,248,0.4)';
-            }} 
-            onMouseOut={e => {
-              e.currentTarget.style.background = 'rgba(129,140,248,0.1)';
-              e.currentTarget.style.borderColor = 'rgba(129,140,248,0.25)';
-              e.currentTarget.style.transform = 'scale(1) translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            <span>{showAllLeaderboard ? 'Collapse to Top 3' : 'View Full Leaderboard'}</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)', transform: showAllLeaderboard ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
-        </div>
-        </>
-        )}
-      </div>
 
-      {/* Executive Performance Table - Above */}
-      <div className="glass" style={{ marginBottom: '20px' }}>
-        <div className="glass-header" style={{ cursor: 'pointer' }} onClick={() => setExecPerfOpen(!execPerfOpen)}>
-          <div className="glass-title">Executive Performance</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setExecGraphOpen(!execGraphOpen)}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: execGraphOpen ? 'var(--accent)' : 'var(--glass-xs)', border: `1px solid ${execGraphOpen ? 'var(--accent)' : 'var(--gb)'}`, color: execGraphOpen ? '#fff' : 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }}
-              title={execGraphOpen ? 'Switch to table view' : 'Switch to graph view'}
-            >
-              {execGraphOpen ? <Table2 size={13} /> : <LineChart size={13} />}
-            </button>
-            <SectionTimeFilter />
-            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '5px 10px', gap: '6px', width: '140px' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-              <input type="text" placeholder="Search..." value={execSearch} onChange={(e) => setExecSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '10px', fontWeight: 600, width: '100%' }} />
-            </div>
-            <button onClick={() => handleExport(
-              ['#', 'Executive', 'Calls', 'Avg Score', 'Hot', 'Warm', 'Cold', 'Answered', 'Unanswered', 'Performance'],
-              SALES_DATA.map((p, i) => [i + 1, p.name, p.leads, (p.deals / p.leads * 10).toFixed(1), Math.max(1, Math.round(p.leads * 0.02)), Math.round(p.leads * 0.19), Math.floor(p.leads * 0.4), Math.floor(p.leads * 0.75), p.leads - Math.floor(p.leads * 0.75), Math.min((p.deals / p.target) * 100, 100).toFixed(0) + '%']),
-              'executive-performance'
-            )} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', cursor: 'pointer' }} title="Export">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-            </button>
-            <button onClick={() => setExecPerfOpen(!execPerfOpen)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }} title={execPerfOpen ? 'Collapse' : 'Expand'}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', transform: execPerfOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-          </div>
-        </div>
-        {execPerfOpen && execGraphOpen && (
-          <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--gb)' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--glass-md)' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)' }}>Monthly Performance</div>
-              <div className={`admin-dropdown ${execGraphDropdown ? 'open' : ''}`} onClick={() => setExecGraphDropdown(!execGraphDropdown)} ref={execGraphDropdownRef}>
-                <span>{execGraphSelected === 'all' ? 'All Executives' : execGraphSelected}</span>
-                <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: execGraphDropdown ? 'rotate(180deg)' : '' }} />
-                {execGraphDropdown && (
-                  <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      className="dropdown-search"
-                      type="text"
-                      placeholder="Search..."
-                      value={execGraphSearch}
-                      onChange={(e) => setExecGraphSearch(e.target.value)}
-                      autoFocus
-                    />
-                    <div className="dropdown-list">
-                      <div className={`dropdown-item ${execGraphSelected === 'all' ? 'active' : ''}`} onClick={() => { setExecGraphSelected('all'); setExecGraphDropdown(false); setExecGraphSearch(''); }}>
-                        All Executives
-                      </div>
-                      {SALES_DATA.filter(p => p.name.toLowerCase().includes(execGraphSearch.toLowerCase())).map(p => (
-                        <div key={p.name} className={`dropdown-item ${execGraphSelected === p.name ? 'active' : ''}`} onClick={() => { setExecGraphSelected(p.name); setExecGraphDropdown(false); setExecGraphSearch(''); }}>
-                          {p.name}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+        {/* Executive Performance Table - Above */}
+        <div className="glass" style={{ marginBottom: '20px' }}>
+          <div className="glass-header" style={{ borderBottom: (execPerfOpen && execGraphOpen) ? '1px solid var(--gb)' : 'none', cursor: 'pointer' }} onClick={() => setExecPerfOpen(!execPerfOpen)}>
+            <div className="glass-title">Executive Performance</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setExecGraphOpen(!execGraphOpen)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: execGraphOpen ? 'var(--accent)' : 'var(--glass-xs)', border: `1px solid ${execGraphOpen ? 'var(--accent)' : 'var(--gb)'}`, color: execGraphOpen ? '#fff' : 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }}
+                title={execGraphOpen ? 'Switch to table view' : 'Switch to graph view'}
+              >
+                {execGraphOpen ? <Table2 size={13} /> : <LineChart size={13} />}
+              </button>
+              <SectionTimeFilter />
+              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '5px 10px', gap: '6px', width: '140px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                <input type="text" placeholder="Search..." value={execSearch} onChange={(e) => setExecSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '10px', fontWeight: 600, width: '100%' }} />
               </div>
+              <button onClick={() => handleExport(
+                ['#', 'Executive', 'Calls', 'Avg Score', 'Hot', 'Warm', 'Cold', 'Answered', 'Unanswered', 'Performance'],
+                SALES_DATA.map((p, i) => [i + 1, p.name, p.leads, (p.deals / p.leads * 10).toFixed(1), Math.max(1, Math.round(p.leads * 0.02)), Math.round(p.leads * 0.19), Math.floor(p.leads * 0.4), Math.floor(p.leads * 0.75), p.leads - Math.floor(p.leads * 0.75), Math.min((p.deals / p.target) * 100, 100).toFixed(0) + '%']),
+                'executive-performance'
+              )} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', cursor: 'pointer' }} title="Export">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              </button>
+              <button onClick={() => setExecPerfOpen(!execPerfOpen)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }} title={execPerfOpen ? 'Collapse' : 'Expand'}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', transform: execPerfOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
             </div>
-            {execGraphPerson && <PersonKpiCards person={execGraphPerson} />}
-            <MonthlyTrendCharts data={execGraphData} />
           </div>
-        )}
-        {execPerfOpen && !execGraphOpen && (
-        <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto', position: 'relative' }} className="no-scrollbar">
-          <table className="lb-table" style={{ minWidth: '700px' }}>
-            <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
-              <tr>
-                <th style={{ width: '40px' }}>#</th>
-                <SortableTh label="Executive" sortKey="name" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
-                <SortableTh label="Calls" sortKey="calls" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
-                <SortableTh label="Avg Score" sortKey="avgScore" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
-                <SortableTh label="Hot" sortKey="hot" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
-                <SortableTh label="Warm" sortKey="warm" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
-                <SortableTh label="Cold" sortKey="cold" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
-                <SortableTh label="Answered" sortKey="answered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
-                <SortableTh label="Unanswered" sortKey="unanswered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
-                <SortableTh label="Performance" sortKey="perfPct" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
-              </tr>
-            </thead>
-            <tbody>
-              {sortedExecRows.map((person, i) => {
-                const avgScore = person.avgScore.toFixed(1);
-                const perfPct = person.perfPct;
-                const hot = person.hot;
-                const warm = person.warm;
-                const answered = person.answered;
-                const unanswered = person.unanswered;
-                const coldTotal = person.coldTotal;
-                return (
-                  <tr key={i} style={{ transition: 'background 0.15s' }}>
-                    <td style={{ color: 'var(--muted)', fontWeight: 700 }}>{i + 1}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: 'fit-content' }}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{person.name[0]}</div>
-                        <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '13px' }}>{person.name}</span>
-                      </div>
-                    </td>
-                    <td
-                      style={{ fontWeight: 700, color: 'var(--text)', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
-                      title="View all call records"
-                      onClick={() => onNavigateToCallRecords(null)}
-                    >
-                      {person.leads}
-                    </td>
-                    <td>
-                      <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, background: parseFloat(avgScore) >= 1.2 ? 'rgba(52,211,153,0.12)' : parseFloat(avgScore) >= 0.8 ? 'rgba(251,191,36,0.12)' : 'rgba(248,113,113,0.12)', color: parseFloat(avgScore) >= 1.2 ? '#34d399' : parseFloat(avgScore) >= 0.8 ? '#fbbf24' : '#f87171' }}>{avgScore}</span>
-                    </td>
-                    <td
-                      style={{ color: '#f87171', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
-                      title="View Hot call records"
-                      onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Hot' })}
-                    >
-                      {hot}
-                    </td>
-                    <td
-                      style={{ color: '#fbbf24', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
-                      title="View Warm call records"
-                      onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Warm' })}
-                    >
-                      {warm}
-                    </td>
-                    <td>
-                      <span
-                        style={{ padding: '2px 7px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, background: 'rgba(96,165,250,0.12)', color: '#60a5fa', cursor: 'pointer' }}
-                        title="View Cold call records"
-                        onMouseEnter={(e) => {
-                          const rect = e.target.getBoundingClientRect();
-                          const budget = Math.floor(coldTotal * 0.15);
-                          const location = Math.floor(coldTotal * 0.1);
-                          const config = Math.floor(coldTotal * 0.5);
-                          const received = Math.floor(coldTotal * 0.1);
-                          const hangup = Math.floor(coldTotal * 0.05);
-                          const notInterested = coldTotal - (budget + location + config + received + hangup);
-                          setColdTooltip({
-                            x: rect.left,
-                            y: rect.top - 10,
-                            breakdown: { budget, location, config, received, hangup, notInterested, total: coldTotal }
-                          });
-                        }}
-                        onMouseLeave={() => setColdTooltip(null)}
-                        onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Cold' })}
-                      >
-                        {coldTotal}
-                      </span>
-                    </td>
-                    <td
-                      style={{ color: '#34d399', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
-                      title="View Answered call records"
-                      onClick={() => onNavigateToCallRecords({ type: 'outcome', value: 'Answered' })}
-                    >
-                      {answered}
-                    </td>
-                    <td
-                      style={{ color: '#f87171', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
-                      title="View Unanswered call records"
-                      onClick={() => onNavigateToCallRecords({ type: 'outcome', value: 'Unanswered' })}
-                    >
-                      {unanswered}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '60px', height: '6px', borderRadius: '3px', background: 'var(--gb)', overflow: 'hidden' }}>
-                          <div style={{ width: `${perfPct}%`, height: '100%', borderRadius: '3px', background: perfPct >= 80 ? '#34d399' : perfPct >= 50 ? '#fbbf24' : '#f87171' }} />
+          {execPerfOpen && execGraphOpen && (
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--gb)' }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 -24px 24px -24px', padding: '0 24px 16px 24px', borderBottom: '1px solid var(--gb)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)' }}>Monthly Performance</div>
+                <div className={`admin-dropdown ${execGraphDropdown ? 'open' : ''}`} onClick={() => setExecGraphDropdown(!execGraphDropdown)} ref={execGraphDropdownRef}>
+                  <span>{execGraphSelected === 'all' ? 'All Executives' : execGraphSelected}</span>
+                  <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: execGraphDropdown ? 'rotate(180deg)' : '' }} />
+                  {execGraphDropdown && (
+                    <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        className="dropdown-search"
+                        type="text"
+                        placeholder="Search..."
+                        value={execGraphSearch}
+                        onChange={(e) => setExecGraphSearch(e.target.value)}
+                        autoFocus
+                      />
+                      <div className="dropdown-list">
+                        <div className={`dropdown-item ${execGraphSelected === 'all' ? 'active' : ''}`} onClick={() => { setExecGraphSelected('all'); setExecGraphDropdown(false); setExecGraphSearch(''); }}>
+                          All Executives
                         </div>
-                        <span style={{ fontSize: '10px', fontWeight: 700, color: perfPct >= 80 ? '#34d399' : perfPct >= 50 ? '#fbbf24' : '#f87171' }}>{perfPct.toFixed(0)}%</span>
+                        {SALES_DATA.filter(p => p.name.toLowerCase().includes(execGraphSearch.toLowerCase())).map(p => (
+                          <div key={p.name} className={`dropdown-item ${execGraphSelected === p.name ? 'active' : ''}`} onClick={() => { setExecGraphSelected(p.name); setExecGraphDropdown(false); setExecGraphSearch(''); }}>
+                            {p.name}
+                          </div>
+                        ))}
                       </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        )}
-      </div>
-
-      {/* Bottom Row */}
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', alignItems: 'stretch' }}>
-        {/* Target vs Achievement */}
-        <div className="glass" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-          <div className="glass-header">
-            <div className="glass-title" style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Target vs Achievement</div>
-            <SectionTimeFilter />
-          </div>
-          <div style={{ padding: '16px 20px', maxHeight: '260px', overflowY: 'auto' }} className="thin-scrollbar">
-            {SALES_DATA.map((person, i) => {
-              const pct = Math.min((person.deals / person.target) * 100, 100);
-              const achieved = person.deals >= person.target;
-              return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', borderBottom: i < SALES_DATA.length - 1 ? '1px solid var(--gb)' : 'none', position: 'relative', cursor: 'pointer' }} onMouseEnter={() => setHoveredBar(i)} onMouseLeave={() => setHoveredBar(null)}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{person.name[0]}</div>
-                  <div style={{ width: '70px', fontSize: '12px', fontWeight: 700, color: 'var(--text)', flexShrink: 0 }}>{person.name}</div>
-                  <div style={{ flex: 1, position: 'relative', height: '18px', borderRadius: '9px', background: 'var(--glass)', border: '1px solid var(--gb)', overflow: 'hidden' }}>
-                    <div style={{ width: `${pct}%`, height: '100%', borderRadius: '9px', background: 'linear-gradient(90deg, #06b6d4, #34d399)', transition: 'width 0.8s ease', boxShadow: hoveredBar === i ? '0 0 16px rgba(52,211,153,0.5)' : '0 0 12px rgba(52,211,153,0.3)' }} />
-                  </div>
-                  <div style={{ width: '90px', display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, justifyContent: 'flex-end' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: person.color }}>{person.deals}</span>
-                    <span style={{ fontSize: '10px', color: 'var(--muted)' }}>/</span>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--muted)' }}>{person.target}</span>
-                  </div>
-                  <div style={{ width: '50px', textAlign: 'right', fontSize: '11px', fontWeight: 700, color: person.color }}>
-                    {pct.toFixed(0)}%
-                  </div>
-                  {achieved && <span style={{ fontSize: '12px' }}>✓</span>}
-                  {hoveredBar === i && (
-                    <div style={{ position: 'absolute', top: '-42px', left: '50%', transform: 'translateX(-50%)', background: 'var(--glass-xs)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: '8px', padding: '8px 14px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text)' }}>{person.name}</span>
-                      <span style={{ fontSize: '11px', color: 'var(--muted)' }}> — Target: </span>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--muted)' }}>{person.target}</span>
-                      <span style={{ fontSize: '11px', color: 'var(--muted)' }}> | Achieved: </span>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#34d399' }}>{person.deals}</span>
-                      <span style={{ fontSize: '11px', color: 'var(--muted)' }}> | </span>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: achieved ? '#34d399' : '#fbbf24' }}>{pct.toFixed(0)}%</span>
                     </div>
                   )}
                 </div>
-              );
-            })}
-          </div>
-          {/* Summary */}
-          <div style={{ padding: '12px 20px', borderTop: '1px solid var(--gb)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', gap: '20px' }}>
-              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Total Target: <span style={{ fontWeight: 800, color: 'var(--text)' }}>{TOTAL.target}</span></div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Total Achieved: <span style={{ fontWeight: 800, color: '#34d399' }}>{TOTAL.deals}</span></div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Achievement: <span style={{ fontWeight: 800, color: ((TOTAL.deals / TOTAL.target) * 100) >= 70 ? '#34d399' : '#fbbf24' }}>{((TOTAL.deals / TOTAL.target) * 100).toFixed(1)}%</span></div>
+              </div>
+              {execGraphPerson && <PersonKpiCards person={execGraphPerson} />}
+              <MonthlyTrendCharts data={execGraphData} />
             </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(52,211,153,0.1)', color: '#34d399', fontWeight: 700 }}>✓ {SALES_DATA.filter(p => p.deals >= p.target).length} achieved</span>
-              <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(251,191,36,0.1)', color: '#fbbf24', fontWeight: 700 }}>{SALES_DATA.filter(p => p.deals < p.target && (p.deals / p.target) > 0.6).length} near target</span>
-              <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(248,113,113,0.1)', color: '#f87171', fontWeight: 700 }}>{SALES_DATA.filter(p => (p.deals / p.target) <= 0.6).length} below target</span>
+          )}
+          {execPerfOpen && !execGraphOpen && (
+            <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto', position: 'relative' }} className="no-scrollbar">
+              <table className="lb-table" style={{ minWidth: '700px' }}>
+                <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
+                  <tr>
+                    <th style={{ width: '40px' }}>#</th>
+                    <SortableTh label="Executive" sortKey="name" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                    <SortableTh label="Calls" sortKey="calls" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                    <SortableTh label="Avg Score" sortKey="avgScore" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                    <SortableTh label="Hot" sortKey="hot" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                    <SortableTh label="Warm" sortKey="warm" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                    <SortableTh label="Cold" sortKey="cold" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                    <SortableTh label="Answered" sortKey="answered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                    <SortableTh label="Unanswered" sortKey="unanswered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                    <SortableTh label="Performance" sortKey="perfPct" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedExecRows.map((person, i) => {
+                    const avgScore = person.avgScore.toFixed(1);
+                    const perfPct = person.perfPct;
+                    const hot = person.hot;
+                    const warm = person.warm;
+                    const answered = person.answered;
+                    const unanswered = person.unanswered;
+                    const coldTotal = person.coldTotal;
+                    return (
+                      <tr key={i} style={{ transition: 'background 0.15s' }}>
+                        <td style={{ color: 'var(--muted)', fontWeight: 700 }}>{i + 1}</td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: 'fit-content' }}>
+                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{person.name[0]}</div>
+                            <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '13px' }}>{person.name}</span>
+                          </div>
+                        </td>
+                        <td
+                          style={{ fontWeight: 700, color: 'var(--text)', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                          title="View all call records"
+                          onClick={() => onNavigateToCallRecords(null)}
+                        >
+                          {person.leads}
+                        </td>
+                        <td>
+                          <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, background: parseFloat(avgScore) >= 1.2 ? 'rgba(52,211,153,0.12)' : parseFloat(avgScore) >= 0.8 ? 'rgba(251,191,36,0.12)' : 'rgba(248,113,113,0.12)', color: parseFloat(avgScore) >= 1.2 ? '#34d399' : parseFloat(avgScore) >= 0.8 ? '#fbbf24' : '#f87171' }}>{avgScore}</span>
+                        </td>
+                        <td
+                          style={{ color: '#f87171', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                          title="View Hot call records"
+                          onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Hot' })}
+                        >
+                          {hot}
+                        </td>
+                        <td
+                          style={{ color: '#fbbf24', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                          title="View Warm call records"
+                          onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Warm' })}
+                        >
+                          {warm}
+                        </td>
+                        <td>
+                          <span
+                            style={{ padding: '2px 7px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, background: 'rgba(96,165,250,0.12)', color: '#60a5fa', cursor: 'pointer' }}
+                            title="View Cold call records"
+                            onMouseEnter={(e) => {
+                              const rect = e.target.getBoundingClientRect();
+                              const budget = Math.floor(coldTotal * 0.15);
+                              const location = Math.floor(coldTotal * 0.1);
+                              const config = Math.floor(coldTotal * 0.5);
+                              const received = Math.floor(coldTotal * 0.1);
+                              const hangup = Math.floor(coldTotal * 0.05);
+                              const notInterested = coldTotal - (budget + location + config + received + hangup);
+                              setColdTooltip({
+                                x: rect.left,
+                                y: rect.top - 10,
+                                breakdown: { budget, location, config, received, hangup, notInterested, total: coldTotal }
+                              });
+                            }}
+                            onMouseLeave={() => setColdTooltip(null)}
+                            onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Cold' })}
+                          >
+                            {coldTotal}
+                          </span>
+                        </td>
+                        <td
+                          style={{ color: '#34d399', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                          title="View Answered call records"
+                          onClick={() => onNavigateToCallRecords({ type: 'outcome', value: 'Answered' })}
+                        >
+                          {answered}
+                        </td>
+                        <td
+                          style={{ color: '#f87171', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                          title="View Unanswered call records"
+                          onClick={() => onNavigateToCallRecords({ type: 'outcome', value: 'Unanswered' })}
+                        >
+                          {unanswered}
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ width: '60px', height: '6px', borderRadius: '3px', background: 'var(--gb)', overflow: 'hidden' }}>
+                              <div style={{ width: `${perfPct}%`, height: '100%', borderRadius: '3px', background: perfPct >= 80 ? '#34d399' : perfPct >= 50 ? '#fbbf24' : '#f87171' }} />
+                            </div>
+                            <span style={{ fontSize: '10px', fontWeight: 700, color: perfPct >= 80 ? '#34d399' : perfPct >= 50 ? '#fbbf24' : '#f87171' }}>{perfPct.toFixed(0)}%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Lead Distribution by Person */}
-        <div className="glass" style={{ width: '480px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
-          <div className="glass-header">
-            <div className="glass-title" style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Lead Distribution</div>
-            <SectionTimeFilter />
+        {/* Bottom Row */}
+        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', alignItems: 'stretch' }}>
+          {/* Target vs Achievement */}
+          <div className="glass" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+            <div className="glass-header">
+              <div className="glass-title" style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Target vs Achievement</div>
+              <SectionTimeFilter />
+            </div>
+            <div style={{ padding: '16px 20px', maxHeight: '260px', overflowY: 'auto' }} className="thin-scrollbar">
+              {SALES_DATA.map((person, i) => {
+                const pct = Math.min((person.deals / person.target) * 100, 100);
+                const achieved = person.deals >= person.target;
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', borderBottom: i < SALES_DATA.length - 1 ? '1px solid var(--gb)' : 'none', position: 'relative', cursor: 'pointer' }} onMouseEnter={() => setHoveredBar(i)} onMouseLeave={() => setHoveredBar(null)}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{person.name[0]}</div>
+                    <div style={{ width: '70px', fontSize: '12px', fontWeight: 700, color: 'var(--text)', flexShrink: 0 }}>{person.name}</div>
+                    <div style={{ flex: 1, position: 'relative', height: '18px', borderRadius: '9px', background: 'var(--glass)', border: '1px solid var(--gb)', overflow: 'hidden' }}>
+                      <div style={{ width: `${pct}%`, height: '100%', borderRadius: '9px', background: 'linear-gradient(90deg, #06b6d4, #34d399)', transition: 'width 0.8s ease', boxShadow: hoveredBar === i ? '0 0 16px rgba(52,211,153,0.5)' : '0 0 12px rgba(52,211,153,0.3)' }} />
+                    </div>
+                    <div style={{ width: '90px', display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, justifyContent: 'flex-end' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: person.color }}>{person.deals}</span>
+                      <span style={{ fontSize: '10px', color: 'var(--muted)' }}>/</span>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--muted)' }}>{person.target}</span>
+                    </div>
+                    <div style={{ width: '50px', textAlign: 'right', fontSize: '11px', fontWeight: 700, color: person.color }}>
+                      {pct.toFixed(0)}%
+                    </div>
+                    {achieved && <span style={{ fontSize: '12px' }}>✓</span>}
+                    {hoveredBar === i && (
+                      <div style={{ position: 'absolute', top: '-42px', left: '50%', transform: 'translateX(-50%)', background: 'var(--glass-xs)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: '8px', padding: '8px 14px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text)' }}>{person.name}</span>
+                        <span style={{ fontSize: '11px', color: 'var(--muted)' }}> — Target: </span>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--muted)' }}>{person.target}</span>
+                        <span style={{ fontSize: '11px', color: 'var(--muted)' }}> | Achieved: </span>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#34d399' }}>{person.deals}</span>
+                        <span style={{ fontSize: '11px', color: 'var(--muted)' }}> | </span>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: achieved ? '#34d399' : '#fbbf24' }}>{pct.toFixed(0)}%</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {/* Summary */}
+            <div style={{ padding: '12px 20px', borderTop: '1px solid var(--gb)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: '20px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Total Target: <span style={{ fontWeight: 800, color: 'var(--text)' }}>{TOTAL.target}</span></div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Total Achieved: <span style={{ fontWeight: 800, color: '#34d399' }}>{TOTAL.deals}</span></div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Achievement: <span style={{ fontWeight: 800, color: ((TOTAL.deals / TOTAL.target) * 100) >= 70 ? '#34d399' : '#fbbf24' }}>{((TOTAL.deals / TOTAL.target) * 100).toFixed(1)}%</span></div>
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(52,211,153,0.1)', color: '#34d399', fontWeight: 700 }}>✓ {SALES_DATA.filter(p => p.deals >= p.target).length} achieved</span>
+                <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(251,191,36,0.1)', color: '#fbbf24', fontWeight: 700 }}>{SALES_DATA.filter(p => p.deals < p.target && (p.deals / p.target) > 0.6).length} near target</span>
+                <span style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(248,113,113,0.1)', color: '#f87171', fontWeight: 700 }}>{SALES_DATA.filter(p => (p.deals / p.target) <= 0.6).length} below target</span>
+              </div>
+            </div>
           </div>
-          <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '14px' }}>
-            <div style={{ position: 'relative', width: '160px', height: '160px', flexShrink: 0 }}>
-              <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="80" cy="80" r="62" fill="transparent" stroke="var(--gb)" strokeWidth="24" />
-                {(() => {
-                  const total = TOTAL.leads;
-                  let offset = 0;
-                  const circ = 2 * Math.PI * 62;
-                  return SALES_DATA.slice(0, 8).map((person, i) => {
-                    const pct = person.leads / total;
-                    const dash = circ * pct;
-                    const gap = circ - dash;
-                    const isHovered = hoveredSlice === i;
-                    const el = (
-                      <circle
-                        key={i}
-                        cx="80"
-                        cy="80"
-                        r="62"
-                        fill="transparent"
-                        stroke={person.color}
-                        strokeWidth={isHovered ? 30 : 24}
-                        strokeDasharray={`${dash} ${gap}`}
-                        strokeDashoffset={-offset}
-                        style={{
-                          cursor: 'pointer',
-                          transition: 'stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease',
-                          opacity: hoveredSlice !== null && !isHovered ? 0.4 : 1,
-                          filter: isHovered ? `drop-shadow(0 0 6px ${person.color})` : 'none',
-                        }}
-                        onMouseEnter={() => setHoveredSlice(i)}
-                        onMouseLeave={() => setHoveredSlice(null)}
-                      />
-                    );
-                    offset += dash;
-                    return el;
-                  });
-                })()}
-              </svg>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                {hoveredSlice !== null ? (
-                  <>
-                    <div style={{ fontSize: '18px', fontWeight: 900, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].leads}</div>
-                    <div style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>{SALES_DATA[hoveredSlice].name}</div>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text)' }}>{TOTAL.leads}</div>
-                    <div style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Total</div>
-                  </>
+
+          {/* Lead Distribution by Person */}
+          <div className="glass" style={{ width: '480px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+            <div className="glass-header">
+              <div className="glass-title" style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Lead Distribution</div>
+              <SectionTimeFilter />
+            </div>
+            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '14px' }}>
+              <div style={{ position: 'relative', width: '160px', height: '160px', flexShrink: 0 }}>
+                <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="80" cy="80" r="62" fill="transparent" stroke="var(--gb)" strokeWidth="24" />
+                  {(() => {
+                    const total = TOTAL.leads;
+                    let offset = 0;
+                    const circ = 2 * Math.PI * 62;
+                    return SALES_DATA.slice(0, 8).map((person, i) => {
+                      const pct = person.leads / total;
+                      const dash = circ * pct;
+                      const gap = circ - dash;
+                      const isHovered = hoveredSlice === i;
+                      const el = (
+                        <circle
+                          key={i}
+                          cx="80"
+                          cy="80"
+                          r="62"
+                          fill="transparent"
+                          stroke={person.color}
+                          strokeWidth={isHovered ? 30 : 24}
+                          strokeDasharray={`${dash} ${gap}`}
+                          strokeDashoffset={-offset}
+                          style={{
+                            cursor: 'pointer',
+                            transition: 'stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease',
+                            opacity: hoveredSlice !== null && !isHovered ? 0.4 : 1,
+                            filter: isHovered ? `drop-shadow(0 0 6px ${person.color})` : 'none',
+                          }}
+                          onMouseEnter={() => setHoveredSlice(i)}
+                          onMouseLeave={() => setHoveredSlice(null)}
+                        />
+                      );
+                      offset += dash;
+                      return el;
+                    });
+                  })()}
+                </svg>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                  {hoveredSlice !== null ? (
+                    <>
+                      <div style={{ fontSize: '18px', fontWeight: 900, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].leads}</div>
+                      <div style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>{SALES_DATA[hoveredSlice].name}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text)' }}>{TOTAL.leads}</div>
+                      <div style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Total</div>
+                    </>
+                  )}
+                </div>
+                {hoveredSlice !== null && (
+                  <div style={{ position: 'absolute', top: '-44px', left: '50%', transform: 'translateX(-50%)', background: 'var(--glass-xs)', border: `1px solid ${SALES_DATA[hoveredSlice].color}40`, borderRadius: '8px', padding: '6px 12px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].name}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--muted)' }}> — </span>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)' }}>{SALES_DATA[hoveredSlice].leads} leads</span>
+                    <span style={{ fontSize: '11px', color: 'var(--muted)' }}> ({((SALES_DATA[hoveredSlice].leads / TOTAL.leads) * 100).toFixed(1)}%)</span>
+                  </div>
                 )}
               </div>
-              {hoveredSlice !== null && (
-                <div style={{ position: 'absolute', top: '-44px', left: '50%', transform: 'translateX(-50%)', background: 'var(--glass-xs)', border: `1px solid ${SALES_DATA[hoveredSlice].color}40`, borderRadius: '8px', padding: '6px 12px', whiteSpace: 'nowrap', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.5)', pointerEvents: 'none' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: SALES_DATA[hoveredSlice].color }}>{SALES_DATA[hoveredSlice].name}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}> — </span>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)' }}>{SALES_DATA[hoveredSlice].leads} leads</span>
-                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}> ({((SALES_DATA[hoveredSlice].leads / TOTAL.leads) * 100).toFixed(1)}%)</span>
-                </div>
-              )}
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
-              {SALES_DATA.slice(0, 8).map((person, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', transition: 'background 0.15s', background: hoveredSlice === i ? 'rgba(129,140,248,0.08)' : 'transparent' }} onMouseEnter={() => setHoveredSlice(i)} onMouseLeave={() => setHoveredSlice(null)}>
-                  <div style={{ width: '7px', height: '7px', borderRadius: '2px', background: person.color }} />
-                  <span style={{ fontSize: '9px', color: hoveredSlice === i ? 'var(--text)' : 'var(--muted)', fontWeight: 600, transition: 'color 0.15s' }}>{person.name} ({person.leads})</span>
-                </div>
-              ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
+                {SALES_DATA.slice(0, 8).map((person, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', transition: 'background 0.15s', background: hoveredSlice === i ? 'rgba(129,140,248,0.08)' : 'transparent' }} onMouseEnter={() => setHoveredSlice(i)} onMouseLeave={() => setHoveredSlice(null)}>
+                    <div style={{ width: '7px', height: '7px', borderRadius: '2px', background: person.color }} />
+                    <span style={{ fontSize: '9px', color: hoveredSlice === i ? 'var(--text)' : 'var(--muted)', fontWeight: 600, transition: 'color 0.15s' }}>{person.name} ({person.leads})</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Cold Tooltip - Fixed position */}
-      {coldTooltip && (
-        <div style={{ position: 'fixed', left: coldTooltip.x, top: coldTooltip.y, transform: 'translate(-30%, -100%)', zIndex: 9999, background: 'var(--glass-xs)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '10px', padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', textAlign: 'left', lineHeight: '2', pointerEvents: 'none', minWidth: '200px' }}>
-          <div style={{ fontSize: '10px', color: '#f87171', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Budget Issue</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.budget}</span></div>
-          <div style={{ fontSize: '10px', color: '#fbbf24', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Location Issue</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.location}</span></div>
-          <div style={{ fontSize: '10px', color: '#fb923c', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Configuration Issue</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.config}</span></div>
-          <div style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Received but not responded</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.received}</span></div>
-          <div style={{ fontSize: '10px', color: '#60a5fa', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Call Hangup</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.hangup}</span></div>
-          <div style={{ fontSize: '10px', color: '#e879f9', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Not Interested</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.notInterested}</span></div>
-          <div style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 800, display: 'flex', justifyContent: 'space-between', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--glass-s)' }}><span>Total</span> <span style={{ color: '#60a5fa' }}>{coldTooltip.breakdown.total}</span></div>
-        </div>
-      )}
-    </div>
+        {/* Cold Tooltip - Fixed position */}
+        {coldTooltip && (
+          <div style={{ position: 'fixed', left: coldTooltip.x, top: coldTooltip.y, transform: 'translate(-30%, -100%)', zIndex: 9999, background: 'var(--glass-xs)', border: '1px solid rgba(96,165,250,0.3)', borderRadius: '10px', padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)', textAlign: 'left', lineHeight: '2', pointerEvents: 'none', minWidth: '200px' }}>
+            <div style={{ fontSize: '10px', color: '#f87171', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Budget Issue</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.budget}</span></div>
+            <div style={{ fontSize: '10px', color: '#fbbf24', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Location Issue</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.location}</span></div>
+            <div style={{ fontSize: '10px', color: '#fb923c', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Configuration Issue</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.config}</span></div>
+            <div style={{ fontSize: '10px', color: '#a78bfa', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Received but not responded</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.received}</span></div>
+            <div style={{ fontSize: '10px', color: '#60a5fa', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Call Hangup</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.hangup}</span></div>
+            <div style={{ fontSize: '10px', color: '#e879f9', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}><span>Not Interested</span> <span style={{ color: 'var(--muted)' }}>{coldTooltip.breakdown.notInterested}</span></div>
+            <div style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 800, display: 'flex', justifyContent: 'space-between', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--glass-s)' }}><span>Total</span> <span style={{ color: '#60a5fa' }}>{coldTooltip.breakdown.total}</span></div>
+          </div>
+        )}
+      </div>
     </>
   );
 };
