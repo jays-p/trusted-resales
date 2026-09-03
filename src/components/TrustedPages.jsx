@@ -1,24 +1,84 @@
 import React from 'react';
-import { Clock, Search, ChevronDown, RefreshCw, FileText, Calendar, Eye } from 'lucide-react';
+import { Clock, Search, ChevronDown, ChevronRight, RefreshCw, FileText, Calendar, Eye } from 'lucide-react';
 import { PrimaryButton, GhostButton } from './RichListPage';
+import CallIntelligenceReport from './CallIntelligenceReport';
 
 const IdBadge = ({ id }) => (
-  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: 'var(--muted)', background: 'var(--card-bg-alt)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '4px 8px' }}>{id}</span>
+  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#93c5fd', background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(147, 197, 253, 0.2)', borderRadius: '6px', padding: '4px 10px', display: 'inline-block' }}>{id}</span>
 );
 
 const DateCell = ({ date, time }) => (
   <div>
-    <div style={{ fontSize: '11px', color: 'var(--dim)' }}>{date}</div>
-    {time && <div style={{ fontSize: '10px', color: 'var(--muted)' }}>{time}</div>}
+    <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)' }}>{date}</div>
+    {time && <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--muted)' }}>{time}</div>}
   </div>
 );
 
-const StatusBadge = ({ label, color }) => (
-  <span className="lb-badge" style={{ background: `${color}20`, color, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-    <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: color }} />
-    {label}
-  </span>
-);
+const STATUS_BADGE_COLORS = {
+  Cold: { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.12)', border: 'rgba(56, 189, 248, 0.3)' },
+  Warm: { color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.12)', border: 'rgba(251, 191, 36, 0.3)' },
+  Skipped: { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.12)', border: 'rgba(148, 163, 184, 0.3)' },
+  Hot: { color: '#34d399', bg: 'rgba(52, 211, 153, 0.12)', border: 'rgba(52, 211, 153, 0.3)' },
+};
+
+const StatusBadge = ({ label }) => {
+  const badge = STATUS_BADGE_COLORS[label] || STATUS_BADGE_COLORS.Cold;
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      padding: '4px 10px',
+      borderRadius: '20px',
+      background: badge.bg,
+      border: `1px solid ${badge.border}`,
+      color: badge.color,
+      fontSize: '11px',
+      fontWeight: 700
+    }}>
+      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: badge.color }} />
+      {label}
+    </span>
+  );
+};
+
+const StarRatingColumn = ({ score, onClick }) => {
+  if (score === null || score === undefined) {
+    return <span onClick={onClick} style={{ color: 'var(--muted)', fontSize: '13px', cursor: 'pointer' }}>—</span>;
+  }
+  const color = score < 3.5 ? '#f87171' : '#34d399';
+  const fullStars = Math.floor(score);
+  const partial = score - fullStars;
+  const emptyStars = Math.max(0, 5 - fullStars - (partial > 0 ? 1 : 0));
+  const clipId = `star-clip-${String(score).replace('.', '-')}-${Math.random().toString(36).substring(2, 7)}`;
+
+  return (
+    <div onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}>
+      {Array.from({ length: fullStars }).map((_, i) => (
+        <svg key={`full-${i}`} width="13" height="13" viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="1">
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+        </svg>
+      ))}
+      {partial > 0 && (
+        <svg key="partial" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="1.5">
+          <defs>
+            <clipPath id={clipId}>
+              <rect x="0" y="0" width={partial * 24} height="24" />
+            </clipPath>
+          </defs>
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill={color} clipPath={`url(#${clipId})`} />
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="none" stroke="#475569" strokeWidth="1.5" />
+        </svg>
+      )}
+      {Array.from({ length: emptyStars }).map((_, i) => (
+        <svg key={`empty-${i}`} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="1.5">
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+        </svg>
+      ))}
+      <span style={{ fontSize: '11px', color, fontWeight: 700, marginLeft: '4px' }}>[{score}]</span>
+    </div>
+  );
+};
 
 const TopBorderCard = ({ label, value, color, valueColor }) => (
   <div className="glass" style={{ padding: '16px 18px', borderTop: `2px solid ${color}` }}>
@@ -45,54 +105,792 @@ const FilterDot = ({ label, color = '#818cf8', active, onClick }) => (
 
 const toggleInArray = (setter, value) => setter(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
 
-const LEAD_STATUS_COLORS = { Hot: '#f87171', Warm: '#fbbf24', Cold: '#60a5fa', Skipped: '#94a3b8' };
-const CALL_STATUS_COLORS = { Completed: '#34d399', Processing: '#60a5fa', Failed: '#f87171' };
-const OUTCOME_COLORS = { Answered: '#34d399', Unanswered: '#f87171' };
+const LEAD_STATUS_COLORS = { Hot: '#f87171', Warm: '#fbbf24', Cold: '#38bdf8', Skipped: '#94a3b8' };
 
 /* ---------- ALL CALL RECORDS ---------- */
 
 const CALL_RECORDS_STATS = [
-  { label: 'Total Calls', value: '1,563', color: '#818cf8' },
-  { label: 'Hot', value: '18', color: '#f87171' },
-  { label: 'Warm', value: '300', color: '#fbbf24' },
-  { label: 'Cold', value: '785', color: '#60a5fa' },
-  { label: 'Failed', value: '26', color: '#f43f5e' },
-  { label: 'Skipped', value: '195', color: '#94a3b8' },
+  { label: 'Total Calls', value: '15', color: '#818cf8' },
+  { label: 'Hot', value: '5', color: '#34d399' },
+  { label: 'Warm', value: '6', color: '#fbbf24' },
+  { label: 'Cold', value: '4', color: '#38bdf8' },
+  { label: 'Failed', value: '0', color: '#f43f5e' },
+  { label: 'Skipped', value: '0', color: '#94a3b8' },
   { label: 'On Hold', value: '0', color: '#fb923c' },
 ];
 
-const LEAD_STATUS_CYCLE = ['Hot', 'Warm', 'Cold', 'Skipped'];
-const CALL_STATUS_CYCLE = ['Completed', 'Processing', 'Failed'];
+const LEAD_STATUS_CYCLE = ['Hot', 'Warm', 'Cold'];
 
-const CALL_RECORDS_DATA = Array.from({ length: 8 }, (_, i) => ({
-  id: `6a630${i}56997bf2e4e89${(641 - i * 4).toString().padStart(3, '0')}d`,
-  leadId: `6a4603ca3a93681cadae2${(500 + i * 7).toString().padStart(3, '0')}`,
-  project: 'M3m',
-  leadStatus: LEAD_STATUS_CYCLE[i % LEAD_STATUS_CYCLE.length],
-  callStatus: CALL_STATUS_CYCLE[i % CALL_STATUS_CYCLE.length],
-  answered: i % 3 !== 0,
-  date: '24 Jul 2026',
-  time: `${12 - Math.floor(i / 4)}:${(30 - i * 3).toString().padStart(2, '0')} PM`,
-}));
+const HOT_CALL_DATA = {
+  transcript: [
+    { message: "Hello, I am Mansi from Urbanrise.", speaker: 0 },
+    { message: "Yes, please go ahead.", speaker: 1 },
+    { message: "I'm calling regarding our Sitta project. Are you currently looking to buy a property?", speaker: 0 },
+    { message: "Yes, I am looking for a property.", speaker: 1 },
+    { message: "Great. May I know which configuration you are looking for?", speaker: 0 },
+    { message: "3 BHK.", speaker: 1 },
+    { message: "For 3 BHK, the carpet area is around 1450 square feet and the price starts at around 1.80 crore. Does this fit within your budget?", speaker: 0 },
+    { message: "Yes, that is within my budget.", speaker: 1 },
+    { message: "That's great. Would you like to visit the project and experience it personally?", speaker: 0 },
+    { message: "Yes, definitely. I can visit this Saturday.", speaker: 1 },
+    { message: "Perfect. Shall I schedule your site visit for Saturday at 11 AM?", speaker: 0 },
+    { message: "Yes, Saturday at 11 AM works for me.", speaker: 1 },
+    { message: "Wonderful. I'll arrange the site visit for Saturday at 11 AM and our sales executive will coordinate with you.", speaker: 0 },
+    { message: "Okay, thank you.", speaker: 1 }
+  ],
+  call_id: "hot-52181c3d-51b2-415a-9198-d598424f0001",
+  analysis: {
+    audio_parameters: {
+      executive_scores: {
+        introduction: 5,
+        call_objective: 5,
+        convincing_abilities: 5,
+        comprehension: 5,
+        politeness: 5,
+        project_brief_with_location: 5,
+        probing: 5,
+        project_highlights: 5,
+        location_advantage: 4,
+        site_visit_invite_and_urgency: 5
+      },
+      customer_scores: {
+        sentiment: 5,
+        eagerness: 5,
+        awareness: 4
+      }
+    },
+    call_analysis: {
+      metadata: {
+        company_name: "Urbanrise",
+        project_name: "Sitta",
+        lead_status: "Hot",
+        location: "Sitta",
+        interest_details: "3 BHK property for self-use",
+        purpose: "Self Use",
+        budget: "Around 2 crore",
+        bhk_pref: "3 BHK",
+        classification_reasons: [
+          "Customer clearly expressed interest in the project.",
+          "Customer confirmed that the quoted price fits within their budget.",
+          "Customer agreed to a specific site visit date and time."
+        ],
+        config: "3 BHK",
+        carpet_area: "1450 square feet",
+        starting_price: "1.80 crore",
+        total_units: "Not discussed",
+        green_space: "Not discussed"
+      },
+      summary: {
+        title: "Hot Lead - 3 BHK Site Visit Confirmed",
+        call_summary: "Customer expressed strong interest in the Sitta project and selected a 3 BHK configuration. The customer confirmed that the quoted starting price of 1.80 crore is within budget and confirmed a physical site visit for Saturday at 11 AM.",
+        customer_budget: "Around 2 crore",
+        customer_contact_number: "Current number",
+        customer_preferences: "Looking for a 3 BHK property for self-use.",
+        first_call_resolution: true,
+        escalation_required: false,
+        avg_confidence: 0.95,
+        disposition: "Site Visit Confirmed",
+        advice_summary: "Customer is highly interested. Ensure the site visit is coordinated and confirmed.",
+        agent_communication_summary: "Agent communicated clearly, qualified the customer effectively, addressed configuration and budget, and successfully converted the conversation into a confirmed site visit.",
+        expression_of_interest: true,
+        discussion_points: [
+          "Property interest",
+          "3 BHK configuration",
+          "Carpet area",
+          "Budget",
+          "Project pricing",
+          "Site visit"
+        ],
+        customer_queries: [
+          "What is the carpet area for 3 BHK?",
+          "What is the starting price?"
+        ],
+        next_action_items_external: [
+          "Confirm site visit for Saturday at 11 AM.",
+          "Coordinate with the sales executive."
+        ],
+        next_action_items_internal: [
+          "Update CRM with confirmed site visit.",
+          "Assign sales executive for the visit."
+        ],
+        keywords: [
+          "3 BHK",
+          "Budget",
+          "Site Visit",
+          "Confirmed"
+        ],
+        budget_issue: false,
+        location_issue: false,
+        configuration_issue: false,
+        received_but_not_responded: false,
+        call_hangup: true
+      },
+      sentiment: {
+        positive: 90,
+        neutral: 10,
+        negative: 0
+      },
+      kpis: {
+        avg_response_time: "1s",
+        interruptions: 0,
+        overlaps: 0,
+        questions_asked: 2
+      },
+      call_objective: [
+        { name: "Discuss Configuration", achieved: true, time: "00:50" },
+        { name: "Discuss Budget", achieved: true, time: "01:20" },
+        { name: "Confirm Customer Interest", achieved: true, time: "00:30" },
+        { name: "Schedule Site Visit", achieved: true, time: "02:10" }
+      ],
+      hot_words: [
+        { name: "Site Visit", detected: true, time: "02:10" },
+        { name: "3 BHK", detected: true, time: "00:50" }
+      ],
+      objections: [],
+      automated_actions: [],
+      competitors: [],
+      site_visit: {
+        status: "Confirmed",
+        details: "Customer confirmed a physical site visit for Saturday at 11 AM.",
+        has_site_visit: true,
+        physical_sitevisit: true,
+        virtual_sitevisit: false,
+        site_visit_date: "Saturday",
+        site_visit_time: "11:00 AM"
+      },
+      follow_up_details: {
+        should_follow_up: true,
+        follow_up_date: "Saturday",
+        follow_up_time: "10:00 AM",
+        follow_up_remarks: "Follow up to reconfirm the site visit before the scheduled time."
+      },
+      brocher_details: {
+        wants_brochure: false,
+        brochure_medium: null
+      },
+      buyer_readiness: {
+        score: "High",
+        signals: [
+          { label: "Confirmed interest in area", detected: true, time: "00:30" },
+          { label: "Selected BHK/Config", detected: true, time: "00:50" },
+          { label: "Budget within range", detected: true, time: "01:20" },
+          { label: "Agreed to site visit", detected: true, time: "02:10" }
+        ]
+      }
+    },
+    metrics_parameters: {
+      metrics_summary: {
+        silence_percentage: 0.2,
+        agent_talk_ratio: 0.45,
+        customer_talk_ratio: 0.35,
+        total_words: 500,
+        wpm: 145
+      },
+      kpis: {
+        interruptions: 0,
+        overlaps: 0
+      }
+    }
+  },
+  lead_id: "00Q5g00000abcXYZ02",
+  project_id: "a025g00000defUVW02",
+  project_name: "Sitta",
+  developer_name: "Urbanrise",
+  agent_id: "0055g00000xyzABC02",
+  agent_name: "Mansi",
+  is_presales_executive: true,
+  call_duration: 185.5,
+  success: true
+};
+
+const WARM_CALL_DATA = {
+  transcript: [
+    { message: "Hello, I am Mansi from Urbanrise.", speaker: 0 },
+    { message: "Yes, please go ahead.", speaker: 1 },
+    { message: "I'm calling regarding our Sitta project. Are you currently looking to buy a property?", speaker: 0 },
+    { message: "Yes, I am looking for a property.", speaker: 1 },
+    { message: "Great. May I know which configuration you are looking for?", speaker: 0 },
+    { message: "3 BHK.", speaker: 1 },
+    { message: "For 3 BHK, the carpet area is around 1450 square feet and the price starts at around 1.80 crore. Does this fit within your budget?", speaker: 0 },
+    { message: "Yes, that is within my budget.", speaker: 1 },
+    { message: "That's great. Would you like to visit the project and experience it personally?", speaker: 0 },
+    { message: "I will discuss with my family and let you know.", speaker: 1 },
+    { message: "Sure, should I send you the brochure on WhatsApp?", speaker: 0 },
+    { message: "Yes, please send it.", speaker: 1 },
+    { message: "Sure, I am sharing the brochure details now.", speaker: 0 },
+    { message: "Okay, thank you.", speaker: 1 }
+  ],
+  call_id: "warm-52181c3d-51b2-415a-9198-d598424f0002",
+  analysis: {
+    audio_parameters: {
+      executive_scores: {
+        introduction: 4,
+        call_objective: 4,
+        convincing_abilities: 0,
+        comprehension: 5,
+        politeness: 5,
+        project_brief_with_location: 0,
+        probing: 0,
+        project_highlights: 0,
+        location_advantage: 0,
+        site_visit_invite_and_urgency: 0
+      },
+      customer_scores: {
+        sentiment: 4,
+        eagerness: 4,
+        awareness: 4
+      }
+    },
+    call_analysis: {
+      metadata: {
+        company_name: "Urbanrise",
+        project_name: "Sitta",
+        lead_status: "Warm",
+        location: "Sitta",
+        interest_details: "3 BHK property for self-use",
+        purpose: "Self Use",
+        budget: "Around 1.80 - 2 crore",
+        bhk_pref: "3 BHK",
+        classification_reasons: [
+          "Customer expressed clear interest in 3 BHK project.",
+          "Confirmed price fits within budget.",
+          "Requested brochure to discuss with family before scheduling visit."
+        ],
+        config: "3 BHK",
+        carpet_area: "1450 square feet",
+        starting_price: "1.80 crore",
+        total_units: "Not discussed",
+        green_space: "Not discussed"
+      },
+      summary: {
+        title: "Warm Lead - 3 BHK Pricing & Details Shared",
+        call_summary: "Customer expressed interest in Sitta 3 BHK project. Quoted starting price of 1.80 crore is within budget. Customer requested brochure on WhatsApp and will decide on site visit after consulting family.",
+        customer_budget: "Around 1.80 - 2 crore",
+        customer_contact_number: "Current number",
+        customer_preferences: "Looking for a 3 BHK property for self-use.",
+        first_call_resolution: true,
+        escalation_required: false,
+        avg_confidence: 0.93,
+        disposition: "Brochure Shared",
+        advice_summary: "Customer is interested. Send brochure and follow up in 2 days.",
+        agent_communication_summary: "Agent introduced project effectively, confirmed budget, and sent brochure.",
+        expression_of_interest: true,
+        discussion_points: [
+          "Property interest",
+          "3 BHK configuration",
+          "Carpet area",
+          "Budget & pricing",
+          "Brochure request"
+        ],
+        customer_queries: [
+          "Can you send the brochure?"
+        ],
+        next_action_items_external: [
+          "Send brochure on WhatsApp.",
+          "Follow up after 2 days."
+        ],
+        next_action_items_internal: [
+          "Update CRM lead status to Warm.",
+          "Schedule follow-up reminder."
+        ],
+        keywords: [
+          "3 BHK",
+          "Budget",
+          "Brochure",
+          "Warm Lead"
+        ],
+        budget_issue: false,
+        location_issue: false,
+        configuration_issue: false,
+        received_but_not_responded: false,
+        call_hangup: false
+      },
+      sentiment: {
+        positive: 75,
+        neutral: 25,
+        negative: 0
+      },
+      kpis: {
+        avg_response_time: "1s",
+        interruptions: 0,
+        overlaps: 0,
+        questions_asked: 2
+      },
+      call_objective: [
+        { name: "Discuss Configuration", achieved: true, time: "00:50" },
+        { name: "Discuss Budget", achieved: true, time: "01:20" },
+        { name: "Confirm Customer Interest", achieved: true, time: "00:30" },
+        { name: "Schedule Site Visit", achieved: false, time: null }
+      ],
+      hot_words: [
+        { name: "3 BHK", detected: true, time: "00:50" },
+        { name: "Brochure", detected: true, time: "01:25" }
+      ],
+      objections: [],
+      automated_actions: [],
+      competitors: [],
+      site_visit: {
+        status: "Pending Family Discussion",
+        details: "Customer will decide on site visit after discussing with family.",
+        has_site_visit: false,
+        physical_sitevisit: false,
+        virtual_sitevisit: false,
+        site_visit_date: null,
+        site_visit_time: null
+      },
+      follow_up_details: {
+        should_follow_up: true,
+        follow_up_date: "Saturday",
+        follow_up_time: "02:00 PM",
+        follow_up_remarks: "Follow up after family discussion."
+      },
+      brocher_details: {
+        wants_brochure: true,
+        brochure_medium: "WhatsApp"
+      },
+      buyer_readiness: {
+        score: "Medium",
+        signals: [
+          { label: "Confirmed interest in area", detected: true, time: "00:30" },
+          { label: "Selected BHK/Config", detected: true, time: "00:50" },
+          { label: "Budget within range", detected: true, time: "01:20" },
+          { label: "Agreed to site visit", detected: false, time: null }
+        ]
+      }
+    },
+    metrics_parameters: {
+      metrics_summary: {
+        silence_percentage: 0.2,
+        agent_talk_ratio: 0.45,
+        customer_talk_ratio: 0.35,
+        total_words: 420,
+        wpm: 145
+      },
+      kpis: {
+        interruptions: 0,
+        overlaps: 0
+      }
+    }
+  },
+  lead_id: "00Q5g00000abcXYZ03",
+  project_id: "a025g00000defUVW03",
+  project_name: "Sitta",
+  developer_name: "Urbanrise",
+  agent_id: "0055g00000xyzABC03",
+  agent_name: "Mansi",
+  is_presales_executive: true,
+  call_duration: 125.0,
+  success: true
+};
+
+const COLD_CALL_DATA = {
+  transcript: [
+    { message: "Hello, I am Mansi from Urbanrise.", speaker: 0 },
+    { message: "Yes.", speaker: 1 },
+    { message: "I'm calling regarding our Sitta project. Are you currently looking to buy a property?", speaker: 0 },
+    { message: "No, I'm not interested in buying any property.", speaker: 1 },
+    { message: "I understand. Would you like me to share some brief information for future reference?", speaker: 0 },
+    { message: "No, I'm not interested. Please don't call again.", speaker: 1 },
+    { message: "Sure, I understand. Thank you for your time.", speaker: 0 },
+    { message: "Okay, bye.", speaker: 1 }
+  ],
+  call_id: "cold-52181c3d-51b2-415a-9198-d598424f0003",
+  analysis: {
+    audio_parameters: {
+      executive_scores: {
+        introduction: 4,
+        call_objective: 4,
+        convincing_abilities: 2,
+        comprehension: 5,
+        politeness: 5,
+        project_brief_with_location: 0,
+        probing: 0,
+        project_highlights: 0,
+        location_advantage: 0,
+        site_visit_invite_and_urgency: 0
+      },
+      customer_scores: {
+        sentiment: 1,
+        eagerness: 1,
+        awareness: 0
+      }
+    },
+    call_analysis: {
+      metadata: {
+        company_name: "Urbanrise",
+        project_name: "Sitta",
+        lead_status: "Cold",
+        location: null,
+        interest_details: null,
+        purpose: null,
+        budget: null,
+        bhk_pref: null,
+        classification_reasons: [
+          "Customer clearly stated that they are not interested in buying property.",
+          "Customer declined to receive project information.",
+          "Customer requested not to be contacted again."
+        ],
+        config: null,
+        carpet_area: null,
+        starting_price: null,
+        total_units: "Not discussed",
+        green_space: "Not discussed"
+      },
+      summary: {
+        title: "Cold Lead - Not Interested",
+        call_summary: "Customer clearly stated that they are not interested in purchasing any property. The customer declined further project information and requested not to be contacted again. The call was ended politely.",
+        customer_budget: null,
+        customer_contact_number: "Current number",
+        customer_preferences: null,
+        first_call_resolution: true,
+        escalation_required: false,
+        avg_confidence: 0.96,
+        disposition: "Not Interested",
+        advice_summary: "Do not schedule further follow-ups because the customer explicitly declined and requested not to be contacted again.",
+        agent_communication_summary: "Agent introduced herself, communicated the purpose of the call, understood the customer's lack of interest, and ended the conversation politely.",
+        expression_of_interest: false,
+        discussion_points: [
+          "Introduction",
+          "Project reference",
+          "Customer interest"
+        ],
+        customer_queries: [],
+        next_action_items_external: [],
+        next_action_items_internal: [
+          "Update CRM as Not Interested.",
+          "Do not schedule another follow-up."
+        ],
+        keywords: [
+          "Not Interested",
+          "No Property",
+          "Do Not Call"
+        ],
+        budget_issue: false,
+        location_issue: false,
+        configuration_issue: false,
+        received_but_not_responded: false,
+        call_hangup: true
+      },
+      sentiment: {
+        positive: 5,
+        neutral: 15,
+        negative: 80
+      },
+      kpis: {
+        avg_response_time: "1s",
+        interruptions: 0,
+        overlaps: 0,
+        questions_asked: 2
+      },
+      call_objective: [
+        { name: "Discuss Configuration", achieved: false, time: null },
+        { name: "Discuss Budget", achieved: false, time: null },
+        { name: "Confirm Customer Interest", achieved: true, time: "00:25" },
+        { name: "Schedule Site Visit", achieved: false, time: null }
+      ],
+      hot_words: [],
+      objections: [
+        { name: "Not Interested", detected: true, time: "00:20" }
+      ],
+      automated_actions: [],
+      competitors: [],
+      site_visit: {
+        status: "Not Interested",
+        details: "Customer was not interested and did not agree to a site visit.",
+        has_site_visit: false,
+        physical_sitevisit: false,
+        virtual_sitevisit: false,
+        site_visit_date: null,
+        site_visit_time: null
+      },
+      follow_up_details: {
+        should_follow_up: false,
+        follow_up_date: null,
+        follow_up_time: null,
+        follow_up_remarks: "Customer explicitly requested not to be contacted again."
+      },
+      brocher_details: {
+        wants_brochure: false,
+        brochure_medium: null
+      },
+      buyer_readiness: {
+        score: "Low",
+        signals: [
+          { label: "Customer expressed no interest", detected: true, time: "00:20" },
+          { label: "Customer declined project information", detected: true, time: "00:35" }
+        ]
+      }
+    },
+    metrics_parameters: {
+      metrics_summary: {
+        silence_percentage: 0.1,
+        agent_talk_ratio: 0.55,
+        customer_talk_ratio: 0.35,
+        total_words: 180,
+        wpm: 145
+      },
+      kpis: {
+        interruptions: 0,
+        overlaps: 0
+      }
+    }
+  },
+  lead_id: "00Q5g00000abcXYZ04",
+  project_id: "a025g00000defUVW04",
+  project_name: "Sitta",
+  developer_name: "Urbanrise",
+  agent_id: "0055g00000xyzABC04",
+  agent_name: "Mansi",
+  is_presales_executive: true,
+  call_duration: 38.2,
+  success: true
+};
+
+const CALL_RECORDS_DATA = [
+  {
+    ...HOT_CALL_DATA,
+    rowId: 5701,
+    project: 'SIITA',
+    id: 'hot-52181c3d-51b2-415a-9198-d598424f0001',
+    status: 'Hot',
+    ratingScore: 5.0,
+    duration: '3:05',
+    totalUsed: '₹12',
+    date: '14 Jun 2026',
+    time: '12:08 PM',
+    agent_name: 'Mansi',
+  },
+  {
+    ...WARM_CALL_DATA,
+    rowId: 5702,
+    project: 'SIITA',
+    id: 'warm-52181c3d-51b2-415a-9198-d598424f0002',
+    status: 'Warm',
+    ratingScore: 4.5,
+    duration: '1:45',
+    totalUsed: '₹6',
+    date: '14 Jun 2026',
+    time: '12:05 PM',
+    agent_name: 'Mansi',
+  },
+  {
+    ...COLD_CALL_DATA,
+    rowId: 5703,
+    project: 'SIITA',
+    id: 'cold-52181c3d-51b2-415a-9198-d598424f0003',
+    status: 'Cold',
+    ratingScore: 4.0,
+    duration: '0:38',
+    totalUsed: '₹3',
+    date: '14 Jun 2026',
+    time: '11:58 AM',
+    agent_name: 'Mansi',
+  },
+  {
+    ...HOT_CALL_DATA,
+    rowId: 5704,
+    project: 'Urbanrise The World Of Joy',
+    id: 'hot-52181c3d-51b2-415a-9198-d598424f0004',
+    status: 'Hot',
+    ratingScore: 5.0,
+    duration: '3:12',
+    totalUsed: '₹12',
+    date: '14 Jun 2026',
+    time: '11:45 AM',
+    agent_name: 'Sneha',
+  },
+  {
+    ...WARM_CALL_DATA,
+    rowId: 5705,
+    project: 'Urbanrise The World Of Joy',
+    id: 'warm-52181c3d-51b2-415a-9198-d598424f0005',
+    status: 'Warm',
+    ratingScore: 4.5,
+    duration: '2:01',
+    totalUsed: '₹7',
+    date: '14 Jun 2026',
+    time: '11:30 AM',
+    agent_name: 'Sneha',
+  },
+  {
+    ...COLD_CALL_DATA,
+    rowId: 5706,
+    project: 'Urbanrise The World Of Joy',
+    id: 'cold-52181c3d-51b2-415a-9198-d598424f0006',
+    status: 'Cold',
+    ratingScore: 4.0,
+    duration: '0:42',
+    totalUsed: '₹3',
+    date: '14 Jun 2026',
+    time: '11:15 AM',
+    agent_name: 'Sneha',
+  },
+  {
+    ...HOT_CALL_DATA,
+    rowId: 5707,
+    project: 'Urbanrise Oncloud 33',
+    id: 'hot-52181c3d-51b2-415a-9198-d598424f0007',
+    status: 'Hot',
+    ratingScore: 5.0,
+    duration: '2:55',
+    totalUsed: '₹11',
+    date: '14 Jun 2026',
+    time: '11:00 AM',
+    agent_name: 'Prachi',
+  },
+  {
+    ...WARM_CALL_DATA,
+    rowId: 5708,
+    project: 'Urbanrise Oncloud 33',
+    id: 'warm-52181c3d-51b2-415a-9198-d598424f0008',
+    status: 'Warm',
+    ratingScore: 4.2,
+    duration: '1:50',
+    totalUsed: '₹6',
+    date: '14 Jun 2026',
+    time: '10:45 AM',
+    agent_name: 'Prachi',
+  },
+  {
+    ...COLD_CALL_DATA,
+    rowId: 5709,
+    project: 'Urbanrise Oncloud 33',
+    id: 'cold-52181c3d-51b2-415a-9198-d598424f0009',
+    status: 'Cold',
+    ratingScore: 4.0,
+    duration: '0:35',
+    totalUsed: '₹3',
+    date: '14 Jun 2026',
+    time: '10:30 AM',
+    agent_name: 'Prachi',
+  },
+  {
+    ...HOT_CALL_DATA,
+    rowId: 5710,
+    project: 'Urbanrise Galleria Gardens',
+    id: 'hot-52181c3d-51b2-415a-9198-d598424f0010',
+    status: 'Hot',
+    ratingScore: 5.0,
+    duration: '3:20',
+    totalUsed: '₹13',
+    date: '14 Jun 2026',
+    time: '10:15 AM',
+    agent_name: 'Divya',
+  },
+  {
+    ...WARM_CALL_DATA,
+    rowId: 5711,
+    project: 'Urbanrise Galleria Gardens',
+    id: 'warm-52181c3d-51b2-415a-9198-d598424f0011',
+    status: 'Warm',
+    ratingScore: 4.0,
+    duration: '1:40',
+    totalUsed: '₹5',
+    date: '14 Jun 2026',
+    time: '10:00 AM',
+    agent_name: 'Divya',
+  },
+  {
+    ...WARM_CALL_DATA,
+    rowId: 5712,
+    project: 'Urbanrise Galleria Gardens',
+    id: 'warm-52181c3d-51b2-415a-9198-d598424f0012',
+    status: 'Warm',
+    ratingScore: 4.2,
+    duration: '1:55',
+    totalUsed: '₹6',
+    date: '14 Jun 2026',
+    time: '09:45 AM',
+    agent_name: 'Neha',
+  },
+  {
+    ...HOT_CALL_DATA,
+    rowId: 5713,
+    project: 'SIITA',
+    id: 'hot-52181c3d-51b2-415a-9198-d598424f0013',
+    status: 'Hot',
+    ratingScore: 4.8,
+    duration: '3:00',
+    totalUsed: '₹11',
+    date: '14 Jun 2026',
+    time: '09:30 AM',
+    agent_name: 'Neha',
+  },
+  {
+    ...WARM_CALL_DATA,
+    rowId: 5714,
+    project: 'SIITA',
+    id: 'warm-52181c3d-51b2-415a-9198-d598424f0014',
+    status: 'Warm',
+    ratingScore: 4.3,
+    duration: '1:48',
+    totalUsed: '₹6',
+    date: '14 Jun 2026',
+    time: '09:15 AM',
+    agent_name: 'Neha',
+  },
+  {
+    ...COLD_CALL_DATA,
+    rowId: 5715,
+    project: 'SIITA',
+    id: 'cold-52181c3d-51b2-415a-9198-d598424f0015',
+    status: 'Cold',
+    ratingScore: 3.9,
+    duration: '0:40',
+    totalUsed: '₹3',
+    date: '14 Jun 2026',
+    time: '09:00 AM',
+    agent_name: 'Divya',
+  },
+];
 
 export const AllCallRecordsPage = ({ initialFilter }) => {
+  const [selectedRecord, setSelectedRecord] = React.useState(null);
   const [search, setSearch] = React.useState('');
-  const [leadStatusFilter, setLeadStatusFilter] = React.useState(initialFilter?.type === 'lead' ? [initialFilter.value] : []);
-  const [callStatusFilter, setCallStatusFilter] = React.useState(initialFilter?.type === 'call' ? [initialFilter.value] : []);
-  const [outcomeFilter, setOutcomeFilter] = React.useState(initialFilter?.type === 'outcome' ? [initialFilter.value] : []);
+  const [agentFilter, setAgentFilter] = React.useState(
+    initialFilter?.type === 'agent'
+      ? initialFilter.value
+      : initialFilter?.type === 'agent_status'
+      ? initialFilter.agent
+      : null
+  );
+  const [statusFilter, setStatusFilter] = React.useState(
+    initialFilter?.type === 'lead'
+      ? [initialFilter.value]
+      : initialFilter?.type === 'agent_status'
+      ? [initialFilter.value || initialFilter.status]
+      : []
+  );
+
+  if (selectedRecord) {
+    return <CallIntelligenceReport record={selectedRecord} onBack={() => setSelectedRecord(null)} />;
+  }
 
   const rows = CALL_RECORDS_DATA.filter(r => {
-    const matchesSearch = r.id.toLowerCase().includes(search.toLowerCase()) || r.project.toLowerCase().includes(search.toLowerCase());
-    const matchesLead = leadStatusFilter.length === 0 || leadStatusFilter.includes(r.leadStatus);
-    const matchesCall = callStatusFilter.length === 0 || callStatusFilter.includes(r.callStatus);
-    const matchesOutcome = outcomeFilter.length === 0 || outcomeFilter.includes(r.answered ? 'Answered' : 'Unanswered');
-    return matchesSearch && matchesLead && matchesCall && matchesOutcome;
+    const matchesSearch = r.id.toLowerCase().includes(search.toLowerCase()) || 
+                          r.project.toLowerCase().includes(search.toLowerCase()) ||
+                          (r.agent_name && r.agent_name.toLowerCase().includes(search.toLowerCase()));
+    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(r.status);
+    const matchesAgent = !agentFilter || (r.agent_name && r.agent_name.toLowerCase() === agentFilter.toLowerCase());
+    return matchesSearch && matchesStatus && matchesAgent;
   });
+
+  const stats = agentFilter ? [
+    { label: 'Total Calls', value: String(CALL_RECORDS_DATA.filter(r => r.agent_name && r.agent_name.toLowerCase() === agentFilter.toLowerCase()).length), color: '#818cf8' },
+    { label: 'Hot', value: String(CALL_RECORDS_DATA.filter(r => r.agent_name && r.agent_name.toLowerCase() === agentFilter.toLowerCase() && r.status === 'Hot').length), color: '#34d399' },
+    { label: 'Warm', value: String(CALL_RECORDS_DATA.filter(r => r.agent_name && r.agent_name.toLowerCase() === agentFilter.toLowerCase() && r.status === 'Warm').length), color: '#fbbf24' },
+    { label: 'Cold', value: String(CALL_RECORDS_DATA.filter(r => r.agent_name && r.agent_name.toLowerCase() === agentFilter.toLowerCase() && r.status === 'Cold').length), color: '#38bdf8' },
+    { label: 'Failed', value: '0', color: '#f43f5e' },
+    { label: 'Skipped', value: '0', color: '#94a3b8' },
+    { label: 'On Hold', value: '0', color: '#fb923c' },
+  ] : CALL_RECORDS_STATS;
 
   return (
     <div className="main-content no-scrollbar">
       <div className="topbar">
-        <div className="topbar-left"><h2>All Call Records</h2></div>
+        <div className="topbar-left">
+          <h2>All Call Records {agentFilter ? `— ${agentFilter}` : ''}</h2>
+        </div>
         <div className="topbar-right">
           <div className="glass" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 16px' }}>
             <Clock className="w-4 h-4" style={{ color: 'var(--accent)' }} />
@@ -109,7 +907,7 @@ export const AllCallRecordsPage = ({ initialFilter }) => {
       </div>
 
       <div className="g2" style={{ gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: '16px' }}>
-        {CALL_RECORDS_STATS.map((s, i) => <TopBorderCard key={i} {...s} />)}
+        {stats.map((s, i) => <TopBorderCard key={i} {...s} />)}
       </div>
 
       <div className="glass" style={{ padding: '14px 16px', marginBottom: '16px' }}>
@@ -122,37 +920,20 @@ export const AllCallRecordsPage = ({ initialFilter }) => {
             onChange={(e) => setSearch(e.target.value)}
             style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '12px', fontWeight: 600, width: '100%' }}
           />
+          {agentFilter && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(129,140,248,0.2)', border: '1px solid rgba(129,140,248,0.4)', borderRadius: '6px', padding: '3px 10px', fontSize: '11px', fontWeight: 700, color: '#818cf8', whiteSpace: 'nowrap' }}>
+              <span>Executive: {agentFilter}</span>
+              <span style={{ cursor: 'pointer', marginLeft: '4px', fontWeight: 900 }} onClick={() => setAgentFilter(null)} title="Clear executive filter">✕</span>
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
           <div>
-            <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Lead Status</div>
+            <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Status</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               {LEAD_STATUS_CYCLE.map((l) => (
-                <FilterDot key={l} label={l} color={LEAD_STATUS_COLORS[l]} active={leadStatusFilter.includes(l)} onClick={() => toggleInArray(setLeadStatusFilter, l)} />
+                <FilterDot key={l} label={l} color={LEAD_STATUS_COLORS[l]} active={statusFilter.includes(l)} onClick={() => toggleInArray(setStatusFilter, l)} />
               ))}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Call Status</div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {CALL_STATUS_CYCLE.map((l) => (
-                <FilterDot key={l} label={l} color={CALL_STATUS_COLORS[l]} active={callStatusFilter.includes(l)} onClick={() => toggleInArray(setCallStatusFilter, l)} />
-              ))}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Call Outcome</div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {['Answered', 'Unanswered'].map((l) => (
-                <FilterDot key={l} label={l} color={OUTCOME_COLORS[l]} active={outcomeFilter.includes(l)} onClick={() => toggleInArray(setOutcomeFilter, l)} />
-              ))}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Site Visit</div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <GhostButton>Booked</GhostButton>
-              <GhostButton>Not Booked</GhostButton>
             </div>
           </div>
           <div>
@@ -178,29 +959,28 @@ export const AllCallRecordsPage = ({ initialFilter }) => {
           <table className="lb-table">
             <thead>
               <tr>
-                {['#', 'PROJECT', 'CALL ID', 'LEAD ID', 'STATUS', 'RATING', 'DURATION', 'TOTAL USED', 'DATE ANALYZED', 'ACTION'].map((c, i) => (
+                {['#', 'PROJECT', 'CALL ID', 'STATUS', 'RATING', 'DURATION', 'TOTAL USED', 'DATE ANALYZED', 'ACTION'].map((c, i) => (
                   <th key={i} style={{ whiteSpace: 'nowrap' }}>{c}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {rows.map((r, i) => (
-                <tr key={i}>
-                  <td style={{ color: 'var(--muted)' }}>{i + 1}</td>
-                  <td style={{ fontWeight: 700, color: 'var(--text)' }}>{r.project}</td>
+              {rows.map((r) => (
+                <tr key={r.rowId} onClick={() => setSelectedRecord(r)} style={{ cursor: 'pointer' }}>
+                  <td style={{ color: 'var(--muted)', fontSize: '11px', fontWeight: 600 }}>{r.rowId}</td>
+                  <td style={{ fontWeight: 800, color: 'var(--text)', fontSize: '12px' }}>{r.project}</td>
                   <td><IdBadge id={r.id} /></td>
-                  <td><IdBadge id={r.leadId} /></td>
-                  <td>
-                    <StatusBadge label={r.callStatus} color={CALL_STATUS_COLORS[r.callStatus]} />
-                    <div style={{ fontSize: '9px', color: r.answered ? '#34d399' : '#f87171', marginTop: '4px', fontWeight: 700 }}>{r.answered ? 'Answered' : 'Unanswered'}</div>
-                  </td>
-                  <td><StatusBadge label={r.leadStatus} color={LEAD_STATUS_COLORS[r.leadStatus]} /></td>
-                  <td style={{ color: 'var(--muted)' }}>—</td>
-                  <td style={{ color: 'var(--muted)' }}>—</td>
+                  <td><StatusBadge label={r.status} /></td>
+                  <td><StarRatingColumn score={r.ratingScore} onClick={(e) => { e.stopPropagation(); setSelectedRecord(r); }} /></td>
+                  <td style={{ color: 'var(--text)', fontSize: '12px', fontWeight: 600 }}>{r.duration}</td>
+                  <td style={{ color: r.totalUsed === '—' ? 'var(--muted)' : 'var(--text)', fontSize: '13px', fontWeight: r.totalUsed === '—' ? 500 : 800 }}>{r.totalUsed}</td>
                   <td><DateCell date={r.date} time={r.time} /></td>
                   <td>
-                    <button style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'var(--card-bg-alt)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--muted)', cursor: 'pointer' }}>
-                      <ChevronDown className="w-3.5 h-3.5" style={{ margin: '0 auto' }} />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setSelectedRecord(r); }}
+                      style={{ width: '30px', height: '30px', borderRadius: '8px', background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.08)', color: '#818cf8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
@@ -212,6 +992,7 @@ export const AllCallRecordsPage = ({ initialFilter }) => {
     </div>
   );
 };
+
 
 /* ---------- STRATEGIC PERFORMANCE MATRIX ---------- */
 

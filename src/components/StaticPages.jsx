@@ -135,11 +135,11 @@ export const DevelopersPage = () => (
     columns={['ID', 'NAME', 'CONTACT INFORMATION', 'BD / CS', 'COMMUNICATION ENGINE', 'CITY', 'CREATED DATE']}
     rows={[
       {
-        searchText: 'Urban Axis',
+        searchText: 'Urbanrise',
         cells: [
           <IdBadge id="69b91ed0921d54a9e81..." />,
-          <NameCell avatar="U" name="Urban Axis" />,
-          <ContactCell phone="[+91] 7867******" email="urbanaxis@convoai.in" />,
+          <NameCell avatar="U" name="Urbanrise" />,
+          <ContactCell phone="[+91] 7867******" email="urbanrise@convoai.in" />,
           <div><div style={{ fontSize: '11px', color: 'var(--dim)' }}>BD - Manoj Yadav</div><div style={{ fontSize: '11px', color: 'var(--muted)' }}>CS -</div></div>,
           <Settings2 className="w-4 h-4" style={{ color: '#fbbf24' }} />,
           <span style={{ color: 'var(--muted)' }}>—</span>,
@@ -166,7 +166,7 @@ export const ChannelPartnersPage = () => (
         <IdBadge id={cp.id} />,
         <NameCell avatar={cp.avatar} name={cp.name} color={cp.color} />,
         <ContactCell phone={cp.phone} email={cp.email} />,
-        <span style={{ color: 'var(--dim)' }}>Joy Street</span>,
+        <span style={{ color: 'var(--dim)' }}>SIITA</span>,
         <DateCell date={cp.date} time={cp.time} />,
       ],
     }))}
@@ -179,7 +179,10 @@ export const ProjectsPage = () => (
     searchPlaceholder="Search project"
     columns={['ACTION', 'ID', 'DEVELOPER NAME', 'PROJECT NAME', 'TOTAL CREDIT', 'USED CREDIT', 'AVAILABLE', 'CREATED DATE']}
     rows={[
-      { id: '69b91efd9b392d1...', dev: 'Urban Axis', project: 'Joy Street', total: '₹1,35,000', used: '₹1,04,808', available: '₹30,192', date: '17 Mar 2026', time: '02:59 pm' },
+      { id: '69b91efd9b392d1...', dev: 'Urbanrise', project: 'Urbanrise The World Of Joy', total: '₹1,35,000', used: '₹1,04,808', available: '₹30,192', date: '17 Mar 2026', time: '02:59 pm' },
+      { id: '69b91efd9b392d2...', dev: 'Urbanrise', project: 'Urbanrise Oncloud 33', total: '₹9,99,631', used: '₹60', available: '₹9,99,571', date: '18 Mar 2026', time: '11:20 am' },
+      { id: '69b91efd9b392d3...', dev: 'Urbanrise', project: 'Urbanrise Galleria Gardens', total: '₹25,000', used: '₹4,412', available: '₹20,588', date: '19 Mar 2026', time: '04:15 pm' },
+      { id: '69b91efd9b392d4...', dev: 'Urbanrise', project: 'SIITA', total: '₹41,421', used: '₹1,572', available: '₹39,849', date: '20 Mar 2026', time: '01:10 pm' },
     ].map((p) => ({
       searchText: p.project,
       cells: [

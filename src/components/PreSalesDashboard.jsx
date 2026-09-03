@@ -50,26 +50,28 @@ const sortByKey = (rows, sort, getValue) => {
 };
 
 const DEVELOPERS = [
-  'Smartworld', 'M3m Developer', 'DTC Group', 'BPTP Ltd', 'Godrej Properties', 'Raheja Developers', 'Emaar India',
+  'Urbanrise',
 ];
 
 const PROJECTS = [
-  'Smartworld Sky Arc', 'Smartworld One Dxp', 'Smartworld The Edition', "Smartworld Nature's Court At Gic",
-  'M3m Crown', 'M3m Antalya Hills', 'DTC Downtown', 'DTC Capital City', 'DTC Still Waters',
-  'BPTP Smartworld Pride', 'World Home Purv', 'ABC Tower 1',
+  'Urbanrise The World Of Joy',
+  'Urbanrise Oncloud 33',
+  'Urbanrise Galleria Gardens',
+  'SIITA',
 ];
 
 const SALES_DATA = [
+  { name: 'Mansi', leads: 3, hot: 1, warm: 1, cold: 1, coldTotal: 1, answered: 3, unanswered: 0, deals: 1, target: 1, color: '#34d399' },
+  { name: 'Sneha', leads: 3, hot: 1, warm: 1, cold: 1, coldTotal: 1, answered: 3, unanswered: 0, deals: 1, target: 1, color: '#a78bfa' },
+  { name: 'Prachi', leads: 3, hot: 1, warm: 1, cold: 1, coldTotal: 1, answered: 3, unanswered: 0, deals: 1, target: 1, color: '#34d399' },
+  { name: 'Divya', leads: 3, hot: 1, warm: 1, cold: 1, coldTotal: 1, answered: 3, unanswered: 0, deals: 1, target: 1, color: '#4ade80' },
+  { name: 'Neha', leads: 3, hot: 1, warm: 2, cold: 0, coldTotal: 0, answered: 3, unanswered: 0, deals: 1, target: 1, color: '#f87171' },
   { name: 'Jayesh', leads: 50, interested: 25, deals: 6, target: 10, color: '#818cf8' },
-  { name: 'Prachi', leads: 40, interested: 18, deals: 4, target: 8, color: '#34d399' },
   { name: 'Rohit', leads: 45, interested: 22, deals: 5, target: 9, color: '#fbbf24' },
-  { name: 'Neha', leads: 38, interested: 16, deals: 3, target: 7, color: '#f87171' },
   { name: 'Amit', leads: 55, interested: 30, deals: 8, target: 10, color: '#60a5fa' },
-  { name: 'Sneha', leads: 42, interested: 20, deals: 5, target: 8, color: '#a78bfa' },
   { name: 'Vikram', leads: 35, interested: 14, deals: 3, target: 7, color: '#fb923c' },
   { name: 'Pooja', leads: 48, interested: 24, deals: 7, target: 9, color: '#2dd4bf' },
   { name: 'Rahul', leads: 33, interested: 12, deals: 2, target: 6, color: '#e879f9' },
-  { name: 'Divya', leads: 44, interested: 21, deals: 6, target: 8, color: '#4ade80' },
   { name: 'Suresh', leads: 30, interested: 10, deals: 2, target: 6, color: '#f472b6' },
   { name: 'Kavita', leads: 37, interested: 15, deals: 4, target: 7, color: '#38bdf8' },
   { name: 'Deepak', leads: 52, interested: 28, deals: 7, target: 10, color: '#facc15' },
@@ -87,54 +89,56 @@ const SALES_DATA = [
   { name: 'Harsh', leads: 49, interested: 26, deals: 6, target: 9, color: '#06b6d4' },
 ];
 
-// AI quality parameters from call recordings
+// AI quality parameters from call recordings (10 Executive Parameters)
 const QUALITY_PARAMS = [
-  { key: 'call_objective', label: 'Call Objective', icon: '🎯' },
-  { key: 'comprehension', label: 'Comprehension', icon: '🧠' },
-  { key: 'convincing_abilities', label: 'Convincing Abilities', icon: '💡' },
   { key: 'introduction', label: 'Introduction', icon: '👋' },
+  { key: 'call_objective', label: 'Call Objective', icon: '🎯' },
+  { key: 'convincing_abilities', label: 'Convincing Abilities', icon: '💡' },
+  { key: 'comprehension', label: 'Comprehension', icon: '🧠' },
   { key: 'politeness', label: 'Politeness', icon: '🤝' },
   { key: 'project_brief_with_location', label: 'Project Brief With Location', icon: '📍' },
   { key: 'probing', label: 'Probing', icon: '🔍' },
   { key: 'project_highlights', label: 'Project Highlights', icon: '⭐' },
-  { key: 'investment_or_own_use_pitch', label: 'Investment Or Own Use Pitch', icon: '💰' },
   { key: 'location_advantage', label: 'Location Advantage', icon: '📌' },
   { key: 'site_visit_invite_and_urgency', label: 'Site Visit Invite And Urgency', icon: '🏠' },
 ];
 
 // AI scores per agent
 const AI_SCORES = {
-  'Jayesh': { call_objective: 3.2, comprehension: 4.0, convincing_abilities: 3.5, introduction: 4.2, politeness: 4.8, project_brief_with_location: 3.9, probing: 3.6, project_highlights: 4.1, investment_or_own_use_pitch: 3.4, location_advantage: 4.0, site_visit_invite_and_urgency: 3.7 },
-  'Prachi': { call_objective: 4.0, comprehension: 4.4, convincing_abilities: 4.2, introduction: 4.6, politeness: 4.9, project_brief_with_location: 4.3, probing: 4.1, project_highlights: 4.5, investment_or_own_use_pitch: 3.9, location_advantage: 4.4, site_visit_invite_and_urgency: 4.2 },
-  'Rohit': { call_objective: 2.8, comprehension: 3.6, convincing_abilities: 3.0, introduction: 3.8, politeness: 4.1, project_brief_with_location: 3.3, probing: 3.0, project_highlights: 3.5, investment_or_own_use_pitch: 2.9, location_advantage: 3.4, site_visit_invite_and_urgency: 3.1 },
-  'Neha': { call_objective: 3.8, comprehension: 4.3, convincing_abilities: 4.0, introduction: 4.4, politeness: 4.7, project_brief_with_location: 4.1, probing: 3.9, project_highlights: 4.3, investment_or_own_use_pitch: 3.7, location_advantage: 4.2, site_visit_invite_and_urgency: 4.0 },
-  'Amit': { call_objective: 3.5, comprehension: 4.1, convincing_abilities: 3.8, introduction: 4.0, politeness: 4.5, project_brief_with_location: 3.7, probing: 3.5, project_highlights: 4.0, investment_or_own_use_pitch: 3.3, location_advantage: 3.8, site_visit_invite_and_urgency: 3.6 },
-  'Sneha': { call_objective: 4.1, comprehension: 4.5, convincing_abilities: 4.3, introduction: 4.7, politeness: 5.0, project_brief_with_location: 4.4, probing: 4.2, project_highlights: 4.6, investment_or_own_use_pitch: 4.0, location_advantage: 4.5, site_visit_invite_and_urgency: 4.3 },
-  'Vikram': { call_objective: 2.5, comprehension: 3.3, convincing_abilities: 2.8, introduction: 3.5, politeness: 3.9, project_brief_with_location: 3.0, probing: 2.7, project_highlights: 3.2, investment_or_own_use_pitch: 2.6, location_advantage: 3.1, site_visit_invite_and_urgency: 2.8 },
-  'Pooja': { call_objective: 3.7, comprehension: 4.2, convincing_abilities: 3.9, introduction: 4.3, politeness: 4.6, project_brief_with_location: 4.0, probing: 3.8, project_highlights: 4.2, investment_or_own_use_pitch: 3.6, location_advantage: 4.1, site_visit_invite_and_urgency: 3.9 },
-  'Rahul': { call_objective: 2.9, comprehension: 3.4, convincing_abilities: 3.1, introduction: 3.6, politeness: 4.0, project_brief_with_location: 3.2, probing: 2.9, project_highlights: 3.3, investment_or_own_use_pitch: 2.8, location_advantage: 3.3, site_visit_invite_and_urgency: 3.0 },
-  'Divya': { call_objective: 3.9, comprehension: 4.3, convincing_abilities: 4.1, introduction: 4.5, politeness: 4.8, project_brief_with_location: 4.2, probing: 4.0, project_highlights: 4.4, investment_or_own_use_pitch: 3.8, location_advantage: 4.3, site_visit_invite_and_urgency: 4.1 },
-  'Suresh': { call_objective: 2.6, comprehension: 3.2, convincing_abilities: 2.9, introduction: 3.4, politeness: 3.8, project_brief_with_location: 2.9, probing: 2.6, project_highlights: 3.1, investment_or_own_use_pitch: 2.5, location_advantage: 3.0, site_visit_invite_and_urgency: 2.7 },
-  'Kavita': { call_objective: 3.4, comprehension: 3.9, convincing_abilities: 3.7, introduction: 4.1, politeness: 4.4, project_brief_with_location: 3.6, probing: 3.4, project_highlights: 3.9, investment_or_own_use_pitch: 3.2, location_advantage: 3.7, site_visit_invite_and_urgency: 3.5 },
-  'Deepak': { call_objective: 3.8, comprehension: 4.2, convincing_abilities: 4.0, introduction: 4.4, politeness: 4.7, project_brief_with_location: 4.1, probing: 3.9, project_highlights: 4.3, investment_or_own_use_pitch: 3.7, location_advantage: 4.2, site_visit_invite_and_urgency: 4.0 },
-  'Anjali': { call_objective: 3.3, comprehension: 3.8, convincing_abilities: 3.6, introduction: 4.0, politeness: 4.3, project_brief_with_location: 3.5, probing: 3.3, project_highlights: 3.8, investment_or_own_use_pitch: 3.1, location_advantage: 3.6, site_visit_invite_and_urgency: 3.4 },
-  'Manish': { call_objective: 2.9, comprehension: 3.5, convincing_abilities: 3.2, introduction: 3.7, politeness: 4.0, project_brief_with_location: 3.2, probing: 3.0, project_highlights: 3.4, investment_or_own_use_pitch: 2.8, location_advantage: 3.3, site_visit_invite_and_urgency: 3.1 },
-  'Ritu': { call_objective: 3.5, comprehension: 4.0, convincing_abilities: 3.8, introduction: 4.2, politeness: 4.5, project_brief_with_location: 3.7, probing: 3.5, project_highlights: 4.0, investment_or_own_use_pitch: 3.3, location_advantage: 3.8, site_visit_invite_and_urgency: 3.6 },
-  'Sanjay': { call_objective: 3.6, comprehension: 4.1, convincing_abilities: 3.9, introduction: 4.3, politeness: 4.6, project_brief_with_location: 3.8, probing: 3.6, project_highlights: 4.1, investment_or_own_use_pitch: 3.4, location_advantage: 3.9, site_visit_invite_and_urgency: 3.7 },
-  'Megha': { call_objective: 2.7, comprehension: 3.3, convincing_abilities: 2.9, introduction: 3.5, politeness: 3.9, project_brief_with_location: 3.0, probing: 2.8, project_highlights: 3.2, investment_or_own_use_pitch: 2.6, location_advantage: 3.1, site_visit_invite_and_urgency: 2.9 },
-  'Arjun': { call_objective: 3.4, comprehension: 4.0, convincing_abilities: 3.7, introduction: 4.1, politeness: 4.4, project_brief_with_location: 3.6, probing: 3.4, project_highlights: 3.9, investment_or_own_use_pitch: 3.2, location_advantage: 3.7, site_visit_invite_and_urgency: 3.5 },
-  'Nisha': { call_objective: 2.8, comprehension: 3.4, convincing_abilities: 3.1, introduction: 3.6, politeness: 4.0, project_brief_with_location: 3.1, probing: 2.9, project_highlights: 3.3, investment_or_own_use_pitch: 2.7, location_advantage: 3.2, site_visit_invite_and_urgency: 3.0 },
-  'Kunal': { call_objective: 3.7, comprehension: 4.2, convincing_abilities: 3.9, introduction: 4.3, politeness: 4.6, project_brief_with_location: 3.9, probing: 3.7, project_highlights: 4.2, investment_or_own_use_pitch: 3.5, location_advantage: 4.0, site_visit_invite_and_urgency: 3.8 },
-  'Swati': { call_objective: 2.4, comprehension: 3.1, convincing_abilities: 2.7, introduction: 3.3, politeness: 3.7, project_brief_with_location: 2.8, probing: 2.5, project_highlights: 3.0, investment_or_own_use_pitch: 2.4, location_advantage: 2.9, site_visit_invite_and_urgency: 2.6 },
-  'Vishal': { call_objective: 3.8, comprehension: 4.3, convincing_abilities: 4.0, introduction: 4.4, politeness: 4.7, project_brief_with_location: 4.1, probing: 3.9, project_highlights: 4.3, investment_or_own_use_pitch: 3.7, location_advantage: 4.2, site_visit_invite_and_urgency: 4.0 },
-  'Tanvi': { call_objective: 3.0, comprehension: 3.5, convincing_abilities: 3.2, introduction: 3.7, politeness: 4.1, project_brief_with_location: 3.3, probing: 3.0, project_highlights: 3.4, investment_or_own_use_pitch: 2.9, location_advantage: 3.4, site_visit_invite_and_urgency: 3.1 },
-  'Harsh': { call_objective: 3.6, comprehension: 4.1, convincing_abilities: 3.8, introduction: 4.2, politeness: 4.5, project_brief_with_location: 3.8, probing: 3.6, project_highlights: 4.0, investment_or_own_use_pitch: 3.4, location_advantage: 3.9, site_visit_invite_and_urgency: 3.7 },
+  'Mansi': { introduction: 5.0, call_objective: 5.0, convincing_abilities: 5.0, comprehension: 5.0, politeness: 5.0, project_brief_with_location: 5.0, probing: 5.0, project_highlights: 5.0, location_advantage: 0, site_visit_invite_and_urgency: 5.0 },
+  'Sneha': { introduction: 4.7, call_objective: 4.1, convincing_abilities: 4.3, comprehension: 4.5, politeness: 5.0, project_brief_with_location: 4.4, probing: 4.2, project_highlights: 4.6, location_advantage: 4.5, site_visit_invite_and_urgency: 4.3 },
+  'Prachi': { introduction: 4.6, call_objective: 4.0, convincing_abilities: 4.2, comprehension: 4.4, politeness: 4.9, project_brief_with_location: 4.3, probing: 4.1, project_highlights: 4.5, location_advantage: 4.4, site_visit_invite_and_urgency: 4.2 },
+  'Divya': { introduction: 4.5, call_objective: 3.9, convincing_abilities: 4.1, comprehension: 4.3, politeness: 4.8, project_brief_with_location: 4.2, probing: 4.0, project_highlights: 4.4, location_advantage: 4.3, site_visit_invite_and_urgency: 4.1 },
+  'Neha': { introduction: 4.4, call_objective: 3.8, convincing_abilities: 4.0, comprehension: 4.3, politeness: 4.7, project_brief_with_location: 4.1, probing: 3.9, project_highlights: 4.3, location_advantage: 4.2, site_visit_invite_and_urgency: 4.0 },
+  'Jayesh': { introduction: 4.2, call_objective: 3.2, convincing_abilities: 3.5, comprehension: 4.0, politeness: 4.8, project_brief_with_location: 3.9, probing: 3.6, project_highlights: 4.1, location_advantage: 4.0, site_visit_invite_and_urgency: 3.7 },
+  'Rohit': { introduction: 3.8, call_objective: 2.8, convincing_abilities: 3.0, comprehension: 3.6, politeness: 4.1, project_brief_with_location: 3.3, probing: 3.0, project_highlights: 3.5, location_advantage: 3.4, site_visit_invite_and_urgency: 3.1 },
+  'Amit': { introduction: 4.0, call_objective: 3.5, convincing_abilities: 3.8, comprehension: 4.1, politeness: 4.5, project_brief_with_location: 3.7, probing: 3.5, project_highlights: 4.0, location_advantage: 3.8, site_visit_invite_and_urgency: 3.6 },
+  'Vikram': { introduction: 3.5, call_objective: 2.5, convincing_abilities: 2.8, comprehension: 3.3, politeness: 3.9, project_brief_with_location: 3.0, probing: 2.7, project_highlights: 3.2, location_advantage: 3.1, site_visit_invite_and_urgency: 2.8 },
+  'Pooja': { introduction: 4.3, call_objective: 3.7, convincing_abilities: 3.9, comprehension: 4.2, politeness: 4.6, project_brief_with_location: 4.0, probing: 3.8, project_highlights: 4.2, location_advantage: 4.1, site_visit_invite_and_urgency: 3.9 },
+  'Rahul': { introduction: 3.6, call_objective: 2.9, convincing_abilities: 3.1, comprehension: 3.4, politeness: 4.0, project_brief_with_location: 3.2, probing: 2.9, project_highlights: 3.3, location_advantage: 3.3, site_visit_invite_and_urgency: 3.0 },
+  'Suresh': { introduction: 3.4, call_objective: 2.6, convincing_abilities: 2.9, comprehension: 3.2, politeness: 3.8, project_brief_with_location: 2.9, probing: 2.6, project_highlights: 3.1, location_advantage: 3.0, site_visit_invite_and_urgency: 2.7 },
+  'Kavita': { introduction: 4.1, call_objective: 3.4, convincing_abilities: 3.7, comprehension: 3.9, politeness: 4.4, project_brief_with_location: 3.6, probing: 3.4, project_highlights: 3.9, location_advantage: 3.7, site_visit_invite_and_urgency: 3.5 },
+  'Deepak': { introduction: 4.4, call_objective: 3.8, convincing_abilities: 4.0, comprehension: 4.2, politeness: 4.7, project_brief_with_location: 4.1, probing: 3.9, project_highlights: 4.3, location_advantage: 4.2, site_visit_invite_and_urgency: 4.0 },
+  'Anjali': { introduction: 4.0, call_objective: 3.3, convincing_abilities: 3.6, comprehension: 3.8, politeness: 4.3, project_brief_with_location: 3.5, probing: 3.3, project_highlights: 3.8, location_advantage: 3.6, site_visit_invite_and_urgency: 3.4 },
+  'Manish': { introduction: 3.7, call_objective: 2.9, convincing_abilities: 3.2, comprehension: 3.5, politeness: 4.0, project_brief_with_location: 3.2, probing: 3.0, project_highlights: 3.4, location_advantage: 3.3, site_visit_invite_and_urgency: 3.1 },
+  'Ritu': { introduction: 4.2, call_objective: 3.5, convincing_abilities: 3.8, comprehension: 4.0, politeness: 4.5, project_brief_with_location: 3.7, probing: 3.5, project_highlights: 4.0, location_advantage: 3.8, site_visit_invite_and_urgency: 3.6 },
+  'Sanjay': { introduction: 4.3, call_objective: 3.6, convincing_abilities: 3.9, comprehension: 4.1, politeness: 4.6, project_brief_with_location: 3.8, probing: 3.6, project_highlights: 4.1, location_advantage: 3.9, site_visit_invite_and_urgency: 3.7 },
+  'Megha': { introduction: 3.5, call_objective: 2.7, convincing_abilities: 2.9, comprehension: 3.3, politeness: 3.9, project_brief_with_location: 3.0, probing: 2.8, project_highlights: 3.2, location_advantage: 3.1, site_visit_invite_and_urgency: 2.9 },
+  'Arjun': { introduction: 4.1, call_objective: 3.4, convincing_abilities: 3.7, comprehension: 4.0, politeness: 4.4, project_brief_with_location: 3.6, probing: 3.4, project_highlights: 3.9, location_advantage: 3.7, site_visit_invite_and_urgency: 3.5 },
+  'Nisha': { introduction: 3.6, call_objective: 2.8, convincing_abilities: 3.1, comprehension: 3.4, politeness: 4.0, project_brief_with_location: 3.1, probing: 2.9, project_highlights: 3.3, location_advantage: 3.2, site_visit_invite_and_urgency: 3.0 },
+  'Kunal': { introduction: 4.3, call_objective: 3.7, convincing_abilities: 3.9, comprehension: 4.2, politeness: 4.6, project_brief_with_location: 3.9, probing: 3.7, project_highlights: 4.2, location_advantage: 4.0, site_visit_invite_and_urgency: 3.8 },
+  'Swati': { introduction: 3.3, call_objective: 2.4, convincing_abilities: 2.7, comprehension: 3.1, politeness: 3.7, project_brief_with_location: 2.8, probing: 2.5, project_highlights: 3.0, location_advantage: 2.9, site_visit_invite_and_urgency: 2.6 },
+  'Vishal': { introduction: 4.4, call_objective: 3.8, convincing_abilities: 4.0, comprehension: 4.3, politeness: 4.7, project_brief_with_location: 4.1, probing: 3.9, project_highlights: 4.3, location_advantage: 4.2, site_visit_invite_and_urgency: 4.0 },
+  'Tanvi': { introduction: 3.7, call_objective: 3.0, convincing_abilities: 3.2, comprehension: 3.5, politeness: 4.1, project_brief_with_location: 3.3, probing: 3.0, project_highlights: 3.4, location_advantage: 3.4, site_visit_invite_and_urgency: 3.1 },
+  'Harsh': { introduction: 4.2, call_objective: 3.6, convincing_abilities: 3.8, comprehension: 4.1, politeness: 4.5, project_brief_with_location: 3.8, probing: 3.6, project_highlights: 4.0, location_advantage: 3.9, site_visit_invite_and_urgency: 3.7 },
 };
 
 const getAgentAvgAI = (name) => {
   const scores = AI_SCORES[name];
   if (!scores) return 0;
-  return Object.values(scores).reduce((a, b) => a + b, 0) / QUALITY_PARAMS.length;
+  const nonZero = QUALITY_PARAMS.map(p => scores[p.key] || 0).filter(v => v > 0);
+  if (nonZero.length === 0) return 0;
+  return nonZero.reduce((a, b) => a + b, 0) / nonZero.length;
 };
 
 // Deterministic pseudo-random monthly trend per executive (stable across re-renders)
@@ -545,13 +549,13 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
   const execRows = SALES_DATA
     .map((p) => ({
       ...p,
-      avgScore: parseFloat((p.deals / p.leads * 10).toFixed(1)),
+      avgScore: getAgentAvgAI(p.name) || parseFloat((p.deals / p.leads * 10).toFixed(1)),
       perfPct: Math.min((p.deals / p.target) * 100, 100),
-      hot: Math.max(1, Math.round(p.leads * 0.02)),
-      warm: Math.round(p.leads * 0.19),
-      answered: Math.floor(p.leads * 0.75),
-      unanswered: p.leads - Math.floor(p.leads * 0.75),
-      coldTotal: Math.floor(p.leads * 0.4),
+      hot: p.hot !== undefined ? p.hot : Math.max(1, Math.round(p.leads * 0.02)),
+      warm: p.warm !== undefined ? p.warm : Math.round(p.leads * 0.19),
+      answered: p.answered !== undefined ? p.answered : Math.floor(p.leads * 0.75),
+      unanswered: p.unanswered !== undefined ? p.unanswered : (p.leads - Math.floor(p.leads * 0.75)),
+      coldTotal: p.coldTotal !== undefined ? p.coldTotal : p.cold !== undefined ? p.cold : Math.floor(p.leads * 0.4),
     }))
     .filter(p => p.name.toLowerCase().includes(execSearch.toLowerCase()));
   const sortedExecRows = sortByKey(execRows, execSort, (row, key) => (key === 'name' ? row.name : key === 'calls' ? row.leads : key === 'cold' ? row.coldTotal : row[key]));
@@ -658,11 +662,21 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
 
         {/* KPI Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px', marginBottom: '24px' }}>
-          <KpiCard label="Calls" value="2,189" color="var(--text)" />
-          <KpiCard label="Goals Met" value={455} color="#34d399" />
-          <KpiCard label="Hot" value={44} color="#f87171" />
-          <KpiCard label="Warm" value={411} color="#fbbf24" />
-          <KpiCard label="Cold" value={889} color="#60a5fa" />
+          <div onClick={() => onNavigateToCallRecords(null)} style={{ cursor: 'pointer' }} title="View all calls (15)">
+            <KpiCard label="Calls" value="15" color="var(--text)" />
+          </div>
+          <div onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Hot' })} style={{ cursor: 'pointer' }} title="View Goals Met (5 Hot calls)">
+            <KpiCard label="Goals Met" value="5" color="#34d399" />
+          </div>
+          <div onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Hot' })} style={{ cursor: 'pointer' }} title="View Hot calls (5)">
+            <KpiCard label="Hot" value="5" color="#34d399" />
+          </div>
+          <div onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Warm' })} style={{ cursor: 'pointer' }} title="View Warm calls (6)">
+            <KpiCard label="Warm" value="6" color="#fbbf24" />
+          </div>
+          <div onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Cold' })} style={{ cursor: 'pointer' }} title="View Cold calls (4)">
+            <KpiCard label="Cold" value="4" color="#38bdf8" />
+          </div>
         </div>
 
         {/* 🏆 Top Performers & Lead Distribution - Grid Layout */}
@@ -775,9 +789,9 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                         <th style={{ width: '40px' }}>#</th>
                         <SortableTh label="Executive" sortKey="name" sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />
                         <SortableTh label="Score" sortKey="avgScore" sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />
-                        <th style={{ color: leaderFilter === 'hot' ? '#f87171' : undefined }}>Hot</th>
+                        <th style={{ color: leaderFilter === 'hot' ? '#34d399' : undefined }}>Hot</th>
                         <th style={{ color: leaderFilter === 'warm' ? '#fbbf24' : undefined }}>Warm</th>
-                        <th style={{ color: leaderFilter === 'cold' ? '#60a5fa' : undefined }}>Cold</th>
+                        <th style={{ color: leaderFilter === 'cold' ? '#38bdf8' : undefined }}>Cold</th>
                         {QUALITY_PARAMS.map(p => <SortableTh key={p.key} label={p.label} sortKey={p.key} sort={leaderSort} onSort={(k) => toggleSort(setLeaderSort, k)} />)}
                       </tr>
                     </thead>
@@ -788,13 +802,13 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                         return (
                           <tr key={agent.name} style={{ transition: 'background 0.15s' }}>
                             <td style={{ color: 'var(--muted)', fontWeight: 700 }}>{i + 1}</td>
-                            <td>
+                            <td style={{ cursor: 'pointer' }} onClick={() => onNavigateToCallRecords({ type: 'agent', value: agent.name })} title={`View ${agent.name}'s call records`}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: agent.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{agent.name[0]}</div>
                                 <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '12px' }}>{agent.name}</span>
                               </div>
                             </td>
-                            <td>
+                            <td style={{ cursor: 'pointer' }} onClick={() => onNavigateToCallRecords({ type: 'agent', value: agent.name })} title={`View ${agent.name}'s call records`}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: avgScore >= 3.5 ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)', color: avgScore >= 3.5 ? '#34d399' : '#f87171' }}>
                                   {avgScore.toFixed(1)}
@@ -802,9 +816,9 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                                 <StarRating score={avgScore} size={12} color={avgScore >= 3.5 ? '#34d399' : '#f87171'} />
                               </div>
                             </td>
-                            <td style={{ fontSize: '11px', fontWeight: 700, color: '#f87171' }}>{agent.hot}</td>
-                            <td style={{ fontSize: '11px', fontWeight: 700, color: '#fbbf24' }}>{agent.warm}</td>
-                            <td style={{ fontSize: '11px', fontWeight: 700, color: '#60a5fa' }}>{agent.cold}</td>
+                            <td style={{ fontSize: '11px', fontWeight: 700, color: '#34d399', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted' }} onClick={() => onNavigateToCallRecords({ type: 'agent_status', agent: agent.name, value: 'Hot' })} title={`View ${agent.name}'s Hot calls`}>{agent.hot}</td>
+                            <td style={{ fontSize: '11px', fontWeight: 700, color: '#fbbf24', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted' }} onClick={() => onNavigateToCallRecords({ type: 'agent_status', agent: agent.name, value: 'Warm' })} title={`View ${agent.name}'s Warm calls`}>{agent.warm}</td>
+                            <td style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted' }} onClick={() => onNavigateToCallRecords({ type: 'agent_status', agent: agent.name, value: 'Cold' })} title={`View ${agent.name}'s Cold calls`}>{agent.cold}</td>
                             {QUALITY_PARAMS.map(p => (
                               <td key={p.key} style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 600 }}>{scores[p.key].toFixed(1)}</td>
                             ))}
@@ -838,7 +852,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                         </div>
 
                         {/* Circular Score */}
-                        <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '10px' }}>
+                        <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '10px', cursor: 'pointer' }} onClick={() => onNavigateToCallRecords(null)} title="View call records">
                           <svg height={size} width={size} style={{ transform: 'rotate(-90deg)' }}>
                             <circle stroke={`${ringColor}20`} fill="transparent" strokeWidth={stroke} r={r} cx={cx} cy={cy} />
                             <circle stroke={ringColor} fill="transparent" strokeWidth={stroke} strokeDasharray={circumference + ' ' + circumference} style={{ strokeDashoffset, transition: 'stroke-dashoffset 1s ease-in-out' }} strokeLinecap="round" r={r} cx={cx} cy={cy} />
@@ -850,10 +864,10 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
 
                         {/* Agent Name & Calls */}
                         <div style={{ marginTop: '16px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)' }}>{agent.name}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>{agent.leads} calls</div>
+                          <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)', cursor: 'pointer' }} onClick={() => onNavigateToCallRecords(null)} title="View call records">{agent.name}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted' }} onClick={() => onNavigateToCallRecords(null)} title="View call records">{agent.leads} calls</div>
                           {leaderFilter !== 'all' && (
-                            <div style={{ fontSize: '10px', fontWeight: 700, color: ringColor, marginTop: '4px' }}>
+                            <div style={{ fontSize: '10px', fontWeight: 700, color: ringColor, marginTop: '4px', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => onNavigateToCallRecords({ type: 'lead', value: leaderFilter === 'hot' ? 'Hot' : leaderFilter === 'warm' ? 'Warm' : 'Cold' })} title={`View ${leaderFilter} calls`}>
                               {leaderFilter === 'hot' ? '🔥' : leaderFilter === 'warm' ? '🌤️' : '❄️'} {agent[leaderFilter]} {leaderFilter} leads
                             </div>
                           )}
@@ -1045,7 +1059,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                     return (
                       <tr key={i} style={{ transition: 'background 0.15s' }}>
                         <td style={{ color: 'var(--muted)', fontWeight: 700 }}>{i + 1}</td>
-                        <td>
+                        <td style={{ cursor: 'pointer' }} onClick={() => onNavigateToCallRecords({ type: 'agent', value: person.name })} title={`View ${person.name}'s call records`}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: 'fit-content' }}>
                             <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: person.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{person.name[0]}</div>
                             <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '13px' }}>{person.name}</span>
@@ -1053,32 +1067,32 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                         </td>
                         <td
                           style={{ fontWeight: 700, color: 'var(--text)', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
-                          title="View all call records"
-                          onClick={() => onNavigateToCallRecords(null)}
+                          title={`View ${person.name}'s call records (${person.leads})`}
+                          onClick={() => onNavigateToCallRecords({ type: 'agent', value: person.name })}
                         >
                           {person.leads}
                         </td>
                         <td>
-                          <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, background: parseFloat(avgScore) >= 1.2 ? 'rgba(52,211,153,0.12)' : parseFloat(avgScore) >= 0.8 ? 'rgba(251,191,36,0.12)' : 'rgba(248,113,113,0.12)', color: parseFloat(avgScore) >= 1.2 ? '#34d399' : parseFloat(avgScore) >= 0.8 ? '#fbbf24' : '#f87171' }}>{avgScore}</span>
+                          <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, background: parseFloat(avgScore) >= 3.5 ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)', color: parseFloat(avgScore) >= 3.5 ? '#34d399' : '#f87171' }}>{avgScore}</span>
                         </td>
                         <td
-                          style={{ color: '#f87171', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
-                          title="View Hot call records"
-                          onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Hot' })}
+                          style={{ color: '#34d399', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                          title={`View ${person.name}'s Hot call records`}
+                          onClick={() => onNavigateToCallRecords({ type: 'agent_status', agent: person.name, value: 'Hot' })}
                         >
                           {hot}
                         </td>
                         <td
                           style={{ color: '#fbbf24', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
-                          title="View Warm call records"
-                          onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Warm' })}
+                          title={`View ${person.name}'s Warm call records`}
+                          onClick={() => onNavigateToCallRecords({ type: 'agent_status', agent: person.name, value: 'Warm' })}
                         >
                           {warm}
                         </td>
                         <td>
                           <span
-                            style={{ padding: '2px 7px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, background: 'rgba(96,165,250,0.12)', color: '#60a5fa', cursor: 'pointer' }}
-                            title="View Cold call records"
+                            style={{ padding: '2px 7px', borderRadius: '6px', fontSize: '10px', fontWeight: 700, background: 'rgba(56,189,248,0.12)', color: '#38bdf8', cursor: 'pointer' }}
+                            title={`View ${person.name}'s Cold call records`}
                             onMouseEnter={(e) => {
                               const rect = e.target.getBoundingClientRect();
                               const budget = Math.floor(coldTotal * 0.15);
@@ -1094,7 +1108,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                               });
                             }}
                             onMouseLeave={() => setColdTooltip(null)}
-                            onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Cold' })}
+                            onClick={() => onNavigateToCallRecords({ type: 'agent_status', agent: person.name, value: 'Cold' })}
                           >
                             {coldTotal}
                           </span>

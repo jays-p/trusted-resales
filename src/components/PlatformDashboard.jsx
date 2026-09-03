@@ -10,53 +10,41 @@ import './PlatformDashboard.css';
 // Static data matching screenshots
 const STATIC_DATA = {
   overview: {
-    totalCalls: 2189,
-    avgDur: '2m 10s',
-    totalTalkTime: '850 min',
-    siteVisitSuccess: '2.8%',
-    avgConfidence: '84.5%',
-    prevDelta: '-34.3% vs prev'
+    totalCalls: 15,
+    avgDur: '2m 05s',
+    totalTalkTime: '31 min 15s',
+    siteVisitSuccess: '33.3%',
+    avgConfidence: '95.5%',
+    prevDelta: '+100% vs prev'
   },
-  counts: { '1D': 28, 'YESTERDAY': 31, '7D': 198, '30D': 859, '90D': 2410, 'YTD': 4520, 'ALL': 2185 },
+  counts: { '1D': 15, 'YESTERDAY': 0, '7D': 15, '30D': 15, '90D': 15, 'YTD': 15, 'ALL': 15 },
   ticker: {
-    calls: 2189,
-    goalsMet: 455,
-    hot: 44,
-    warm: 411,
-    cold: 889
+    calls: 15,
+    goalsMet: 5,
+    hot: 5,
+    warm: 6,
+    cold: 4
   },
   lineChart: [
-    { label: 'Jun 11', value: 9 },
-    { label: 'Jun 14', value: 30 },
-    { label: 'Jun 17', value: 179 },
-    { label: 'Jun 20', value: 152 },
-    { label: 'Jun 25', value: 141 },
-    { label: 'Jun 30', value: 135 },
-    { label: 'Jul 5', value: 90 },
-    { label: 'Jul 10', value: 50 },
-    { label: 'Jul 14', value: 325 },
-    { label: 'Jul 16', value: 177 },
-    { label: 'Jul 18', value: 130 },
-    { label: 'Jul 21', value: 177 },
-    { label: 'Jul 24', value: 155 },
+    { label: 'Jun 14', value: 15 },
   ],
   funnel: [
-    { label: 'Total Calls', value: 2189, pct: 100, color: '#34d399' },
-    { label: 'Interested', value: 455, pct: 20.8, color: '#818cf8' },
-    { label: 'Site Visit Booked', value: 26, pct: 1.2, color: '#34d399' },
+    { label: 'Total Calls', value: 15, pct: 100, color: '#34d399' },
+    { label: 'Interested', value: 11, pct: 73.3, color: '#818cf8' },
+    { label: 'Site Visit Booked', value: 5, pct: 33.3, color: '#34d399' },
   ],
   comparison: {
-    dateRange: '31 Mar 2026 - 25 Jul 2026',
+    dateRange: '14 Jun 2026',
     prevRange: '',
-    calls: { val: '2,189', last: 'Vs 0', delta: '↑ 100%', positive: true },
-    goals: { val: 282, last: 'Vs 0', delta: '↑ 100%', positive: true },
-    hot: { val: 44, last: 'Vs 0', delta: '↑ 100%', positive: true },
-    confidence: { val: '89.9%', last: 'Vs 0%', delta: '↑ 100%', positive: true },
+    calls: { val: '15', last: 'Vs 0', delta: '↑ 100%', positive: true },
+    goals: { val: 5, last: 'Vs 0', delta: '↑ 100%', positive: true },
+    hot: { val: 5, last: 'Vs 0', delta: '↑ 100%', positive: true },
+    confidence: { val: '95.5%', last: 'Vs 0%', delta: '↑ 100%', positive: true },
   },
   leadTemperature: [
-    { label: 'Hot', sub: 'Highly interested leads', value: 44, pct: 2.0, color: '#f87171' },
-    { label: 'Warm', sub: 'Moderately interested', value: 411, pct: 18.8, color: '#fbbf24' },
-    { label: 'Cold', sub: 'Low interest / not engaged', value: 889, pct: 40.6, color: '#60a5fa' },
+    { label: 'Hot', sub: 'Highly interested leads', value: 5, pct: 33.3, color: '#34d399' },
+    { label: 'Warm', sub: 'Moderately interested', value: 6, pct: 40.0, color: '#fbbf24' },
+    { label: 'Cold', sub: 'Low interest / not engaged', value: 4, pct: 26.7, color: '#38bdf8' },
   ],
   durationByTemperature: {
     Hot: [
@@ -79,26 +67,24 @@ const STATIC_DATA = {
     ],
   },
   projectPerformance: [
-    { rank: 1, project: 'M3m', calls: 561, hot: 7, warm: 78, cold: 144, svSchedule: 0, svConverted: '0 (0.00)' },
-    { rank: 2, project: 'Smartworld Sky Arc', calls: 96, hot: 0, warm: 9, cold: 9, svSchedule: 0, svConverted: '0 (0.00)' },
-    { rank: 3, project: 'Smartworld One Dxp', calls: 41, hot: 0, warm: 3, cold: 6, svSchedule: 0, svConverted: '0 (0.00)' },
-    { rank: 4, project: 'Smartworld The Edition', calls: 28, hot: 0, warm: 1, cold: 3, svSchedule: 0, svConverted: '0 (0.00)' },
-    { rank: 5, project: 'Smartworld Nature\'s Court At Gic', calls: 22, hot: 0, warm: 0, cold: 0, svSchedule: 0, svConverted: '0 (0.00)' },
+    { rank: 1, project: 'SIITA', calls: 561, hot: 7, warm: 78, cold: 144, svSchedule: 0, svConverted: '0 (0.00)' },
+    { rank: 2, project: 'Urbanrise The World Of Joy', calls: 96, hot: 2, warm: 19, cold: 49, svSchedule: 0, svConverted: '0 (0.00)' },
+    { rank: 3, project: 'Urbanrise Oncloud 33', calls: 41, hot: 1, warm: 8, cold: 22, svSchedule: 0, svConverted: '0 (0.00)' },
+    { rank: 4, project: 'Urbanrise Galleria Gardens', calls: 28, hot: 0, warm: 5, cold: 18, svSchedule: 0, svConverted: '0 (0.00)' },
   ],
   creditConsumption: [
-    { rank: 1, project: 'ABC Tower 1', totalTopup: '₹25,000', available: '₹20,588', totalUsed: '₹4,412' },
-    { rank: 2, project: 'M3m', totalTopup: '₹41,421', available: '₹39,849', totalUsed: '₹1,572' },
-    { rank: 3, project: 'DTC Downtown', totalTopup: '₹3,000', available: '₹2,871', totalUsed: '₹129' },
-    { rank: 4, project: 'Smartworld Sky Arc', totalTopup: '₹9,99,631', available: '₹9,99,571', totalUsed: '₹60' },
-    { rank: 5, project: 'Smartworld One Dxp', totalTopup: '₹9,98,419', available: '₹9,98,380', totalUsed: '₹39' },
+    { rank: 1, project: 'SIITA', totalTopup: '₹41,421', available: '₹39,849', totalUsed: '₹1,572' },
+    { rank: 2, project: 'Urbanrise The World Of Joy', totalTopup: '₹25,000', available: '₹20,588', totalUsed: '₹4,412' },
+    { rank: 3, project: 'Urbanrise Oncloud 33', totalTopup: '₹9,99,631', available: '₹9,99,571', totalUsed: '₹60' },
+    { rank: 4, project: 'Urbanrise Galleria Gardens', totalTopup: '₹3,000', available: '₹2,871', totalUsed: '₹129' },
   ],
   heatmap: {
-    projects: ['DTC Downtown, DTC Still Waters, And DTC Capital City', 'BPTP Smartworld Pride', 'Smartworld Orchard', 'DTC Downtown & Capital City', 'World Home Purv'],
+    projects: ['SIITA', 'Urbanrise The World Of Joy', 'Urbanrise Oncloud 33', 'Urbanrise Galleria Gardens'],
     goals: ['Present Pricing', 'Qualify Interest', 'Schedule Visit'],
     data: [
-      [0, 0, 0, 0, 0],
-      ['100%', '100%', '100%', '100%', '100%'],
-      ['100%', '100%', '100%', '100%', '100%'],
+      [0, 0, 0, 0],
+      ['100%', '100%', '100%', '100%'],
+      ['100%', '100%', '100%', '100%'],
     ]
   },
   recentCalls: [
@@ -107,27 +93,13 @@ const STATIC_DATA = {
     { project: 'SFDC_00TOX00000x8wfV2A0', status: 'QUEUED', rating: '—', duration: '—', totalUsed: '—', date: '24 Jul 26 03:52 PM' },
   ],
   developers: [
-    'Smartworld',
-    'M3m Developer',
-    'DTC Group',
-    'BPTP Ltd',
-    'Godrej Properties',
-    'Raheja Developers',
-    'Emaar India',
+    'Urbanrise',
   ],
   projects: [
-    'Smartworld Sky Arc',
-    'Smartworld One Dxp',
-    'Smartworld The Edition',
-    'Smartworld Nature\'s Court At Gic',
-    'M3m Crown',
-    'M3m Antalya Hills',
-    'DTC Downtown',
-    'DTC Capital City',
-    'DTC Still Waters',
-    'BPTP Smartworld Pride',
-    'World Home Purv',
-    'ABC Tower 1',
+    'Urbanrise The World Of Joy',
+    'Urbanrise Oncloud 33',
+    'Urbanrise Galleria Gardens',
+    'SIITA',
   ]
 };
 
@@ -335,31 +307,31 @@ const PlatformDashboard = () => {
         {/* Ticker Summary */}
         <div className="ticker">
           <span className="ticker-label">● FY</span>
-          <div className="tick-item">
+          <div className="tick-item" onClick={() => goToCallRecords(null)} style={{ cursor: 'pointer' }} title="View all calls">
             <span className="tick-val" style={{ color: '#ffffff', fontWeight: 900 }}>{data.ticker.calls.toLocaleString()}</span>
             <span className="tick-name">Calls</span>
           </div>
-          <div className="tick-item">
+          <div className="tick-item" onClick={() => goToCallRecords({ type: 'lead', value: 'Hot' })} style={{ cursor: 'pointer' }} title="View Hot calls (Goals Met)">
             <span className="tick-val" style={{ color: '#34d399', fontWeight: 900 }}>{data.ticker.goalsMet}</span>
             <span className="tick-name">Goals Met</span>
           </div>
-          <div className="tick-item">
-            <span className="tick-val" style={{ color: '#f87171', fontWeight: 900 }}>{data.ticker.hot}</span>
+          <div className="tick-item" onClick={() => goToCallRecords({ type: 'lead', value: 'Hot' })} style={{ cursor: 'pointer' }} title="View Hot calls">
+            <span className="tick-val" style={{ color: '#34d399', fontWeight: 900 }}>{data.ticker.hot}</span>
             <span className="tick-name">Hot</span>
           </div>
-          <div className="tick-item">
+          <div className="tick-item" onClick={() => goToCallRecords({ type: 'lead', value: 'Warm' })} style={{ cursor: 'pointer' }} title="View Warm calls">
             <span className="tick-val" style={{ color: '#fbbf24', fontWeight: 900 }}>{data.ticker.warm}</span>
             <span className="tick-name">Warm</span>
           </div>
-          <div className="tick-item">
-            <span className="tick-val" style={{ color: '#60a5fa', fontWeight: 900 }}>{data.ticker.cold}</span>
+          <div className="tick-item" onClick={() => goToCallRecords({ type: 'lead', value: 'Cold' })} style={{ cursor: 'pointer' }} title="View Cold calls">
+            <span className="tick-val" style={{ color: '#38bdf8', fontWeight: 900 }}>{data.ticker.cold}</span>
             <span className="tick-name">Cold</span>
           </div>
         </div>
 
         {/* Overview Cards */}
         <div className="overview">
-          <div className="ov-card">
+          <div className="ov-card" onClick={() => goToCallRecords(null)} style={{ cursor: 'pointer' }} title="View all calls">
             <div className="ov-val" style={{ color: '#818cf8' }}>{data.overview.totalCalls.toLocaleString()}</div>
             <div className="ov-label">Total Calls</div>
             <div className="ov-sub" style={{ color: data.overview.prevDelta.startsWith('+') ? '#34d399' : '#f87171' }}>{data.overview.prevDelta}</div>
@@ -461,8 +433,8 @@ const PlatformDashboard = () => {
                         <div style={{ flex: 1, height: '8px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
                           <div style={{ width: `${item.pct}%`, height: '100%', borderRadius: '4px', background: item.color, transition: 'width 0.8s ease' }} />
                         </div>
-                        <div style={{ width: '70px', textAlign: 'right' }}>
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 800, color: 'var(--text)' }}>{item.value}</span>
+                        <div style={{ width: '70px', textAlign: 'right', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); goToCallRecords({ type: 'lead', value: item.label }); }} title={`View ${item.label} calls`}>
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 800, color: 'var(--text)', textDecoration: 'underline' }}>{item.value}</span>
                           <span style={{ fontSize: '10px', color: 'var(--muted)', marginLeft: '4px' }}>{item.pct}%</span>
                         </div>
                         <span style={{ fontSize: '11px', color: 'var(--muted)', cursor: 'pointer', display: 'inline-block', transition: 'transform 0.15s ease', transform: isExpanded ? 'rotate(90deg)' : 'none' }}>→</span>
