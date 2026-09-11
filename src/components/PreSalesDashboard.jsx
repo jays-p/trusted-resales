@@ -1,6 +1,36 @@
 import React from 'react';
-import { Settings2, ChevronDown, ArrowUp, ArrowDown, ArrowUpDown, LineChart, Table2 } from 'lucide-react';
+import { Settings2, ChevronDown, ArrowUp, ArrowDown, ArrowUpDown, LineChart, Table2, PhoneCall, Target, Flame, Sun, Snowflake } from 'lucide-react';
 import './PlatformDashboard.css';
+
+const getParamBadgeStyle = (score) => {
+  if (score >= 4.5) return { color: '#34d399', bg: 'rgba(52, 211, 153, 0.12)', border: 'rgba(52, 211, 153, 0.25)' };
+  if (score >= 4.0) return { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.12)', border: 'rgba(56, 189, 248, 0.25)' };
+  if (score >= 3.5) return { color: '#818cf8', bg: 'rgba(129, 140, 248, 0.12)', border: 'rgba(129, 140, 248, 0.25)' };
+  if (score > 0) return { color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.12)', border: 'rgba(251, 191, 36, 0.25)' };
+  return { color: 'var(--muted)', bg: 'transparent', border: 'transparent' };
+};
+
+const ParamBadge = ({ value }) => {
+  if (value === undefined || value === null || value === 0) return <span style={{ color: 'var(--muted)' }}>-</span>;
+  const style = getParamBadgeStyle(value);
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        padding: '2px 7px',
+        borderRadius: '6px',
+        fontSize: '11px',
+        fontWeight: 700,
+        fontFamily: "'JetBrains Mono', monospace",
+        color: style.color,
+        background: style.bg,
+        border: `1px solid ${style.border}`,
+      }}
+    >
+      {typeof value === 'number' ? value.toFixed(1) : value}
+    </span>
+  );
+};
 
 const toggleSort = (setter, key) => setter(prev => ({ key, dir: prev.key === key && prev.dir === 'desc' ? 'asc' : 'desc' }));
 
@@ -409,9 +439,12 @@ const LeadTrendChart = ({ data }) => {
   );
 };
 
-const MonthlyTrendCharts = ({ data, person }) => {
+const MonthlyTrendCharts = ({ data, person, selectedMonth = 'all', execRows = [] }) => {
   const [hoverIdx, setHoverIdx] = React.useState(null);
   const n = data.length;
+
+  const monthIdx = TREND_MONTHS.indexOf(selectedMonth);
+  const activeIdx = hoverIdx !== null ? hoverIdx : (monthIdx !== -1 ? monthIdx : null);
 
   const lineColor = '#f472b6';
   const W = 500, H = 180;
@@ -433,18 +466,26 @@ const MonthlyTrendCharts = ({ data, person }) => {
   return (
     <div style={{ width: '100%' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', alignItems: 'start' }}>
-        {/* Avg Quality Score trend (line) */}
+        {/* Left Side: SVG Quality Score Trend */}
         <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '18px 22px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em' }}>
-              Avg Quality Score Trend
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em' }}>
+                {person ? `${person.name}'s Quality Score Trend` : 'Avg Quality Score Trend'}
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '2px', fontWeight: 600 }}>
+                {selectedMonth !== 'all' ? `Filtered Month: ${selectedMonth} 2026` : 'Feb 2026 – Jul 2026'}
+              </div>
             </div>
             {data.length > 0 && (
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#f472b6', background: 'rgba(244,114,182,0.12)', padding: '3px 9px', borderRadius: '6px' }}>
-                Latest: {data[data.length - 1].avgScore.toFixed(1)} / 5.0
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#f472b6', background: 'rgba(244,114,182,0.12)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(244,114,182,0.25)' }}>
+                {selectedMonth !== 'all' && monthIdx !== -1 && data[monthIdx]
+                  ? `${selectedMonth}: ${data[monthIdx].avgScore.toFixed(1)} / 5.0`
+                  : `Latest: ${data[data.length - 1].avgScore.toFixed(1)} / 5.0`}
               </span>
             )}
           </div>
+
           <div style={{ position: 'relative' }}>
             <svg width="100%" viewBox={`0 0 ${W} ${H}`} onMouseMove={handleLineMove} onMouseLeave={() => setHoverIdx(null)} style={{ display: 'block', cursor: 'crosshair' }}>
               <defs>
@@ -461,19 +502,50 @@ const MonthlyTrendCharts = ({ data, person }) => {
               ))}
               <path d={areaPath} fill="url(#execScoreGrad)" stroke="none" />
               <path d={linePath} fill="none" stroke={lineColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-              {hoverIdx !== null && (
-                <line x1={xAt(hoverIdx)} x2={xAt(hoverIdx)} y1={padT} y2={padT + plotH} stroke="rgba(244,114,182,0.5)" strokeWidth="1.5" strokeDasharray="3 3" />
+
+              {/* Active / Hovered vertical dashed line */}
+              {activeIdx !== null && (
+                <line x1={xAt(activeIdx)} x2={xAt(activeIdx)} y1={padT} y2={padT + plotH} stroke="rgba(244,114,182,0.6)" strokeWidth="1.5" strokeDasharray="3 3" />
               )}
-              {data.map((d, i) => (
-                <circle key={i} cx={xAt(i)} cy={yScore(d.avgScore)} r={i === hoverIdx ? 6 : 4} fill={lineColor} stroke="var(--bg)" strokeWidth="2.5" style={{ transition: 'r 0.15s' }} />
-              ))}
-              {data.map((d, i) => (
-                <text key={i} x={xAt(i)} y={H - 6} fontSize="10" fontWeight="700" fill={i === hoverIdx ? '#f472b6' : 'var(--muted)'} textAnchor="middle">{d.month}</text>
-              ))}
+
+              {/* Data points */}
+              {data.map((d, i) => {
+                const isMonthSelected = monthIdx === i;
+                const isHovered = hoverIdx === i;
+                const isActive = isHovered || isMonthSelected;
+                return (
+                  <g key={i}>
+                    {isMonthSelected && (
+                      <circle cx={xAt(i)} cy={yScore(d.avgScore)} r="9" fill="none" stroke="#f472b6" strokeWidth="1.5" strokeDasharray="2 2" />
+                    )}
+                    <circle
+                      cx={xAt(i)}
+                      cy={yScore(d.avgScore)}
+                      r={isActive ? 6 : 4}
+                      fill={isActive ? '#f472b6' : 'var(--bg)'}
+                      stroke={lineColor}
+                      strokeWidth="2.5"
+                      style={{ transition: 'all 0.15s' }}
+                    />
+                    <text
+                      x={xAt(i)}
+                      y={H - 6}
+                      fontSize="10"
+                      fontWeight={isActive ? '800' : '600'}
+                      fill={isActive ? '#f472b6' : 'var(--muted)'}
+                      textAnchor="middle"
+                    >
+                      {d.month}
+                    </text>
+                  </g>
+                );
+              })}
             </svg>
+
+            {/* Tooltip on Hover */}
             {hoverIdx !== null && (
               <div style={{ position: 'absolute', left: `${(xAt(hoverIdx) / W) * 100}%`, top: `${(yScore(data[hoverIdx].avgScore) / H) * 100}%`, transform: 'translate(-50%, -120%)', background: 'var(--bg)', border: '1px solid rgba(244,114,182,0.4)', borderRadius: '8px', padding: '6px 12px', fontSize: '11px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', zIndex: 10 }}>
-                <div style={{ color: 'var(--muted)', fontWeight: 700, fontSize: '10px' }}>{data[hoverIdx].month}</div>
+                <div style={{ color: 'var(--muted)', fontWeight: 700, fontSize: '10px' }}>{data[hoverIdx].month} 2026</div>
                 <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: '12px' }}>{data[hoverIdx].avgScore.toFixed(1)} avg score</div>
                 <div style={{ color: '#38bdf8', fontWeight: 600, fontSize: '10px', marginTop: '2px' }}>{data[hoverIdx].calls} calls</div>
               </div>
@@ -481,36 +553,80 @@ const MonthlyTrendCharts = ({ data, person }) => {
           </div>
         </div>
 
-        {/* Monthly Data Table */}
+        {/* Right Side: Monthly Data Breakdown OR Executive-Wise Monthly Breakdown */}
         <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '18px 22px' }}>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', marginBottom: '14px', letterSpacing: '0.02em' }}>
-            Monthly Data Breakdown
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em' }}>
+              {selectedMonth !== 'all' ? `Executive Performance — ${selectedMonth} 2026` : 'Monthly Data Breakdown'}
+            </div>
+            <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--muted)' }}>
+              {selectedMonth !== 'all' ? `${execRows.length} Executives` : 'Feb – Jul'}
+            </span>
           </div>
-          <table className="lb-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0' }}>
-            <thead>
-              <tr>
-                <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'left', borderBottom: '1px solid var(--gb)' }}>Month</th>
-                <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'center', borderBottom: '1px solid var(--gb)' }}>Calls</th>
-                <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'right', borderBottom: '1px solid var(--gb)' }}>Avg Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((d, i) => {
-                const isPass = d.avgScore >= 3.5;
-                return (
-                  <tr key={i} style={{ transition: 'background 0.15s' }}>
-                    <td style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
-                    <td style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text)', fontWeight: 600, textAlign: 'center' }}>{d.calls}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right' }}>
-                      <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: isPass ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)', color: isPass ? '#34d399' : '#f87171' }}>
-                        {d.avgScore.toFixed(1)}
-                      </span>
-                    </td>
+
+          {selectedMonth !== 'all' ? (
+            /* Executive-Wise Breakdown for Selected Month */
+            <div style={{ maxHeight: '220px', overflowY: 'auto' }} className="thin-scrollbar">
+              <table className="lb-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0' }}>
+                <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 2 }}>
+                  <tr>
+                    <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'left', borderBottom: '1px solid var(--gb)' }}>Executive</th>
+                    <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'center', borderBottom: '1px solid var(--gb)' }}>Calls</th>
+                    <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'right', borderBottom: '1px solid var(--gb)' }}>Score</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {execRows.map((p, i) => {
+                    const isPass = p.avgScore >= 3.5;
+                    return (
+                      <tr key={i} style={{ transition: 'background 0.15s' }}>
+                        <td style={{ padding: '8px 10px', fontSize: '12px', color: 'var(--text)', fontWeight: 700 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{p.name[0]}</div>
+                            <span>{p.name}</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '8px 10px', fontSize: '12px', color: 'var(--text)', fontWeight: 600, textAlign: 'center' }}>{p.leads}</td>
+                        <td style={{ padding: '8px 10px', textAlign: 'right' }}>
+                          <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: isPass ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)', color: isPass ? '#34d399' : '#f87171', border: `1px solid ${isPass ? 'rgba(52,211,153,0.25)' : 'rgba(248,113,113,0.25)'}` }}>
+                            {p.avgScore.toFixed(1)}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            /* Lifetime Monthly Data Breakdown */
+            <table className="lb-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0' }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'left', borderBottom: '1px solid var(--gb)' }}>Month</th>
+                  <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'center', borderBottom: '1px solid var(--gb)' }}>Calls</th>
+                  <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'right', borderBottom: '1px solid var(--gb)' }}>Avg Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((d, i) => {
+                  const isPass = d.avgScore >= 3.5;
+                  const isSelected = selectedMonth === d.month;
+                  return (
+                    <tr key={i} style={{ background: isSelected ? 'rgba(129, 140, 248, 0.12)' : 'transparent', transition: 'background 0.15s' }}>
+                      <td style={{ padding: '8px 12px', fontSize: '12px', color: isSelected ? '#818cf8' : 'var(--text)', fontWeight: isSelected ? 800 : 700 }}>{d.month}</td>
+                      <td style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text)', fontWeight: 600, textAlign: 'center' }}>{d.calls}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right' }}>
+                        <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: isPass ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)', color: isPass ? '#34d399' : '#f87171', border: `1px solid ${isPass ? 'rgba(52,211,153,0.25)' : 'rgba(248,113,113,0.25)'}` }}>
+                          {d.avgScore.toFixed(1)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
@@ -658,16 +774,57 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
       QUALITY_PARAMS.forEach(qp => {
         paramScores[qp.key] = getExecParamScore(p.name, qp.key, execMonth);
       });
+
+      if (execMonth === 'all' || !execMonth) {
+        const leads = p.leads;
+        const hot = p.hot !== undefined ? p.hot : Math.max(1, Math.round(leads * 0.02));
+        const warm = p.warm !== undefined ? p.warm : Math.round(leads * 0.19);
+        const coldTotal = p.coldTotal !== undefined ? p.coldTotal : p.cold !== undefined ? p.cold : Math.floor(leads * 0.4);
+        const answered = p.answered !== undefined ? p.answered : Math.floor(leads * 0.75);
+        const unanswered = p.unanswered !== undefined ? p.unanswered : (leads - Math.floor(leads * 0.75));
+        const perfPct = Math.min((p.deals / p.target) * 100, 100);
+        return {
+          ...p,
+          leads,
+          avgScore,
+          ...paramScores,
+          perfPct,
+          hot,
+          warm,
+          coldTotal,
+          answered,
+          unanswered,
+        };
+      }
+
+      // Specific Month (Feb, Mar, Apr, May, Jun, Jul)
+      const monthlyTrend = getMonthlyTrend(p);
+      const mTrend = monthlyTrend.find(t => t.month === execMonth) || monthlyTrend[0];
+      const monthlyLeadTrend = getMonthlyLeadTrend(p);
+      const mLeadTrend = monthlyLeadTrend.find(t => t.month === execMonth) || monthlyLeadTrend[0];
+
+      const leads = mTrend.calls;
+      const hot = mLeadTrend.hot;
+      const warm = mLeadTrend.warm;
+      const coldTotal = mLeadTrend.cold;
+      const answered = Math.max(1, Math.floor(leads * 0.78));
+      const unanswered = Math.max(0, leads - answered);
+
+      const monthlyTarget = Math.max(1, Math.round(p.target / TREND_MONTHS.length));
+      const monthlyDeals = Math.max(0, Math.round((mTrend.avgScore / 5) * monthlyTarget));
+      const perfPct = Math.min(100, Math.max(15, Math.round((monthlyDeals / monthlyTarget) * 100)));
+
       return {
         ...p,
-        avgScore,
+        leads,
+        avgScore: mTrend.avgScore,
         ...paramScores,
-        perfPct: Math.min((p.deals / p.target) * 100, 100),
-        hot: p.hot !== undefined ? p.hot : Math.max(1, Math.round(p.leads * 0.02)),
-        warm: p.warm !== undefined ? p.warm : Math.round(p.leads * 0.19),
-        answered: p.answered !== undefined ? p.answered : Math.floor(p.leads * 0.75),
-        unanswered: p.unanswered !== undefined ? p.unanswered : (p.leads - Math.floor(p.leads * 0.75)),
-        coldTotal: p.coldTotal !== undefined ? p.coldTotal : p.cold !== undefined ? p.cold : Math.floor(p.leads * 0.4),
+        perfPct,
+        hot,
+        warm,
+        coldTotal,
+        answered,
+        unanswered,
       };
     })
     .filter(p => p.name.toLowerCase().includes(execSearch.toLowerCase()));
@@ -690,11 +847,14 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
     return getMonthlyLeadTrend(leaderGraphPerson);
   }, [leaderGraphSelected]);
 
-  const execGraphPerson = execGraphSelected === 'all' ? null : SALES_DATA.find(p => p.name === execGraphSelected);
+  const execGraphPerson = execGraphSelected === 'all'
+    ? (sortedExecRows.length === 1 ? sortedExecRows[0] : null)
+    : SALES_DATA.find(p => p.name === execGraphSelected);
   const execGraphData = React.useMemo(() => {
-    if (execGraphSelected === 'all') return getAggregateMonthlyTrend(SALES_DATA);
-    return getMonthlyTrend(execGraphPerson);
-  }, [execGraphSelected]);
+    if (execGraphPerson) return getMonthlyTrend(execGraphPerson);
+    const activePeople = sortedExecRows.length > 0 ? sortedExecRows : SALES_DATA;
+    return getAggregateMonthlyTrend(activePeople);
+  }, [execGraphPerson, sortedExecRows]);
 
   return (
     <>
@@ -778,19 +938,19 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
         {/* KPI Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px', marginBottom: '24px' }}>
           <div onClick={() => onNavigateToCallRecords(null)} style={{ cursor: 'pointer' }} title="View all calls (15)">
-            <KpiCard label="Calls" value="15" color="var(--text)" />
+            <KpiCard label="Calls" value="15" color="#818cf8" icon={PhoneCall} subtext="100% Total" />
           </div>
           <div onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Hot' })} style={{ cursor: 'pointer' }} title="View Goals Met (5 Hot calls)">
-            <KpiCard label="Goals Met" value="5" color="#34d399" />
+            <KpiCard label="Goals Met" value="5" color="#34d399" icon={Target} subtext="33.3% Rate" />
           </div>
           <div onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Hot' })} style={{ cursor: 'pointer' }} title="View Hot calls (5)">
-            <KpiCard label="Hot" value="5" color="#34d399" />
+            <KpiCard label="Hot" value="5" color="#f87171" icon={Flame} subtext="33.3% Leads" />
           </div>
           <div onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Warm' })} style={{ cursor: 'pointer' }} title="View Warm calls (6)">
-            <KpiCard label="Warm" value="6" color="#fbbf24" />
+            <KpiCard label="Warm" value="6" color="#fbbf24" icon={Sun} subtext="40.0% Leads" />
           </div>
           <div onClick={() => onNavigateToCallRecords({ type: 'lead', value: 'Cold' })} style={{ cursor: 'pointer' }} title="View Cold calls (4)">
-            <KpiCard label="Cold" value="4" color="#38bdf8" />
+            <KpiCard label="Cold" value="4" color="#38bdf8" icon={Snowflake} subtext="26.7% Leads" />
           </div>
         </div>
 
@@ -890,8 +1050,8 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
           {leaderboardOpen && !leaderGraphOpen && (
             <>
               {showAllLeaderboard ? (
-                <div style={{ padding: '0 24px 24px', overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }} className="theme-scrollbar">
-                  <table className="lb-table" style={{ minWidth: '1200px' }}>
+                <div style={{ padding: '0 24px 8px', overflowX: 'auto', maxHeight: '460px', overflowY: 'auto' }} className="thin-scrollbar">
+                  <table className="lb-table" style={{ width: '100%', minWidth: '100%' }}>
                     <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
                       <tr>
                         <th style={{ width: '40px' }}>#</th>
@@ -928,7 +1088,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                             <td style={{ fontSize: '11px', fontWeight: 700, color: '#fbbf24', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted' }} onClick={() => onNavigateToCallRecords({ type: 'agent_status', agent: agent.name, value: 'Warm' })} title={`View ${agent.name}'s Warm calls`}>{agent.warm}</td>
                             <td style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted' }} onClick={() => onNavigateToCallRecords({ type: 'agent_status', agent: agent.name, value: 'Cold' })} title={`View ${agent.name}'s Cold calls`}>{agent.cold}</td>
                             {QUALITY_PARAMS.map(p => (
-                              <td key={p.key} style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 600 }}>{scores[p.key].toFixed(1)}</td>
+                              <td key={p.key} style={{ textAlign: 'center' }}><ParamBadge value={scores[p.key]} /></td>
                             ))}
                           </tr>
                         )
@@ -941,7 +1101,13 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                   {leaderTop3.filter(a => a.name.toLowerCase().includes(aiSearch.toLowerCase())).slice(0, 3).map((agent, i) => {
                     const scores = AI_SCORES[agent.name];
                     const avgScore = getAgentAvgAI(agent.name);
-                    const ringColor = i === 0 ? '#fbbf24' : i === 1 ? '#8b5cf6' : '#fb923c'; // Gold, Purple, Peach/Orange
+                    const rankThemes = [
+                      { border: 'rgba(251, 191, 36, 0.4)', bg: 'linear-gradient(180deg, rgba(251, 191, 36, 0.08) 0%, rgba(26, 32, 48, 0.6) 100%)', badgeBg: '#fbbf24', textCol: '#0f1219', glow: 'rgba(251, 191, 36, 0.25)', label: '🥇 Rank 1' },
+                      { border: 'rgba(139, 92, 246, 0.4)', bg: 'linear-gradient(180deg, rgba(139, 92, 246, 0.08) 0%, rgba(26, 32, 48, 0.6) 100%)', badgeBg: '#8b5cf6', textCol: '#ffffff', glow: 'rgba(139, 92, 246, 0.25)', label: '🥈 Rank 2' },
+                      { border: 'rgba(251, 146, 60, 0.4)', bg: 'linear-gradient(180deg, rgba(251, 146, 60, 0.08) 0%, rgba(26, 32, 48, 0.6) 100%)', badgeBg: '#fb923c', textCol: '#0f1219', glow: 'rgba(251, 146, 60, 0.25)', label: '🥉 Rank 3' },
+                    ];
+                    const rTheme = rankThemes[i] || rankThemes[0];
+                    const ringColor = rTheme.badgeBg;
 
                     // Circular progress calculations
                     const size = 120;
@@ -953,10 +1119,24 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                     const strokeDashoffset = circumference - (avgScore / 5) * circumference;
 
                     return (
-                      <div key={i} style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                      <div
+                        key={i}
+                        style={{
+                          background: rTheme.bg,
+                          border: `1px solid ${rTheme.border}`,
+                          borderRadius: '18px',
+                          padding: '24px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          position: 'relative',
+                          transition: 'all 0.25s ease',
+                          boxShadow: `0 8px 24px -4px rgba(0,0,0,0.4), 0 0 20px ${rTheme.glow}`,
+                        }}
+                      >
                         {/* Rank Badge */}
-                        <div style={{ position: 'absolute', top: '24px', left: '24px', width: '26px', height: '26px', background: ringColor, borderRadius: '0 12px 12px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontWeight: 800, fontSize: '14px' }}>
-                          {i + 1}
+                        <div style={{ position: 'absolute', top: '20px', left: '20px', padding: '4px 10px', background: rTheme.badgeBg, borderRadius: '8px', color: rTheme.textCol, fontWeight: 900, fontSize: '11px', letterSpacing: '0.04em', boxShadow: `0 4px 12px ${rTheme.glow}` }}>
+                          {rTheme.label}
                         </div>
 
                         {/* Circular Score */}
@@ -1013,7 +1193,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                                   {icons[index % icons.length]}
                                   <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text)' }}>{param.label}</span>
                                 </div>
-                                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)' }}>{scores[param.key].toFixed(1)}</span>
+                                <ParamBadge value={scores[param.key]} />
                               </div>
                             );
                           })}
@@ -1030,7 +1210,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                   })}
                 </div>
               )}
-              <div style={{ padding: '0 24px 24px', display: 'flex', justifyContent: 'center' }}>
+              <div style={{ padding: '16px 24px 20px', display: 'flex', justifyContent: 'center', borderTop: '1px solid var(--gb)', marginTop: '8px' }}>
                 <button
                   onClick={() => setShowAllLeaderboard(!showAllLeaderboard)}
                   style={{
@@ -1161,11 +1341,11 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
           {execPerfOpen && execGraphOpen && (
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--gb)' }} onClick={(e) => e.stopPropagation()}>
               {execGraphPerson && <PersonKpiCards person={execGraphPerson} />}
-              <MonthlyTrendCharts data={execGraphData} person={execGraphPerson} />
+              <MonthlyTrendCharts data={execGraphData} person={execGraphPerson} selectedMonth={execMonth} execRows={sortedExecRows} />
             </div>
           )}
           {execPerfOpen && !execGraphOpen && (
-            <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto', position: 'relative' }} className="no-scrollbar">
+            <div style={{ padding: '0 24px 16px', overflowX: 'auto', maxHeight: '480px', overflowY: 'auto', position: 'relative' }} className="thin-scrollbar">
               <table className="lb-table" style={{ minWidth: '1600px' }}>
                 <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
                   <tr>
@@ -1265,24 +1445,10 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                           {unanswered}
                         </td>
                         {QUALITY_PARAMS.map(p => (
-                          <td key={p.key} style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 600 }}>
-                            {person[p.key] !== undefined ? person[p.key].toFixed(1) : '-'}
+                          <td key={p.key} style={{ textAlign: 'center' }}>
+                            <ParamBadge value={person[p.key]} />
                           </td>
                         ))}
-                        <td
-                          style={{ color: '#34d399', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
-                          title="View Answered call records"
-                          onClick={() => onNavigateToCallRecords({ type: 'outcome', value: 'Answered' })}
-                        >
-                          {answered}
-                        </td>
-                        <td
-                          style={{ color: '#f87171', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
-                          title="View Unanswered call records"
-                          onClick={() => onNavigateToCallRecords({ type: 'outcome', value: 'Unanswered' })}
-                        >
-                          {unanswered}
-                        </td>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div style={{ width: '60px', height: '6px', borderRadius: '3px', background: 'var(--gb)', overflow: 'hidden' }}>
@@ -1556,13 +1722,113 @@ const StarRating = ({ score, maxStars = 5, size = 14, color = '#fbbf24' }) => {
   );
 };
 
-// Sub components
-const KpiCard = ({ label, value, color }) => (
-  <div style={{ background: '#1a2030', border: '1px solid var(--gb)', borderRadius: '14px', padding: '20px 16px', textAlign: 'center' }}>
-    <div style={{ fontSize: '26px', fontWeight: 800, fontStyle: 'italic', color, letterSpacing: '-0.5px' }}>{value}</div>
-    <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '6px' }}>{label}</div>
-  </div>
-);
+const getKpiColors = (colorHex) => {
+  const map = {
+    '#818cf8': {
+      border: 'rgba(129, 140, 248, 0.35)',
+      badgeBg: 'rgba(129, 140, 248, 0.15)',
+      iconBg: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
+      iconShadow: '0 4px 14px rgba(129, 140, 248, 0.45)',
+    },
+    '#34d399': {
+      border: 'rgba(52, 211, 153, 0.35)',
+      badgeBg: 'rgba(52, 211, 153, 0.15)',
+      iconBg: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)',
+      iconShadow: '0 4px 14px rgba(52, 211, 153, 0.45)',
+    },
+    '#f87171': {
+      border: 'rgba(248, 113, 113, 0.35)',
+      badgeBg: 'rgba(248, 113, 113, 0.15)',
+      iconBg: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)',
+      iconShadow: '0 4px 14px rgba(248, 113, 113, 0.45)',
+    },
+    '#fbbf24': {
+      border: 'rgba(251, 191, 36, 0.35)',
+      badgeBg: 'rgba(251, 191, 36, 0.15)',
+      iconBg: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+      iconShadow: '0 4px 14px rgba(251, 191, 36, 0.45)',
+    },
+    '#38bdf8': {
+      border: 'rgba(56, 189, 248, 0.35)',
+      badgeBg: 'rgba(56, 189, 248, 0.15)',
+      iconBg: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
+      iconShadow: '0 4px 14px rgba(56, 189, 248, 0.45)',
+    },
+  };
+  return map[colorHex] || {
+    border: 'rgba(255, 255, 255, 0.2)',
+    badgeBg: 'rgba(255, 255, 255, 0.1)',
+    iconBg: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
+    iconShadow: '0 4px 14px rgba(129, 140, 248, 0.45)',
+  };
+};
+
+const KpiCard = ({ label, value, color, icon: IconComponent, subtext }) => {
+  const [hovered, setHovered] = React.useState(false);
+  const theme = getKpiColors(color);
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: 'var(--card-bg)',
+        border: `1px solid ${hovered ? theme.border : 'rgba(255, 255, 255, 0.08)'}`,
+        borderRadius: '16px',
+        padding: '16px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        justify: 'space-between',
+        minHeight: '105px',
+        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: hovered ? 'translateY(-3px)' : 'none',
+        boxShadow: hovered ? `0 12px 28px -6px rgba(0, 0, 0, 0.45), 0 0 20px ${color}35` : '0 4px 12px rgba(0, 0, 0, 0.15)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Top Accent Line */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: color, opacity: hovered ? 1 : 0.7, transition: 'opacity 0.2s' }} />
+
+      {/* Top Row: Label (left) & Icon Box (right) */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+          {label}
+        </span>
+        <div
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '12px',
+            background: theme.iconBg,
+            boxShadow: theme.iconShadow,
+            display: 'flex',
+            alignItems: 'center',
+            justify: 'center',
+            color: '#ffffff',
+            flexShrink: 0,
+            transition: 'all 0.25s ease',
+            transform: hovered ? 'scale(1.1) rotate(4deg)' : 'scale(1)',
+          }}
+        >
+          {IconComponent && <IconComponent size={20} strokeWidth={2.5} color="#ffffff" />}
+        </div>
+      </div>
+
+      {/* Bottom Row: Value (left) & Subtext Badge (right) */}
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: '14px', width: '100%' }}>
+        <div style={{ fontSize: '32px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.03em', fontFamily: "'Inter', sans-serif", lineHeight: 1 }}>
+          {value}
+        </div>
+        {subtext && (
+          <span style={{ fontSize: '10px', fontWeight: 700, color: color, background: theme.badgeBg, padding: '3px 8px', borderRadius: '6px', border: `1px solid ${theme.border}` }}>
+            {subtext}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const MetricCircle = ({ label, value, color }) => {
   const r = 36;

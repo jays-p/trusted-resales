@@ -655,25 +655,27 @@ body {
 }
 
 .lb-table th {
-  padding: 12px 16px;
-  font-size: 9px;
-  font-weight: 700;
+  padding: 12px 14px;
+  font-size: 10px;
+  font-weight: 800;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--card-bg);
 }
 
 .lb-table td {
-  padding: 11px 16px;
+  padding: 11px 14px;
   font-size: 12px;
-  color: var(--dim);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  color: var(--text-dim);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  transition: background 0.15s ease;
 }
 
 .lb-table tr:hover td {
-  background: rgba(129, 140, 248, 0.03);
+  background: rgba(129, 140, 248, 0.06);
 }
 
 .lb-badge {
