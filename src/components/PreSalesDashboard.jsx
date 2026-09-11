@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings2, ChevronDown, ArrowUp, ArrowDown, ArrowUpDown, LineChart, Table2, PhoneCall, Target, Flame, Sun, Snowflake } from 'lucide-react';
+import { Settings2, ChevronDown, ArrowUp, ArrowDown, ArrowUpDown, LineChart, Table2, PhoneCall, Target, Flame, Sun, Snowflake, Check } from 'lucide-react';
 import './PlatformDashboard.css';
 
 const getParamBadgeStyle = (score) => {
@@ -196,6 +196,75 @@ const getExecAvgForMonth = (agentName, month = 'all') => {
   const sum = scores.reduce((a, b) => a + b, 0);
   return parseFloat((sum / scores.length).toFixed(1));
 };
+
+const isAllParamsSelected = (paramState) => {
+  if (!paramState) return true;
+  if (paramState === 'all') return true;
+  if (Array.isArray(paramState)) {
+    if (paramState.includes('all')) return true;
+    if (paramState.length === 0) return true;
+    if (paramState.length === QUALITY_PARAMS.length) return true;
+  }
+  return false;
+};
+
+const isParamActive = (paramState, key) => {
+  if (isAllParamsSelected(paramState)) return true;
+  if (Array.isArray(paramState)) {
+    return paramState.includes(key);
+  }
+  return paramState === key;
+};
+
+const getExecSelectedScore = (agentName, paramState, month = 'all') => {
+  if (isAllParamsSelected(paramState)) {
+    return getExecAvgForMonth(agentName, month);
+  }
+  const keys = Array.isArray(paramState) ? paramState : [paramState];
+  if (keys.length === 0) return getExecAvgForMonth(agentName, month);
+  const scores = keys.map(k => getExecParamScore(agentName, k, month));
+  const sum = scores.reduce((a, b) => a + b, 0);
+  return parseFloat((sum / scores.length).toFixed(1));
+};
+
+const toggleParamSelection = (currentParams, keyToToggle) => {
+  if (keyToToggle === 'all') {
+    return ['all'];
+  }
+
+  const isCurrentlyAll = isAllParamsSelected(currentParams);
+  
+  if (isCurrentlyAll) {
+    return [keyToToggle];
+  }
+
+  const currentArray = Array.isArray(currentParams) ? [...currentParams] : [currentParams];
+
+  let nextArray;
+  if (currentArray.includes(keyToToggle)) {
+    nextArray = currentArray.filter(k => k !== keyToToggle);
+  } else {
+    nextArray = [...currentArray, keyToToggle];
+  }
+
+  if (nextArray.length === 0 || nextArray.length === QUALITY_PARAMS.length) {
+    return ['all'];
+  }
+  return nextArray;
+};
+
+const getParamFilterLabel = (paramState) => {
+  if (isAllParamsSelected(paramState)) {
+    return 'All 10 Parameters';
+  }
+  const keys = Array.isArray(paramState) ? paramState : [paramState];
+  if (keys.length === 1) {
+    const obj = QUALITY_PARAMS.find(p => p.key === keys[0]);
+    return `${obj?.icon || ''} ${obj?.label || keys[0]}`;
+  }
+  return `🎯 ${keys.length} Parameters Selected`;
+};
+
 const TREND_MONTHS = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
 const seededRandom = (seed) => {
   let s = seed;
@@ -454,10 +523,30 @@ const MonthlyTrendCharts = ({
   const monthIdx = TREND_MONTHS.indexOf(selectedMonth);
   const activeIdx = hoverIdx !== null ? hoverIdx : (monthIdx !== -1 ? monthIdx : null);
 
-  const activeParamObj = QUALITY_PARAMS.find(p => p.key === selectedParam);
-  const paramTitle = selectedParam === 'all' ? 'Overall Quality Score' : `${activeParamObj?.icon || ''} ${activeParamObj?.label || selectedParam}`;
+  const isAll = isAllParamsSelected(selectedParam);
+  const selectedKeys = isAll ? QUALITY_PARAMS.map(p => p.key) : (Array.isArray(selectedParam) ? selectedParam : [selectedParam]);
 
-  const lineColor = selectedParam === 'all' ? '#f472b6' : '#818cf8';
+  let paramTitle = 'Overall Quality Score';
+  if (!isAll) {
+    if (selectedKeys.length === 1) {
+      const activeParamObj = QUALITY_PARAMS.find(p => p.key === selectedKeys[0]);
+      paramTitle = `${activeParamObj?.icon || ''} ${activeParamObj?.label || selectedKeys[0]}`;
+    } else {
+      paramTitle = `${selectedKeys.length} Selected Parameters`;
+    }
+  }
+
+  let activeFilterText = 'Showing All 10 Parameters (Overall Avg)';
+  if (!isAll) {
+    if (selectedKeys.length === 1) {
+      activeFilterText = `Active Filter: ${paramTitle}`;
+    } else {
+      const labels = selectedKeys.map(k => QUALITY_PARAMS.find(p => p.key === k)?.label).filter(Boolean).join(', ');
+      activeFilterText = `Active Filter (${selectedKeys.length}): ${labels}`;
+    }
+  }
+
+  const lineColor = isAll ? '#f472b6' : '#818cf8';
   const W = 500, H = 180;
   const padL = 36, padR = 24, padT = 16, padB = 28;
   const plotW = W - padL - padR;
@@ -476,9 +565,7 @@ const MonthlyTrendCharts = ({
 
   // Find top executive for this month & param
   const execScoresForMonth = execRows.map(p => {
-    const score = selectedParam === 'all'
-      ? getExecAvgForMonth(p.name, selectedMonth)
-      : getExecParamScore(p.name, selectedParam, selectedMonth);
+    const score = getExecSelectedScore(p.name, selectedParam, selectedMonth);
     return { ...p, score };
   }).sort((a, b) => b.score - a.score);
 
@@ -491,12 +578,12 @@ const MonthlyTrendCharts = ({
             <span>🎯 Filter By AI Quality Parameter (10 Parameters)</span>
           </div>
           <span style={{ fontSize: '10px', color: '#818cf8', fontWeight: 700 }}>
-            {selectedParam === 'all' ? 'Showing All 10 Parameters (Overall Avg)' : `Active Filter: ${paramTitle}`}
+            {activeFilterText}
           </span>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           <button
-            onClick={() => onSelectParam('all')}
+            onClick={() => onSelectParam(['all'])}
             style={{
               padding: '6px 12px',
               borderRadius: '8px',
@@ -504,9 +591,9 @@ const MonthlyTrendCharts = ({
               fontWeight: 700,
               cursor: 'pointer',
               transition: 'all 0.2s',
-              border: selectedParam === 'all' ? '1px solid #f472b6' : '1px solid var(--gb)',
-              background: selectedParam === 'all' ? 'rgba(244,114,182,0.18)' : 'var(--glass-xs)',
-              color: selectedParam === 'all' ? '#f472b6' : 'var(--text)',
+              border: isAll ? '1px solid #f472b6' : '1px solid var(--gb)',
+              background: isAll ? 'rgba(244,114,182,0.18)' : 'var(--glass-xs)',
+              color: isAll ? '#f472b6' : 'var(--text)',
               display: 'flex',
               alignItems: 'center',
               gap: '6px'
@@ -517,11 +604,11 @@ const MonthlyTrendCharts = ({
           </button>
 
           {QUALITY_PARAMS.map(p => {
-            const isSelected = selectedParam === p.key;
+            const isSelected = isParamActive(selectedParam, p.key) && !isAll;
             return (
               <button
                 key={p.key}
-                onClick={() => onSelectParam(p.key)}
+                onClick={() => onSelectParam(toggleParamSelection(selectedParam, p.key))}
                 style={{
                   padding: '6px 12px',
                   borderRadius: '8px',
@@ -537,6 +624,21 @@ const MonthlyTrendCharts = ({
                   gap: '6px'
                 }}
               >
+                <span style={{
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '3px',
+                  border: isSelected ? '1px solid #818cf8' : '1px solid var(--muted)',
+                  background: isSelected ? '#818cf8' : 'transparent',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '8px',
+                  color: '#fff',
+                  marginRight: '2px'
+                }}>
+                  {isSelected && '✓'}
+                </span>
                 <span>{p.icon}</span>
                 <span>{p.label}</span>
               </button>
@@ -559,7 +661,7 @@ const MonthlyTrendCharts = ({
               </div>
             </div>
             {data.length > 0 && (
-              <span style={{ fontSize: '11px', fontWeight: 800, color: lineColor, background: selectedParam === 'all' ? 'rgba(244,114,182,0.12)' : 'rgba(129,140,248,0.12)', padding: '4px 10px', borderRadius: '6px', border: `1px solid ${selectedParam === 'all' ? 'rgba(244,114,182,0.25)' : 'rgba(129,140,248,0.25)'}` }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: lineColor, background: isAll ? 'rgba(244,114,182,0.12)' : 'rgba(129,140,248,0.12)', padding: '4px 10px', borderRadius: '6px', border: `1px solid ${isAll ? 'rgba(244,114,182,0.25)' : 'rgba(129,140,248,0.25)'}` }}>
                 {selectedMonth !== 'all' && monthIdx !== -1 && data[monthIdx]
                   ? `${selectedMonth}: ${data[monthIdx].avgScore.toFixed(1)} / 5.0`
                   : `Latest (${data[data.length - 1].month}): ${data[data.length - 1].avgScore.toFixed(1)} / 5.0`}
@@ -704,7 +806,7 @@ const MonthlyTrendCharts = ({
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
           {QUALITY_PARAMS.map(param => {
-            const isSelected = selectedParam === param.key;
+            const isSelected = isParamActive(selectedParam, param.key) && !isAll;
             const score = person
               ? getExecParamScore(person.name, param.key, selectedMonth)
               : parseFloat((execRows.reduce((sum, p) => sum + getExecParamScore(p.name, param.key, selectedMonth), 0) / (execRows.length || 1)).toFixed(1));
@@ -714,18 +816,26 @@ const MonthlyTrendCharts = ({
             return (
               <div
                 key={param.key}
-                onClick={() => onSelectParam(isSelected ? 'all' : param.key)}
+                onClick={() => onSelectParam(toggleParamSelection(selectedParam, param.key))}
                 style={{
                   background: isSelected ? 'rgba(129,140,248,0.15)' : 'var(--glass-xs)',
                   border: isSelected ? '1px solid #818cf8' : '1px solid var(--gb)',
                   borderRadius: '10px',
                   padding: '10px 12px',
                   cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
+                  position: 'relative'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px' }}>{param.icon}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '14px' }}>{param.icon}</span>
+                    {isSelected && (
+                      <span style={{ fontSize: '9px', fontWeight: 800, color: '#818cf8', background: 'rgba(129,140,248,0.2)', padding: '1px 5px', borderRadius: '4px' }}>
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
                   <span style={{ fontSize: '12px', fontWeight: 800, color: isGood ? '#34d399' : isAvg ? '#fbbf24' : '#f87171' }}>
                     {score.toFixed(1)}
                   </span>
@@ -803,7 +913,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
   const [execMonth, setExecMonth] = React.useState('all');
   const [execMonthDropdown, setExecMonthDropdown] = React.useState(false);
   const execMonthDropdownRef = React.useRef(null);
-  const [execParamFilter, setExecParamFilter] = React.useState('all');
+  const [execParamFilter, setExecParamFilter] = React.useState(['all']);
   const [execParamDropdown, setExecParamDropdown] = React.useState(false);
   const execParamDropdownRef = React.useRef(null);
 
@@ -985,9 +1095,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
     if (execGraphPerson) {
       return TREND_MONTHS.map((m) => {
         const mTrend = getMonthlyTrend(execGraphPerson).find(t => t.month === m) || { calls: 10, avgScore: 3.5 };
-        const score = execParamFilter === 'all'
-          ? getExecAvgForMonth(execGraphPerson.name, m)
-          : getExecParamScore(execGraphPerson.name, execParamFilter, m);
+        const score = getExecSelectedScore(execGraphPerson.name, execParamFilter, m);
         return { month: m, calls: mTrend.calls, avgScore: score };
       });
     }
@@ -997,9 +1105,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
       activePeople.forEach(p => {
         const pTrend = getMonthlyTrend(p).find(t => t.month === m) || { calls: 10, avgScore: 3.5 };
         totalCalls += pTrend.calls;
-        const score = execParamFilter === 'all'
-          ? getExecAvgForMonth(p.name, m)
-          : getExecParamScore(p.name, execParamFilter, m);
+        const score = getExecSelectedScore(p.name, execParamFilter, m);
         totalScore += score;
       });
       const avgScore = parseFloat((totalScore / (activePeople.length || 1)).toFixed(1));
@@ -1416,26 +1522,56 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                 {execGraphOpen ? <Table2 size={13} /> : <LineChart size={13} />}
               </button>
 
-              {/* 10 AI Parameter Filter Dropdown */}
+              {/* 10 AI Parameter Filter Multi-Select Dropdown */}
               <div className={`admin-dropdown ${execParamDropdown ? 'open' : ''}`} onClick={() => setExecParamDropdown(!execParamDropdown)} ref={execParamDropdownRef}>
                 <span>
-                  {execParamFilter === 'all'
-                    ? 'All 10 Parameters'
-                    : `${QUALITY_PARAMS.find(p => p.key === execParamFilter)?.icon || ''} ${QUALITY_PARAMS.find(p => p.key === execParamFilter)?.label || execParamFilter}`
-                  }
+                  {getParamFilterLabel(execParamFilter)}
                 </span>
                 <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: execParamDropdown ? 'rotate(180deg)' : '' }} />
                 {execParamDropdown && (
-                  <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                  <div className="dropdown-popup" onClick={(e) => e.stopPropagation()} style={{ minWidth: '240px', padding: '6px' }}>
                     <div className="dropdown-list">
-                      <div className={`dropdown-item ${execParamFilter === 'all' ? 'active' : ''}`} onClick={() => { setExecParamFilter('all'); setExecParamDropdown(false); }}>
-                        ✨ All 10 Parameters
-                      </div>
-                      {QUALITY_PARAMS.map(p => (
-                        <div key={p.key} className={`dropdown-item ${execParamFilter === p.key ? 'active' : ''}`} onClick={() => { setExecParamFilter(p.key); setExecParamDropdown(false); }}>
-                          {p.icon} {p.label}
+                      <div
+                        className={`dropdown-item ${isAllParamsSelected(execParamFilter) ? 'active' : ''}`}
+                        onClick={() => setExecParamFilter(['all'])}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: '6px' }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>✨</span>
+                          <span style={{ fontWeight: 700 }}>All 10 Parameters</span>
                         </div>
-                      ))}
+                        {isAllParamsSelected(execParamFilter) && <Check size={14} style={{ color: '#818cf8' }} />}
+                      </div>
+                      <div style={{ height: '1px', background: 'var(--gb)', margin: '4px 0' }} />
+                      {QUALITY_PARAMS.map(p => {
+                        const isChecked = isParamActive(execParamFilter, p.key);
+                        return (
+                          <div
+                            key={p.key}
+                            className={`dropdown-item ${isChecked ? 'active' : ''}`}
+                            onClick={() => setExecParamFilter(toggleParamSelection(execParamFilter, p.key))}
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 12px', borderRadius: '6px' }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{
+                                width: '15px',
+                                height: '15px',
+                                borderRadius: '4px',
+                                border: isChecked ? '1px solid #818cf8' : '1px solid var(--gb)',
+                                background: isChecked ? '#818cf8' : 'transparent',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                              }}>
+                                {isChecked && <Check size={11} strokeWidth={3} style={{ color: '#fff' }} />}
+                              </div>
+                              <span>{p.icon}</span>
+                              <span style={{ fontSize: '12px' }}>{p.label}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -1489,23 +1625,26 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                   </div>
                 )}
               </div>
-              <button onClick={() => handleExport(
-                ['#', 'Executive', 'Calls', 'Avg Score', 'Hot', 'Warm', 'Cold', 'Answered', 'Unanswered', ...QUALITY_PARAMS.map(p => p.label), 'Performance'],
-                sortedExecRows.map((p, i) => [
-                  i + 1,
-                  p.name,
-                  p.leads,
-                  p.avgScore,
-                  p.hot,
-                  p.warm,
-                  p.coldTotal,
-                  p.answered,
-                  p.unanswered,
-                  ...QUALITY_PARAMS.map(qp => p[qp.key]),
-                  p.perfPct.toFixed(0) + '%'
-                ]),
-                `executive-performance-${execMonth}`
-              )} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', cursor: 'pointer' }} title="Export">
+              <button onClick={() => {
+                const activeParams = QUALITY_PARAMS.filter(p => isParamActive(execParamFilter, p.key));
+                handleExport(
+                  ['#', 'Executive', 'Calls', 'Avg Score', 'Hot', 'Warm', 'Cold', 'Answered', 'Unanswered', ...activeParams.map(p => p.label), 'Performance'],
+                  sortedExecRows.map((p, i) => [
+                    i + 1,
+                    p.name,
+                    p.leads,
+                    p.avgScore,
+                    p.hot,
+                    p.warm,
+                    p.coldTotal,
+                    p.answered,
+                    p.unanswered,
+                    ...activeParams.map(qp => p[qp.key]),
+                    p.perfPct.toFixed(0) + '%'
+                  ]),
+                  `executive-performance-${execMonth}`
+                );
+              }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', cursor: 'pointer' }} title="Export">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
               </button>
               <button onClick={() => setExecPerfOpen(!execPerfOpen)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: 'var(--glass-xs)', border: '1px solid var(--gb)', color: 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }} title={execPerfOpen ? 'Collapse' : 'Expand'}>
@@ -1531,7 +1670,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
           )}
           {execPerfOpen && !execGraphOpen && (
             <div style={{ padding: '0 24px 16px', overflowX: 'auto', maxHeight: '480px', overflowY: 'auto', position: 'relative' }} className="thin-scrollbar">
-              <table className="lb-table" style={{ minWidth: '1600px' }}>
+              <table className="lb-table" style={{ minWidth: isAllParamsSelected(execParamFilter) ? '1600px' : `${Math.max(900, 700 + QUALITY_PARAMS.filter(p => isParamActive(execParamFilter, p.key)).length * 120)}px` }}>
                 <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
                   <tr>
                     <th style={{ width: '40px' }}>#</th>
@@ -1543,14 +1682,14 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                     <SortableTh label="Cold" sortKey="cold" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
                     <SortableTh label="Answered" sortKey="answered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
                     <SortableTh label="Unanswered" sortKey="unanswered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
-                    {QUALITY_PARAMS.map(p => (
+                    {QUALITY_PARAMS.filter(p => isParamActive(execParamFilter, p.key)).map(p => (
                       <SortableTh
                         key={p.key}
                         label={p.label}
                         sortKey={p.key}
                         sort={execSort}
                         onSort={(k) => toggleSort(setExecSort, k)}
-                        style={execParamFilter === p.key ? { background: 'rgba(129,140,248,0.22)', color: '#818cf8', borderRadius: '4px' } : {}}
+                        style={!isAllParamsSelected(execParamFilter) ? { background: 'rgba(129,140,248,0.22)', color: '#818cf8', borderRadius: '4px' } : {}}
                       />
                     ))}
                     <SortableTh label="Performance" sortKey="perfPct" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
@@ -1636,7 +1775,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                         >
                           {unanswered}
                         </td>
-                        {QUALITY_PARAMS.map(p => (
+                        {QUALITY_PARAMS.filter(p => isParamActive(execParamFilter, p.key)).map(p => (
                           <td key={p.key} style={{ textAlign: 'center' }}>
                             <ParamBadge value={person[p.key]} />
                           </td>
