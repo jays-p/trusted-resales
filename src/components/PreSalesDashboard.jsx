@@ -141,7 +141,31 @@ const getAgentAvgAI = (name) => {
   return nonZero.reduce((a, b) => a + b, 0) / nonZero.length;
 };
 
-// Deterministic pseudo-random monthly trend per executive (stable across re-renders)
+const getExecParamScore = (agentName, paramKey, month = 'all') => {
+  const baseScores = AI_SCORES[agentName];
+  let val = baseScores ? baseScores[paramKey] : 3.5;
+  if (val === undefined || val === 0) val = 3.5;
+  if (month === 'all' || !month) return val;
+
+  const monthIdx = TREND_MONTHS.indexOf(month);
+  if (monthIdx === -1) return val;
+
+  let hash = 0;
+  const str = `${agentName}-${paramKey}-${monthIdx}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  const delta = (Math.sin(hash) * 0.4);
+  const finalVal = Math.min(5.0, Math.max(1.0, val + delta));
+  return parseFloat(finalVal.toFixed(1));
+};
+
+const getExecAvgForMonth = (agentName, month = 'all') => {
+  const scores = QUALITY_PARAMS.map(p => getExecParamScore(agentName, p.key, month));
+  const sum = scores.reduce((a, b) => a + b, 0);
+  return parseFloat((sum / scores.length).toFixed(1));
+};
 const TREND_MONTHS = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
 const seededRandom = (seed) => {
   let s = seed;
@@ -221,140 +245,183 @@ const LEADER_FILTERS = [
 ];
 
 const LeadTrendChart = ({ data }) => {
-  const [hoverSlice, setHoverSlice] = React.useState(null);
+  const [hoverIdx, setHoverIdx] = React.useState(null);
+  const n = data.length;
 
   const totals = LEAD_TYPES.map(s => data.reduce((sum, d) => sum + d[s.key], 0));
   const grandTotal = totals.reduce((a, b) => a + b, 0);
 
-  const size = 280;
-  const stroke = 36;
-  const cx = size / 2;
-  const cy = size / 2;
-  const r = cx - stroke / 2;
-  const circ = 2 * Math.PI * r;
+  // SVG Chart dimensions
+  const W = 520, H = 210;
+  const padL = 40, padR = 20, padT = 16, padB = 28;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
 
-  let offset = 0;
-  const segments = LEAD_TYPES.map((s, i) => {
-    const pct = grandTotal === 0 ? 0 : totals[i] / grandTotal;
-    const dash = circ * pct;
-    const seg = { ...s, value: totals[i], pct, dash, offset };
-    offset += dash;
-    return seg;
-  });
+  // Max scale calculation
+  const monthTotals = data.map(d => d.hot + d.warm + d.cold);
+  const maxVal = Math.ceil(Math.max(...monthTotals, 100) / 50) * 50;
+
+  const xAt = (i) => padL + (n === 1 ? plotW / 2 : (i / (n - 1)) * plotW);
+  const yVal = (v) => padT + plotH - (v / maxVal) * plotH;
+
+  // Paths for Hot, Warm, Cold lines/areas
+  const hotPath = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xAt(i)} ${yVal(d.hot)}`).join(' ');
+  const warmPath = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xAt(i)} ${yVal(d.warm)}`).join(' ');
+  const coldPath = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xAt(i)} ${yVal(d.cold)}`).join(' ');
+
+  const hotArea = `${hotPath} L ${xAt(n - 1)} ${padT + plotH} L ${xAt(0)} ${padT + plotH} Z`;
+  const warmArea = `${warmPath} L ${xAt(n - 1)} ${padT + plotH} L ${xAt(0)} ${padT + plotH} Z`;
+  const coldArea = `${coldPath} L ${xAt(n - 1)} ${padT + plotH} L ${xAt(0)} ${padT + plotH} Z`;
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * W;
+    const ratio = Math.min(1, Math.max(0, (x - padL) / plotW));
+    setHoverIdx(Math.round(ratio * (n - 1)));
+  };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '35% 65%', gap: '32px', width: '100%' }}>
-      {/* Donut */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: '20px' }}>
-        <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx={cx} cy={cy} r={r} fill="transparent" stroke="var(--gb)" strokeWidth={stroke} />
-            {segments.map((s, i) => {
-              const isHovered = hoverSlice === i;
-              return (
-                <circle
-                  key={s.key}
-                  cx={cx}
-                  cy={cy}
-                  r={r}
-                  fill="transparent"
-                  stroke={s.color}
-                  strokeWidth={isHovered ? stroke + 5 : stroke}
-                  strokeDasharray={`${s.dash} ${circ - s.dash}`}
-                  strokeDashoffset={-s.offset}
-                  style={{
-                    cursor: 'pointer',
-                    transition: 'stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease',
-                    opacity: hoverSlice !== null && !isHovered ? 0.4 : 1,
-                    filter: isHovered ? `drop-shadow(0 0 6px ${s.color})` : 'none',
-                  }}
-                  onMouseEnter={() => setHoverSlice(i)}
-                  onMouseLeave={() => setHoverSlice(null)}
-                />
-              );
-            })}
-          </svg>
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-            {hoverSlice !== null ? (
-              <>
-                <div style={{ fontSize: '16px', fontWeight: 900, color: segments[hoverSlice].color }}>{segments[hoverSlice].value}</div>
-                <div style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>{segments[hoverSlice].label}</div>
-              </>
-            ) : (
-              <>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text)' }}>{grandTotal}</div>
-                <div style={{ fontSize: '8px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Total</div>
-              </>
+    <div style={{ width: '100%' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr', gap: '24px', alignItems: 'start' }}>
+        {/* Left Side: Monthly Trend Chart */}
+        <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '18px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em' }}>
+              Monthly Lead Distribution Trend
+            </div>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#34d399', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34d399' }} /> Hot ({totals[0]})
+              </span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fbbf24' }} /> Warm ({totals[1]})
+              </span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#38bdf8' }} /> Cold ({totals[2]})
+              </span>
+            </div>
+          </div>
+
+          <div style={{ position: 'relative' }}>
+            <svg width="100%" viewBox={`0 0 ${W} ${H}`} onMouseMove={handleMouseMove} onMouseLeave={() => setHoverIdx(null)} style={{ display: 'block', cursor: 'crosshair' }}>
+              <defs>
+                <linearGradient id="hotGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#34d399" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="#34d399" stopOpacity="0.0" />
+                </linearGradient>
+                <linearGradient id="warmGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.0" />
+                </linearGradient>
+                <linearGradient id="coldGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
+
+              {/* Gridlines */}
+              {[0, 0.25, 0.5, 0.75, 1].map((step, idx) => {
+                const val = Math.round(maxVal * step);
+                return (
+                  <g key={idx}>
+                    <line x1={padL} x2={W - padR} y1={yVal(val)} y2={yVal(val)} stroke="rgba(255,255,255,0.06)" strokeWidth="1" strokeDasharray="2 2" />
+                    <text x={padL - 8} y={yVal(val) + 3} fontSize="10" fontWeight="600" fill="var(--muted)" textAnchor="end">{val}</text>
+                  </g>
+                );
+              })}
+
+              {/* Area & Lines */}
+              <path d={coldArea} fill="url(#coldGrad)" />
+              <path d={warmArea} fill="url(#warmGrad)" />
+              <path d={hotArea} fill="url(#hotGrad)" />
+
+              <path d={coldPath} fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d={warmPath} fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d={hotPath} fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+              {/* Active hover vertical line */}
+              {hoverIdx !== null && (
+                <line x1={xAt(hoverIdx)} x2={xAt(hoverIdx)} y1={padT} y2={padT + plotH} stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeDasharray="3 3" />
+              )}
+
+              {/* Data points */}
+              {data.map((d, i) => (
+                <g key={i}>
+                  <circle cx={xAt(i)} cy={yVal(d.hot)} r={i === hoverIdx ? 5 : 3.5} fill="#34d399" stroke="var(--bg)" strokeWidth="2" />
+                  <circle cx={xAt(i)} cy={yVal(d.warm)} r={i === hoverIdx ? 5 : 3.5} fill="#fbbf24" stroke="var(--bg)" strokeWidth="2" />
+                  <circle cx={xAt(i)} cy={yVal(d.cold)} r={i === hoverIdx ? 5 : 3.5} fill="#38bdf8" stroke="var(--bg)" strokeWidth="2" />
+                  <text x={xAt(i)} y={H - 6} fontSize="10" fontWeight="700" fill={i === hoverIdx ? 'var(--text)' : 'var(--muted)'} textAnchor="middle">{d.month}</text>
+                </g>
+              ))}
+            </svg>
+
+            {/* Hover Tooltip */}
+            {hoverIdx !== null && (
+              <div style={{ position: 'absolute', left: `${(xAt(hoverIdx) / W) * 100}%`, top: '10px', transform: 'translateX(-50%)', background: 'var(--bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '8px 12px', fontSize: '11px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', zIndex: 10 }}>
+                <div style={{ color: 'var(--text)', fontWeight: 800, marginBottom: '4px', borderBottom: '1px solid var(--gb)', paddingBottom: '3px' }}>{data[hoverIdx].month} Summary</div>
+                <div style={{ color: '#34d399', fontWeight: 700 }}>🔥 Hot: {data[hoverIdx].hot}</div>
+                <div style={{ color: '#fbbf24', fontWeight: 700 }}>🌤️ Warm: {data[hoverIdx].warm}</div>
+                <div style={{ color: '#38bdf8', fontWeight: 700 }}>❄️ Cold: {data[hoverIdx].cold}</div>
+                <div style={{ color: 'var(--text)', fontWeight: 800, marginTop: '3px', borderTop: '1px solid var(--gb)', paddingTop: '3px' }}>Total: {data[hoverIdx].hot + data[hoverIdx].warm + data[hoverIdx].cold}</div>
+              </div>
             )}
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {segments.map((s, i) => (
-            <div
-              key={s.key}
-              onMouseEnter={() => setHoverSlice(i)}
-              onMouseLeave={() => setHoverSlice(null)}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', background: hoverSlice === i ? 'rgba(129,140,248,0.08)' : 'transparent', transition: 'background 0.15s' }}
-            >
-              <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: s.color, display: 'inline-block', flexShrink: 0 }} />
-              <span style={{ fontSize: '10px', fontWeight: 700, color: hoverSlice === i ? 'var(--text)' : 'var(--muted)' }}>{s.label} ({s.value})</span>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Monthly breakdown table */}
-      <div style={{ display: 'flex', justifyContent: 'center', height: '100%' }}>
-        <table className="lb-table" style={{ width: '100%', height: '100%' }}>
-          <thead>
-            <tr>
-              <th style={{ padding: '6px 10px', fontSize: '8px' }}>Month</th>
-              <th style={{ padding: '6px 10px', fontSize: '8px' }}>Hot</th>
-              <th style={{ padding: '6px 10px', fontSize: '8px' }}>Warm</th>
-              <th style={{ padding: '6px 10px', fontSize: '8px' }}>Cold</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((d, i) => (
-              <tr key={i}>
-                <td style={{ padding: '5px 10px', fontSize: '10px', color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
-                <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.hot}</td>
-                <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.warm}</td>
-                <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.cold}</td>
+        {/* Right Side: Monthly Breakdown Table */}
+        <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '18px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em' }}>
+              Monthly Breakdown
+            </div>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--muted)' }}>
+              Total: <strong style={{ color: 'var(--text)' }}>{grandTotal}</strong>
+            </span>
+          </div>
+          <table className="lb-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0' }}>
+            <thead>
+              <tr>
+                <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'left', borderBottom: '1px solid var(--gb)' }}>Month</th>
+                <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: '#34d399', fontWeight: 800, textAlign: 'center', borderBottom: '1px solid var(--gb)' }}>Hot</th>
+                <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: '#fbbf24', fontWeight: 800, textAlign: 'center', borderBottom: '1px solid var(--gb)' }}>Warm</th>
+                <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: '#38bdf8', fontWeight: 800, textAlign: 'center', borderBottom: '1px solid var(--gb)' }}>Cold</th>
+                <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--text)', fontWeight: 800, textAlign: 'right', borderBottom: '1px solid var(--gb)' }}>Total</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.map((d, i) => {
+                const totalMonth = d.hot + d.warm + d.cold;
+                return (
+                  <tr key={i} style={{ transition: 'background 0.15s' }}>
+                    <td style={{ padding: '8px 10px', fontSize: '12px', color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
+                    <td style={{ padding: '8px 10px', fontSize: '12px', color: '#34d399', fontWeight: 700, textAlign: 'center' }}>{d.hot}</td>
+                    <td style={{ padding: '8px 10px', fontSize: '12px', color: '#fbbf24', fontWeight: 700, textAlign: 'center' }}>{d.warm}</td>
+                    <td style={{ padding: '8px 10px', fontSize: '12px', color: '#38bdf8', fontWeight: 700, textAlign: 'center' }}>{d.cold}</td>
+                    <td style={{ padding: '8px 10px', fontSize: '12px', color: 'var(--text)', fontWeight: 800, textAlign: 'right' }}>{totalMonth}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
 };
 
-const MonthlyTrendCharts = ({ data }) => {
+const MonthlyTrendCharts = ({ data, person }) => {
   const [hoverIdx, setHoverIdx] = React.useState(null);
-  const [hoverBar, setHoverBar] = React.useState(null);
-  const [showTable, setShowTable] = React.useState(false);
   const n = data.length;
 
-  // Line chart (avg quality score) — sized for a side-by-side half-width column
   const lineColor = '#f472b6';
-  const barColor = '#38bdf8';
-  const W = 500, H = 140;
-  const padL = 40, padR = 20, padT = 8, padB = 20;
+  const W = 500, H = 180;
+  const padL = 36, padR = 24, padT = 16, padB = 28;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
   const xAt = (i) => padL + (n === 1 ? 0 : (i / (n - 1)) * plotW);
   const yScore = (v) => padT + plotH - (v / 5) * plotH;
   const linePath = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xAt(i)} ${yScore(d.avgScore)}`).join(' ');
   const areaPath = `${linePath} L ${xAt(n - 1)} ${padT + plotH} L ${xAt(0)} ${padT + plotH} Z`;
-
-  // Bar chart (calls)
-  const H2 = 140;
-  const padT2 = 8, padB2 = 20;
-  const plotH2 = H2 - padT2 - padB2;
-  const callsMax = Math.max(...data.map(d => d.calls)) * 1.2;
-  const yCalls = (v) => padT2 + plotH2 - (v / callsMax) * plotH2;
-  const barW = 18;
 
   const handleLineMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -364,60 +431,84 @@ const MonthlyTrendCharts = ({ data }) => {
   };
 
   return (
-    <div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px' }}>
+    <div style={{ width: '100%' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', alignItems: 'start' }}>
         {/* Avg Quality Score trend (line) */}
-        <div>
-          <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>Avg Quality Score</div>
+        <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '18px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em' }}>
+              Avg Quality Score Trend
+            </div>
+            {data.length > 0 && (
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#f472b6', background: 'rgba(244,114,182,0.12)', padding: '3px 9px', borderRadius: '6px' }}>
+                Latest: {data[data.length - 1].avgScore.toFixed(1)} / 5.0
+              </span>
+            )}
+          </div>
           <div style={{ position: 'relative' }}>
             <svg width="100%" viewBox={`0 0 ${W} ${H}`} onMouseMove={handleLineMove} onMouseLeave={() => setHoverIdx(null)} style={{ display: 'block', cursor: 'crosshair' }}>
+              <defs>
+                <linearGradient id="execScoreGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f472b6" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#f472b6" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
               {[0, 1, 2, 3, 4, 5].map(t => (
-                <line key={t} x1={padL} x2={W - padR} y1={yScore(t)} y2={yScore(t)} stroke="var(--gb)" strokeWidth="1" />
+                <line key={t} x1={padL} x2={W - padR} y1={yScore(t)} y2={yScore(t)} stroke="rgba(255,255,255,0.06)" strokeWidth="1" strokeDasharray="2 2" />
               ))}
               {[0, 1, 2, 3, 4, 5].map(t => (
-                <text key={t} x={padL - 6} y={yScore(t) + 3} fontSize="9" fill="var(--muted)" textAnchor="end">{t}</text>
+                <text key={t} x={padL - 8} y={yScore(t) + 3} fontSize="10" fontWeight="600" fill="var(--muted)" textAnchor="end">{t}</text>
               ))}
-              <path d={areaPath} fill={lineColor} opacity="0.12" stroke="none" />
-              <path d={linePath} fill="none" stroke={lineColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d={areaPath} fill="url(#execScoreGrad)" stroke="none" />
+              <path d={linePath} fill="none" stroke={lineColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
               {hoverIdx !== null && (
-                <line x1={xAt(hoverIdx)} x2={xAt(hoverIdx)} y1={padT} y2={padT + plotH} stroke="var(--muted)" strokeWidth="1" strokeDasharray="3 3" />
+                <line x1={xAt(hoverIdx)} x2={xAt(hoverIdx)} y1={padT} y2={padT + plotH} stroke="rgba(244,114,182,0.5)" strokeWidth="1.5" strokeDasharray="3 3" />
               )}
               {data.map((d, i) => (
-                <circle key={i} cx={xAt(i)} cy={yScore(d.avgScore)} r={i === hoverIdx ? 6 : 4} fill={lineColor} stroke="var(--card-bg)" strokeWidth="2" />
+                <circle key={i} cx={xAt(i)} cy={yScore(d.avgScore)} r={i === hoverIdx ? 6 : 4} fill={lineColor} stroke="var(--bg)" strokeWidth="2.5" style={{ transition: 'r 0.15s' }} />
               ))}
               {data.map((d, i) => (
-                <text key={i} x={xAt(i)} y={H - 4} fontSize="9" fill="var(--muted)" textAnchor="middle">{d.month}</text>
+                <text key={i} x={xAt(i)} y={H - 6} fontSize="10" fontWeight="700" fill={i === hoverIdx ? '#f472b6' : 'var(--muted)'} textAnchor="middle">{d.month}</text>
               ))}
-              <text x={xAt(n - 1)} y={yScore(data[n - 1].avgScore) - 10} fontSize="11" fontWeight="800" fill="var(--text)" textAnchor="middle">{data[n - 1].avgScore.toFixed(1)}</text>
             </svg>
             {hoverIdx !== null && (
-              <div style={{ position: 'absolute', left: `${(xAt(hoverIdx) / W) * 100}%`, top: 0, transform: 'translate(-50%, -100%)', background: 'var(--card-bg)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '6px 9px', fontSize: '10px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,0.35)' }}>
-                <div style={{ color: 'var(--muted)', fontWeight: 700, marginBottom: '3px' }}>{data[hoverIdx].month}</div>
-                <div style={{ color: 'var(--text)', fontWeight: 800 }}>{data[hoverIdx].avgScore.toFixed(1)} avg score</div>
+              <div style={{ position: 'absolute', left: `${(xAt(hoverIdx) / W) * 100}%`, top: `${(yScore(data[hoverIdx].avgScore) / H) * 100}%`, transform: 'translate(-50%, -120%)', background: 'var(--bg)', border: '1px solid rgba(244,114,182,0.4)', borderRadius: '8px', padding: '6px 12px', fontSize: '11px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', zIndex: 10 }}>
+                <div style={{ color: 'var(--muted)', fontWeight: 700, fontSize: '10px' }}>{data[hoverIdx].month}</div>
+                <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: '12px' }}>{data[hoverIdx].avgScore.toFixed(1)} avg score</div>
+                <div style={{ color: '#38bdf8', fontWeight: 600, fontSize: '10px', marginTop: '2px' }}>{data[hoverIdx].calls} calls</div>
               </div>
             )}
           </div>
         </div>
 
         {/* Monthly Data Table */}
-        <div>
-          <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>Monthly Data</div>
-          <table className="lb-table" style={{ width: '100%', height: '100%' }}>
+        <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '18px 22px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', marginBottom: '14px', letterSpacing: '0.02em' }}>
+            Monthly Data Breakdown
+          </div>
+          <table className="lb-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0' }}>
             <thead>
               <tr>
-                <th style={{ padding: '6px 10px', fontSize: '8px', textAlign: 'left' }}>Month</th>
-                <th style={{ padding: '6px 10px', fontSize: '8px', textAlign: 'left' }}>Calls</th>
-                <th style={{ padding: '6px 10px', fontSize: '8px', textAlign: 'left' }}>Avg Score</th>
+                <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'left', borderBottom: '1px solid var(--gb)' }}>Month</th>
+                <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'center', borderBottom: '1px solid var(--gb)' }}>Calls</th>
+                <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'right', borderBottom: '1px solid var(--gb)' }}>Avg Score</th>
               </tr>
             </thead>
             <tbody>
-              {data.map((d, i) => (
-                <tr key={i}>
-                  <td style={{ padding: '5px 10px', fontSize: '10px', color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
-                  <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.calls}</td>
-                  <td style={{ padding: '5px 10px', fontSize: '10px' }}>{d.avgScore.toFixed(1)}</td>
-                </tr>
-              ))}
+              {data.map((d, i) => {
+                const isPass = d.avgScore >= 3.5;
+                return (
+                  <tr key={i} style={{ transition: 'background 0.15s' }}>
+                    <td style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text)', fontWeight: 700 }}>{d.month}</td>
+                    <td style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text)', fontWeight: 600, textAlign: 'center' }}>{d.calls}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right' }}>
+                      <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: isPass ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)', color: isPass ? '#34d399' : '#f87171' }}>
+                        {d.avgScore.toFixed(1)}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -481,6 +572,20 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
   const [execGraphDropdown, setExecGraphDropdown] = React.useState(false);
   const [execGraphSearch, setExecGraphSearch] = React.useState('');
   const execGraphDropdownRef = React.useRef(null);
+  const [execMonth, setExecMonth] = React.useState('all');
+  const [execMonthDropdown, setExecMonthDropdown] = React.useState(false);
+  const execMonthDropdownRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!execMonthDropdown) return;
+    const handleClickOutside = (e) => {
+      if (execMonthDropdownRef.current && !execMonthDropdownRef.current.contains(e.target)) {
+        setExecMonthDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [execMonthDropdown]);
 
   React.useEffect(() => {
     if (!execGraphDropdown) return;
@@ -547,18 +652,28 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
   };
 
   const execRows = SALES_DATA
-    .map((p) => ({
-      ...p,
-      avgScore: getAgentAvgAI(p.name) || parseFloat((p.deals / p.leads * 10).toFixed(1)),
-      perfPct: Math.min((p.deals / p.target) * 100, 100),
-      hot: p.hot !== undefined ? p.hot : Math.max(1, Math.round(p.leads * 0.02)),
-      warm: p.warm !== undefined ? p.warm : Math.round(p.leads * 0.19),
-      answered: p.answered !== undefined ? p.answered : Math.floor(p.leads * 0.75),
-      unanswered: p.unanswered !== undefined ? p.unanswered : (p.leads - Math.floor(p.leads * 0.75)),
-      coldTotal: p.coldTotal !== undefined ? p.coldTotal : p.cold !== undefined ? p.cold : Math.floor(p.leads * 0.4),
-    }))
+    .map((p) => {
+      const avgScore = getExecAvgForMonth(p.name, execMonth);
+      const paramScores = {};
+      QUALITY_PARAMS.forEach(qp => {
+        paramScores[qp.key] = getExecParamScore(p.name, qp.key, execMonth);
+      });
+      return {
+        ...p,
+        avgScore,
+        ...paramScores,
+        perfPct: Math.min((p.deals / p.target) * 100, 100),
+        hot: p.hot !== undefined ? p.hot : Math.max(1, Math.round(p.leads * 0.02)),
+        warm: p.warm !== undefined ? p.warm : Math.round(p.leads * 0.19),
+        answered: p.answered !== undefined ? p.answered : Math.floor(p.leads * 0.75),
+        unanswered: p.unanswered !== undefined ? p.unanswered : (p.leads - Math.floor(p.leads * 0.75)),
+        coldTotal: p.coldTotal !== undefined ? p.coldTotal : p.cold !== undefined ? p.cold : Math.floor(p.leads * 0.4),
+      };
+    })
     .filter(p => p.name.toLowerCase().includes(execSearch.toLowerCase()));
-  const sortedExecRows = sortByKey(execRows, execSort, (row, key) => (key === 'name' ? row.name : key === 'calls' ? row.leads : key === 'cold' ? row.coldTotal : row[key]));
+  const sortedExecRows = sortByKey(execRows, execSort, (row, key) => (
+    key === 'name' ? row.name : key === 'calls' ? row.leads : key === 'cold' ? row.coldTotal : (row[key] !== undefined ? row[key] : 0)
+  ));
 
   const leaderRows = ALL_AI
     .map((a) => ({ ...a, avgScore: getAgentAvgAI(a.name), scores: AI_SCORES[a.name] }))
@@ -681,13 +796,9 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
 
         {/* 🏆 Top Performers & Lead Distribution - Grid Layout */}
         <div className="glass" style={{ marginBottom: '20px' }}>
-          <div className="glass-header" style={{ padding: '24px', borderBottom: (leaderboardOpen && leaderGraphOpen) ? '1px solid var(--gb)' : 'none', cursor: 'pointer' }} onClick={() => setLeaderboardOpen(!leaderboardOpen)}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-              <div>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text)', letterSpacing: 'normal', textTransform: 'none' }}>Leaderboard</div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="glass-header" style={{ borderBottom: (leaderboardOpen && leaderGraphOpen) ? '1px solid var(--gb)' : 'none', cursor: 'pointer' }} onClick={() => setLeaderboardOpen(!leaderboardOpen)}>
+            <div className="glass-title">Leaderboard</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => setLeaderGraphOpen(!leaderGraphOpen)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', background: leaderGraphOpen ? 'var(--accent)' : 'var(--glass-xs)', border: `1px solid ${leaderGraphOpen ? 'var(--accent)' : 'var(--gb)'}`, color: leaderGraphOpen ? '#fff' : 'var(--muted)', cursor: 'pointer', transition: 'all 0.2s' }}
@@ -730,6 +841,32 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
                 <input type="text" placeholder="Search..." value={aiSearch} onChange={(e) => setAiSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '11px', fontWeight: 600, width: '100%' }} />
               </div>
+              <div className={`admin-dropdown ${leaderGraphDropdown ? 'open' : ''}`} onClick={() => setLeaderGraphDropdown(!leaderGraphDropdown)} ref={leaderGraphDropdownRef}>
+                <span>{leaderGraphSelected === 'all' ? 'All Executives' : leaderGraphSelected}</span>
+                <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: leaderGraphDropdown ? 'rotate(180deg)' : '' }} />
+                {leaderGraphDropdown && (
+                  <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      className="dropdown-search"
+                      type="text"
+                      placeholder="Search..."
+                      value={leaderGraphSearch}
+                      onChange={(e) => setLeaderGraphSearch(e.target.value)}
+                      autoFocus
+                    />
+                    <div className="dropdown-list">
+                      <div className={`dropdown-item ${leaderGraphSelected === 'all' ? 'active' : ''}`} onClick={() => { setLeaderGraphSelected('all'); setLeaderGraphDropdown(false); setLeaderGraphSearch(''); }}>
+                        All Executives
+                      </div>
+                      {ALL_AI.filter(p => p.name.toLowerCase().includes(leaderGraphSearch.toLowerCase())).map(p => (
+                        <div key={p.name} className={`dropdown-item ${leaderGraphSelected === p.name ? 'active' : ''}`} onClick={() => { setLeaderGraphSelected(p.name); setLeaderGraphDropdown(false); setLeaderGraphSearch(''); }}>
+                          {p.name}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               <button onClick={() => handleExport(
                 ['#', 'Agent', 'Calls', 'Hot', 'Warm', 'Cold', ...QUALITY_PARAMS.map(p => p.label), 'Avg'],
                 ALL_AI.map((a, i) => [i + 1, a.name, a.leads, a.hot, a.warm, a.cold, ...QUALITY_PARAMS.map(p => AI_SCORES[a.name][p.key].toFixed(1)), getAgentAvgAI(a.name).toFixed(1)]),
@@ -747,35 +884,6 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
 
           {leaderboardOpen && leaderGraphOpen && (
             <div style={{ padding: '20px 24px', borderBottom: 'none' }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 -24px 12px -24px', padding: '0 24px 16px 24px', borderBottom: '1px solid var(--gb)' }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Monthly Hot / Warm / Cold Trend</div>
-                <div className={`admin-dropdown ${leaderGraphDropdown ? 'open' : ''}`} onClick={() => setLeaderGraphDropdown(!leaderGraphDropdown)} ref={leaderGraphDropdownRef}>
-                  <span>{leaderGraphSelected === 'all' ? 'All Executives' : leaderGraphSelected}</span>
-                  <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: leaderGraphDropdown ? 'rotate(180deg)' : '' }} />
-                  {leaderGraphDropdown && (
-                    <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        className="dropdown-search"
-                        type="text"
-                        placeholder="Search..."
-                        value={leaderGraphSearch}
-                        onChange={(e) => setLeaderGraphSearch(e.target.value)}
-                        autoFocus
-                      />
-                      <div className="dropdown-list">
-                        <div className={`dropdown-item ${leaderGraphSelected === 'all' ? 'active' : ''}`} onClick={() => { setLeaderGraphSelected('all'); setLeaderGraphDropdown(false); setLeaderGraphSearch(''); }}>
-                          All Executives
-                        </div>
-                        {ALL_AI.filter(p => p.name.toLowerCase().includes(leaderGraphSearch.toLowerCase())).map(p => (
-                          <div key={p.name} className={`dropdown-item ${leaderGraphSelected === p.name ? 'active' : ''}`} onClick={() => { setLeaderGraphSelected(p.name); setLeaderGraphDropdown(false); setLeaderGraphSearch(''); }}>
-                            {p.name}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
               <LeadTrendChart data={leaderGraphData} />
             </div>
           )}
@@ -976,15 +1084,70 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
               >
                 {execGraphOpen ? <Table2 size={13} /> : <LineChart size={13} />}
               </button>
-              <SectionTimeFilter />
+              <div className={`admin-dropdown ${execMonthDropdown ? 'open' : ''}`} onClick={() => setExecMonthDropdown(!execMonthDropdown)} ref={execMonthDropdownRef}>
+                <span>{execMonth === 'all' ? 'All Months' : `${execMonth} 2026`}</span>
+                <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: execMonthDropdown ? 'rotate(180deg)' : '' }} />
+                {execMonthDropdown && (
+                  <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                    <div className="dropdown-list">
+                      <div className={`dropdown-item ${execMonth === 'all' ? 'active' : ''}`} onClick={() => { setExecMonth('all'); setExecMonthDropdown(false); }}>
+                        All Months
+                      </div>
+                      {TREND_MONTHS.map(m => (
+                        <div key={m} className={`dropdown-item ${execMonth === m ? 'active' : ''}`} onClick={() => { setExecMonth(m); setExecMonthDropdown(false); }}>
+                          {m} 2026
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '8px', padding: '5px 10px', gap: '6px', width: '140px' }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
                 <input type="text" placeholder="Search..." value={execSearch} onChange={(e) => setExecSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '10px', fontWeight: 600, width: '100%' }} />
               </div>
+              <div className={`admin-dropdown ${execGraphDropdown ? 'open' : ''}`} onClick={() => setExecGraphDropdown(!execGraphDropdown)} ref={execGraphDropdownRef}>
+                <span>{execGraphSelected === 'all' ? 'All Executives' : execGraphSelected}</span>
+                <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: execGraphDropdown ? 'rotate(180deg)' : '' }} />
+                {execGraphDropdown && (
+                  <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      className="dropdown-search"
+                      type="text"
+                      placeholder="Search..."
+                      value={execGraphSearch}
+                      onChange={(e) => setExecGraphSearch(e.target.value)}
+                      autoFocus
+                    />
+                    <div className="dropdown-list">
+                      <div className={`dropdown-item ${execGraphSelected === 'all' ? 'active' : ''}`} onClick={() => { setExecGraphSelected('all'); setExecGraphDropdown(false); setExecGraphSearch(''); }}>
+                        All Executives
+                      </div>
+                      {SALES_DATA.filter(p => p.name.toLowerCase().includes(execGraphSearch.toLowerCase())).map(p => (
+                        <div key={p.name} className={`dropdown-item ${execGraphSelected === p.name ? 'active' : ''}`} onClick={() => { setExecGraphSelected(p.name); setExecGraphDropdown(false); setExecGraphSearch(''); }}>
+                          {p.name}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               <button onClick={() => handleExport(
-                ['#', 'Executive', 'Calls', 'Avg Score', 'Hot', 'Warm', 'Cold', 'Answered', 'Unanswered', 'Performance'],
-                SALES_DATA.map((p, i) => [i + 1, p.name, p.leads, (p.deals / p.leads * 10).toFixed(1), Math.max(1, Math.round(p.leads * 0.02)), Math.round(p.leads * 0.19), Math.floor(p.leads * 0.4), Math.floor(p.leads * 0.75), p.leads - Math.floor(p.leads * 0.75), Math.min((p.deals / p.target) * 100, 100).toFixed(0) + '%']),
-                'executive-performance'
+                ['#', 'Executive', 'Calls', 'Avg Score', 'Hot', 'Warm', 'Cold', 'Answered', 'Unanswered', ...QUALITY_PARAMS.map(p => p.label), 'Performance'],
+                sortedExecRows.map((p, i) => [
+                  i + 1,
+                  p.name,
+                  p.leads,
+                  p.avgScore,
+                  p.hot,
+                  p.warm,
+                  p.coldTotal,
+                  p.answered,
+                  p.unanswered,
+                  ...QUALITY_PARAMS.map(qp => p[qp.key]),
+                  p.perfPct.toFixed(0) + '%'
+                ]),
+                `executive-performance-${execMonth}`
               )} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.25)', color: '#818cf8', cursor: 'pointer' }} title="Export">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
               </button>
@@ -997,42 +1160,13 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
           </div>
           {execPerfOpen && execGraphOpen && (
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--gb)' }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 -24px 12px -24px', padding: '0 24px 16px 24px', borderBottom: '1px solid var(--gb)' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)' }}>Monthly Performance</div>
-                <div className={`admin-dropdown ${execGraphDropdown ? 'open' : ''}`} onClick={() => setExecGraphDropdown(!execGraphDropdown)} ref={execGraphDropdownRef}>
-                  <span>{execGraphSelected === 'all' ? 'All Executives' : execGraphSelected}</span>
-                  <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: execGraphDropdown ? 'rotate(180deg)' : '' }} />
-                  {execGraphDropdown && (
-                    <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        className="dropdown-search"
-                        type="text"
-                        placeholder="Search..."
-                        value={execGraphSearch}
-                        onChange={(e) => setExecGraphSearch(e.target.value)}
-                        autoFocus
-                      />
-                      <div className="dropdown-list">
-                        <div className={`dropdown-item ${execGraphSelected === 'all' ? 'active' : ''}`} onClick={() => { setExecGraphSelected('all'); setExecGraphDropdown(false); setExecGraphSearch(''); }}>
-                          All Executives
-                        </div>
-                        {SALES_DATA.filter(p => p.name.toLowerCase().includes(execGraphSearch.toLowerCase())).map(p => (
-                          <div key={p.name} className={`dropdown-item ${execGraphSelected === p.name ? 'active' : ''}`} onClick={() => { setExecGraphSelected(p.name); setExecGraphDropdown(false); setExecGraphSearch(''); }}>
-                            {p.name}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
               {execGraphPerson && <PersonKpiCards person={execGraphPerson} />}
-              <MonthlyTrendCharts data={execGraphData} />
+              <MonthlyTrendCharts data={execGraphData} person={execGraphPerson} />
             </div>
           )}
           {execPerfOpen && !execGraphOpen && (
             <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto', position: 'relative' }} className="no-scrollbar">
-              <table className="lb-table" style={{ minWidth: '700px' }}>
+              <table className="lb-table" style={{ minWidth: '1600px' }}>
                 <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 5 }}>
                   <tr>
                     <th style={{ width: '40px' }}>#</th>
@@ -1044,6 +1178,9 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                     <SortableTh label="Cold" sortKey="cold" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
                     <SortableTh label="Answered" sortKey="answered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
                     <SortableTh label="Unanswered" sortKey="unanswered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                    {QUALITY_PARAMS.map(p => (
+                      <SortableTh key={p.key} label={p.label} sortKey={p.key} sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                    ))}
                     <SortableTh label="Performance" sortKey="perfPct" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
                   </tr>
                 </thead>
@@ -1127,6 +1264,25 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                         >
                           {unanswered}
                         </td>
+                        {QUALITY_PARAMS.map(p => (
+                          <td key={p.key} style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 600 }}>
+                            {person[p.key] !== undefined ? person[p.key].toFixed(1) : '-'}
+                          </td>
+                        ))}
+                        <td
+                          style={{ color: '#34d399', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                          title="View Answered call records"
+                          onClick={() => onNavigateToCallRecords({ type: 'outcome', value: 'Answered' })}
+                        >
+                          {answered}
+                        </td>
+                        <td
+                          style={{ color: '#f87171', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                          title="View Unanswered call records"
+                          onClick={() => onNavigateToCallRecords({ type: 'outcome', value: 'Unanswered' })}
+                        >
+                          {unanswered}
+                        </td>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div style={{ width: '60px', height: '6px', borderRadius: '3px', background: 'var(--gb)', overflow: 'hidden' }}>
@@ -1149,7 +1305,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
           {/* Target vs Achievement */}
           <div className="glass" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
             <div className="glass-header">
-              <div className="glass-title" style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Target vs Achievement</div>
+              <div className="glass-title">Target vs Achievement</div>
               <SectionTimeFilter />
             </div>
             <div style={{ padding: '16px 20px', maxHeight: '260px', overflowY: 'auto' }} className="thin-scrollbar">
@@ -1205,7 +1361,7 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
           {/* Lead Distribution by Person */}
           <div className="glass" style={{ width: '480px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
             <div className="glass-header">
-              <div className="glass-title" style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Lead Distribution</div>
+              <div className="glass-title">Lead Distribution</div>
               <SectionTimeFilter />
             </div>
             <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '14px' }}>
