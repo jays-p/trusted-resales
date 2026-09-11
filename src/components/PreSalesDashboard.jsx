@@ -439,14 +439,25 @@ const LeadTrendChart = ({ data }) => {
   );
 };
 
-const MonthlyTrendCharts = ({ data, person, selectedMonth = 'all', execRows = [] }) => {
+const MonthlyTrendCharts = ({
+  data,
+  person,
+  selectedMonth = 'all',
+  execRows = [],
+  selectedParam = 'all',
+  onSelectParam = () => {},
+  onSelectPerson = () => {}
+}) => {
   const [hoverIdx, setHoverIdx] = React.useState(null);
   const n = data.length;
 
   const monthIdx = TREND_MONTHS.indexOf(selectedMonth);
   const activeIdx = hoverIdx !== null ? hoverIdx : (monthIdx !== -1 ? monthIdx : null);
 
-  const lineColor = '#f472b6';
+  const activeParamObj = QUALITY_PARAMS.find(p => p.key === selectedParam);
+  const paramTitle = selectedParam === 'all' ? 'Overall Quality Score' : `${activeParamObj?.icon || ''} ${activeParamObj?.label || selectedParam}`;
+
+  const lineColor = selectedParam === 'all' ? '#f472b6' : '#818cf8';
   const W = 500, H = 180;
   const padL = 36, padR = 24, padT = 16, padB = 28;
   const plotW = W - padL - padR;
@@ -463,25 +474,95 @@ const MonthlyTrendCharts = ({ data, person, selectedMonth = 'all', execRows = []
     setHoverIdx(Math.round(ratio * (n - 1)));
   };
 
+  // Find top executive for this month & param
+  const execScoresForMonth = execRows.map(p => {
+    const score = selectedParam === 'all'
+      ? getExecAvgForMonth(p.name, selectedMonth)
+      : getExecParamScore(p.name, selectedParam, selectedMonth);
+    return { ...p, score };
+  }).sort((a, b) => b.score - a.score);
+
   return (
-    <div style={{ width: '100%' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', alignItems: 'start' }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* 10-Parameter Filter Ribbon / Quick Selector Chips */}
+      <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '12px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>🎯 Filter By AI Quality Parameter (10 Parameters)</span>
+          </div>
+          <span style={{ fontSize: '10px', color: '#818cf8', fontWeight: 700 }}>
+            {selectedParam === 'all' ? 'Showing All 10 Parameters (Overall Avg)' : `Active Filter: ${paramTitle}`}
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          <button
+            onClick={() => onSelectParam('all')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '8px',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              border: selectedParam === 'all' ? '1px solid #f472b6' : '1px solid var(--gb)',
+              background: selectedParam === 'all' ? 'rgba(244,114,182,0.18)' : 'var(--glass-xs)',
+              color: selectedParam === 'all' ? '#f472b6' : 'var(--text)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span>✨</span>
+            <span>All 10 Parameters</span>
+          </button>
+
+          {QUALITY_PARAMS.map(p => {
+            const isSelected = selectedParam === p.key;
+            return (
+              <button
+                key={p.key}
+                onClick={() => onSelectParam(p.key)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  border: isSelected ? '1px solid #818cf8' : '1px solid var(--gb)',
+                  background: isSelected ? 'rgba(129,140,248,0.18)' : 'var(--glass-xs)',
+                  color: isSelected ? '#818cf8' : 'var(--muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>{p.icon}</span>
+                <span>{p.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Graphs Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', alignItems: 'start' }}>
         {/* Left Side: SVG Quality Score Trend */}
         <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '18px 22px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em' }}>
-                {person ? `${person.name}'s Quality Score Trend` : 'Avg Quality Score Trend'}
+              <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>{person ? `${person.name}'s ${paramTitle} Trend` : `Month-Wise ${paramTitle} Trend`}</span>
               </div>
               <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '2px', fontWeight: 600 }}>
-                {selectedMonth !== 'all' ? `Filtered Month: ${selectedMonth} 2026` : 'Feb 2026 – Jul 2026'}
+                {selectedMonth !== 'all' ? `Month Filter: ${selectedMonth} 2026` : 'Feb 2026 – Jul 2026'} • Executive: {person ? person.name : 'All Executives'}
               </div>
             </div>
             {data.length > 0 && (
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#f472b6', background: 'rgba(244,114,182,0.12)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(244,114,182,0.25)' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: lineColor, background: selectedParam === 'all' ? 'rgba(244,114,182,0.12)' : 'rgba(129,140,248,0.12)', padding: '4px 10px', borderRadius: '6px', border: `1px solid ${selectedParam === 'all' ? 'rgba(244,114,182,0.25)' : 'rgba(129,140,248,0.25)'}` }}>
                 {selectedMonth !== 'all' && monthIdx !== -1 && data[monthIdx]
                   ? `${selectedMonth}: ${data[monthIdx].avgScore.toFixed(1)} / 5.0`
-                  : `Latest: ${data[data.length - 1].avgScore.toFixed(1)} / 5.0`}
+                  : `Latest (${data[data.length - 1].month}): ${data[data.length - 1].avgScore.toFixed(1)} / 5.0`}
               </span>
             )}
           </div>
@@ -490,8 +571,8 @@ const MonthlyTrendCharts = ({ data, person, selectedMonth = 'all', execRows = []
             <svg width="100%" viewBox={`0 0 ${W} ${H}`} onMouseMove={handleLineMove} onMouseLeave={() => setHoverIdx(null)} style={{ display: 'block', cursor: 'crosshair' }}>
               <defs>
                 <linearGradient id="execScoreGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f472b6" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#f472b6" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor={lineColor} stopOpacity="0.25" />
+                  <stop offset="100%" stopColor={lineColor} stopOpacity="0.0" />
                 </linearGradient>
               </defs>
               {[0, 1, 2, 3, 4, 5].map(t => (
@@ -505,7 +586,7 @@ const MonthlyTrendCharts = ({ data, person, selectedMonth = 'all', execRows = []
 
               {/* Active / Hovered vertical dashed line */}
               {activeIdx !== null && (
-                <line x1={xAt(activeIdx)} x2={xAt(activeIdx)} y1={padT} y2={padT + plotH} stroke="rgba(244,114,182,0.6)" strokeWidth="1.5" strokeDasharray="3 3" />
+                <line x1={xAt(activeIdx)} x2={xAt(activeIdx)} y1={padT} y2={padT + plotH} stroke={lineColor} strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6" />
               )}
 
               {/* Data points */}
@@ -516,13 +597,13 @@ const MonthlyTrendCharts = ({ data, person, selectedMonth = 'all', execRows = []
                 return (
                   <g key={i}>
                     {isMonthSelected && (
-                      <circle cx={xAt(i)} cy={yScore(d.avgScore)} r="9" fill="none" stroke="#f472b6" strokeWidth="1.5" strokeDasharray="2 2" />
+                      <circle cx={xAt(i)} cy={yScore(d.avgScore)} r="9" fill="none" stroke={lineColor} strokeWidth="1.5" strokeDasharray="2 2" />
                     )}
                     <circle
                       cx={xAt(i)}
                       cy={yScore(d.avgScore)}
                       r={isActive ? 6 : 4}
-                      fill={isActive ? '#f472b6' : 'var(--bg)'}
+                      fill={isActive ? lineColor : 'var(--bg)'}
                       stroke={lineColor}
                       strokeWidth="2.5"
                       style={{ transition: 'all 0.15s' }}
@@ -532,7 +613,7 @@ const MonthlyTrendCharts = ({ data, person, selectedMonth = 'all', execRows = []
                       y={H - 6}
                       fontSize="10"
                       fontWeight={isActive ? '800' : '600'}
-                      fill={isActive ? '#f472b6' : 'var(--muted)'}
+                      fill={isActive ? lineColor : 'var(--muted)'}
                       textAnchor="middle"
                     >
                       {d.month}
@@ -544,81 +625,63 @@ const MonthlyTrendCharts = ({ data, person, selectedMonth = 'all', execRows = []
 
             {/* Tooltip on Hover */}
             {hoverIdx !== null && (
-              <div style={{ position: 'absolute', left: `${(xAt(hoverIdx) / W) * 100}%`, top: `${(yScore(data[hoverIdx].avgScore) / H) * 100}%`, transform: 'translate(-50%, -120%)', background: 'var(--bg)', border: '1px solid rgba(244,114,182,0.4)', borderRadius: '8px', padding: '6px 12px', fontSize: '11px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', zIndex: 10 }}>
-                <div style={{ color: 'var(--muted)', fontWeight: 700, fontSize: '10px' }}>{data[hoverIdx].month} 2026</div>
-                <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: '12px' }}>{data[hoverIdx].avgScore.toFixed(1)} avg score</div>
+              <div style={{ position: 'absolute', left: `${(xAt(hoverIdx) / W) * 100}%`, top: `${(yScore(data[hoverIdx].avgScore) / H) * 100}%`, transform: 'translate(-50%, -120%)', background: 'var(--bg)', border: `1px solid ${lineColor}`, borderRadius: '8px', padding: '6px 12px', fontSize: '11px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', zIndex: 10 }}>
+                <div style={{ color: 'var(--muted)', fontWeight: 700, fontSize: '10px' }}>{data[hoverIdx].month} 2026 • {paramTitle}</div>
+                <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: '12px' }}>{data[hoverIdx].avgScore.toFixed(1)} / 5.0</div>
                 <div style={{ color: '#38bdf8', fontWeight: 600, fontSize: '10px', marginTop: '2px' }}>{data[hoverIdx].calls} calls</div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Side: Monthly Data Breakdown OR Executive-Wise Monthly Breakdown */}
+        {/* Right Side: Executive Breakdown on Selected Parameter */}
         <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '18px 22px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em' }}>
-              {selectedMonth !== 'all' ? `Executive Performance — ${selectedMonth} 2026` : 'Monthly Data Breakdown'}
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em' }}>
+                Executive Performance — {paramTitle}
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '2px', fontWeight: 600 }}>
+                {selectedMonth !== 'all' ? `Month: ${selectedMonth} 2026` : 'All Months Average'}
+              </div>
             </div>
-            <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--muted)' }}>
-              {selectedMonth !== 'all' ? `${execRows.length} Executives` : 'Feb – Jul'}
-            </span>
+            {execScoresForMonth.length > 0 && (
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#34d399', background: 'rgba(52,211,153,0.12)', padding: '3px 8px', borderRadius: '6px' }}>
+                Top: {execScoresForMonth[0].name} ({execScoresForMonth[0].score.toFixed(1)})
+              </span>
+            )}
           </div>
 
-          {selectedMonth !== 'all' ? (
-            /* Executive-Wise Breakdown for Selected Month */
-            <div style={{ maxHeight: '220px', overflowY: 'auto' }} className="thin-scrollbar">
-              <table className="lb-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0' }}>
-                <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 2 }}>
-                  <tr>
-                    <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'left', borderBottom: '1px solid var(--gb)' }}>Executive</th>
-                    <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'center', borderBottom: '1px solid var(--gb)' }}>Calls</th>
-                    <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'right', borderBottom: '1px solid var(--gb)' }}>Score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {execRows.map((p, i) => {
-                    const isPass = p.avgScore >= 3.5;
-                    return (
-                      <tr key={i} style={{ transition: 'background 0.15s' }}>
-                        <td style={{ padding: '8px 10px', fontSize: '12px', color: 'var(--text)', fontWeight: 700 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{p.name[0]}</div>
-                            <span>{p.name}</span>
-                          </div>
-                        </td>
-                        <td style={{ padding: '8px 10px', fontSize: '12px', color: 'var(--text)', fontWeight: 600, textAlign: 'center' }}>{p.leads}</td>
-                        <td style={{ padding: '8px 10px', textAlign: 'right' }}>
-                          <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: isPass ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)', color: isPass ? '#34d399' : '#f87171', border: `1px solid ${isPass ? 'rgba(52,211,153,0.25)' : 'rgba(248,113,113,0.25)'}` }}>
-                            {p.avgScore.toFixed(1)}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            /* Lifetime Monthly Data Breakdown */
+          <div style={{ maxHeight: '220px', overflowY: 'auto' }} className="thin-scrollbar">
             <table className="lb-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0' }}>
-              <thead>
+              <thead style={{ position: 'sticky', top: 0, background: 'var(--bg)', zIndex: 2 }}>
                 <tr>
-                  <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'left', borderBottom: '1px solid var(--gb)' }}>Month</th>
-                  <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'center', borderBottom: '1px solid var(--gb)' }}>Calls</th>
-                  <th style={{ padding: '8px 12px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'right', borderBottom: '1px solid var(--gb)' }}>Avg Score</th>
+                  <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'left', borderBottom: '1px solid var(--gb)' }}>Executive</th>
+                  <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'center', borderBottom: '1px solid var(--gb)' }}>Calls</th>
+                  <th style={{ padding: '8px 10px', fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 800, textAlign: 'right', borderBottom: '1px solid var(--gb)' }}>Score</th>
                 </tr>
               </thead>
               <tbody>
-                {data.map((d, i) => {
-                  const isPass = d.avgScore >= 3.5;
-                  const isSelected = selectedMonth === d.month;
+                {execScoresForMonth.map((p, i) => {
+                  const score = p.score;
+                  const isPass = score >= 3.5;
+                  const isSelected = person?.name === p.name;
                   return (
-                    <tr key={i} style={{ background: isSelected ? 'rgba(129, 140, 248, 0.12)' : 'transparent', transition: 'background 0.15s' }}>
-                      <td style={{ padding: '8px 12px', fontSize: '12px', color: isSelected ? '#818cf8' : 'var(--text)', fontWeight: isSelected ? 800 : 700 }}>{d.month}</td>
-                      <td style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--text)', fontWeight: 600, textAlign: 'center' }}>{d.calls}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'right' }}>
+                    <tr
+                      key={i}
+                      onClick={() => onSelectPerson(isSelected ? 'all' : p.name)}
+                      style={{ cursor: 'pointer', background: isSelected ? 'rgba(129,140,248,0.12)' : 'transparent', transition: 'background 0.15s' }}
+                    >
+                      <td style={{ padding: '8px 10px', fontSize: '12px', color: isSelected ? '#818cf8' : 'var(--text)', fontWeight: 700 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 800, color: 'var(--bg)', flexShrink: 0 }}>{p.name[0]}</div>
+                          <span>{p.name}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '8px 10px', fontSize: '12px', color: 'var(--text)', fontWeight: 600, textAlign: 'center' }}>{p.leads}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right' }}>
                         <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: isPass ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)', color: isPass ? '#34d399' : '#f87171', border: `1px solid ${isPass ? 'rgba(52,211,153,0.25)' : 'rgba(248,113,113,0.25)'}` }}>
-                          {d.avgScore.toFixed(1)}
+                          {score.toFixed(1)}
                         </span>
                       </td>
                     </tr>
@@ -626,7 +689,56 @@ const MonthlyTrendCharts = ({ data, person, selectedMonth = 'all', execRows = []
                 })}
               </tbody>
             </table>
-          )}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Grid: 10 AI Parameters Performance Scorecard */}
+      <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '16px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            10 Parameters Scorecard — {person ? person.name : 'Team Average'} ({selectedMonth !== 'all' ? selectedMonth : 'All Months'})
+          </div>
+          <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 600 }}>Click any parameter to filter trend graph</span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
+          {QUALITY_PARAMS.map(param => {
+            const isSelected = selectedParam === param.key;
+            const score = person
+              ? getExecParamScore(person.name, param.key, selectedMonth)
+              : parseFloat((execRows.reduce((sum, p) => sum + getExecParamScore(p.name, param.key, selectedMonth), 0) / (execRows.length || 1)).toFixed(1));
+            const isGood = score >= 4.0;
+            const isAvg = score >= 3.5 && score < 4.0;
+
+            return (
+              <div
+                key={param.key}
+                onClick={() => onSelectParam(isSelected ? 'all' : param.key)}
+                style={{
+                  background: isSelected ? 'rgba(129,140,248,0.15)' : 'var(--glass-xs)',
+                  border: isSelected ? '1px solid #818cf8' : '1px solid var(--gb)',
+                  borderRadius: '10px',
+                  padding: '10px 12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px' }}>{param.icon}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 800, color: isGood ? '#34d399' : isAvg ? '#fbbf24' : '#f87171' }}>
+                    {score.toFixed(1)}
+                  </span>
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: isSelected ? '#818cf8' : 'var(--text)', marginTop: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={param.label}>
+                  {param.label}
+                </div>
+                <div style={{ width: '100%', height: '4px', background: 'var(--gb)', borderRadius: '2px', marginTop: '6px', overflow: 'hidden' }}>
+                  <div style={{ width: `${(score / 5) * 100}%`, height: '100%', background: isGood ? '#34d399' : isAvg ? '#fbbf24' : '#f87171', borderRadius: '2px' }} />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -691,6 +803,20 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
   const [execMonth, setExecMonth] = React.useState('all');
   const [execMonthDropdown, setExecMonthDropdown] = React.useState(false);
   const execMonthDropdownRef = React.useRef(null);
+  const [execParamFilter, setExecParamFilter] = React.useState('all');
+  const [execParamDropdown, setExecParamDropdown] = React.useState(false);
+  const execParamDropdownRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!execParamDropdown) return;
+    const handleClickOutside = (e) => {
+      if (execParamDropdownRef.current && !execParamDropdownRef.current.contains(e.target)) {
+        setExecParamDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [execParamDropdown]);
 
   React.useEffect(() => {
     if (!execMonthDropdown) return;
@@ -855,10 +981,31 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
     ? (sortedExecRows.length === 1 ? sortedExecRows[0] : null)
     : SALES_DATA.find(p => p.name === execGraphSelected);
   const execGraphData = React.useMemo(() => {
-    if (execGraphPerson) return getMonthlyTrend(execGraphPerson);
     const activePeople = sortedExecRows.length > 0 ? sortedExecRows : SALES_DATA;
-    return getAggregateMonthlyTrend(activePeople);
-  }, [execGraphPerson, sortedExecRows]);
+    if (execGraphPerson) {
+      return TREND_MONTHS.map((m) => {
+        const mTrend = getMonthlyTrend(execGraphPerson).find(t => t.month === m) || { calls: 10, avgScore: 3.5 };
+        const score = execParamFilter === 'all'
+          ? getExecAvgForMonth(execGraphPerson.name, m)
+          : getExecParamScore(execGraphPerson.name, execParamFilter, m);
+        return { month: m, calls: mTrend.calls, avgScore: score };
+      });
+    }
+    return TREND_MONTHS.map((m) => {
+      let totalCalls = 0;
+      let totalScore = 0;
+      activePeople.forEach(p => {
+        const pTrend = getMonthlyTrend(p).find(t => t.month === m) || { calls: 10, avgScore: 3.5 };
+        totalCalls += pTrend.calls;
+        const score = execParamFilter === 'all'
+          ? getExecAvgForMonth(p.name, m)
+          : getExecParamScore(p.name, execParamFilter, m);
+        totalScore += score;
+      });
+      const avgScore = parseFloat((totalScore / (activePeople.length || 1)).toFixed(1));
+      return { month: m, calls: totalCalls, avgScore };
+    });
+  }, [execGraphPerson, sortedExecRows, execParamFilter]);
 
   return (
     <>
@@ -1268,6 +1415,32 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
               >
                 {execGraphOpen ? <Table2 size={13} /> : <LineChart size={13} />}
               </button>
+
+              {/* 10 AI Parameter Filter Dropdown */}
+              <div className={`admin-dropdown ${execParamDropdown ? 'open' : ''}`} onClick={() => setExecParamDropdown(!execParamDropdown)} ref={execParamDropdownRef}>
+                <span>
+                  {execParamFilter === 'all'
+                    ? 'All 10 Parameters'
+                    : `${QUALITY_PARAMS.find(p => p.key === execParamFilter)?.icon || ''} ${QUALITY_PARAMS.find(p => p.key === execParamFilter)?.label || execParamFilter}`
+                  }
+                </span>
+                <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: execParamDropdown ? 'rotate(180deg)' : '' }} />
+                {execParamDropdown && (
+                  <div className="dropdown-popup" onClick={(e) => e.stopPropagation()}>
+                    <div className="dropdown-list">
+                      <div className={`dropdown-item ${execParamFilter === 'all' ? 'active' : ''}`} onClick={() => { setExecParamFilter('all'); setExecParamDropdown(false); }}>
+                        ✨ All 10 Parameters
+                      </div>
+                      {QUALITY_PARAMS.map(p => (
+                        <div key={p.key} className={`dropdown-item ${execParamFilter === p.key ? 'active' : ''}`} onClick={() => { setExecParamFilter(p.key); setExecParamDropdown(false); }}>
+                          {p.icon} {p.label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className={`admin-dropdown ${execMonthDropdown ? 'open' : ''}`} onClick={() => setExecMonthDropdown(!execMonthDropdown)} ref={execMonthDropdownRef}>
                 <span>{execMonth === 'all' ? 'All Months' : `${execMonth} 2026`}</span>
                 <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted)', transition: 'transform 0.2s', transform: execMonthDropdown ? 'rotate(180deg)' : '' }} />
@@ -1345,7 +1518,15 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
           {execPerfOpen && execGraphOpen && (
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--gb)' }} onClick={(e) => e.stopPropagation()}>
               {execGraphPerson && <PersonKpiCards person={execGraphPerson} />}
-              <MonthlyTrendCharts data={execGraphData} person={execGraphPerson} selectedMonth={execMonth} execRows={sortedExecRows} />
+              <MonthlyTrendCharts
+                data={execGraphData}
+                person={execGraphPerson}
+                selectedMonth={execMonth}
+                execRows={sortedExecRows}
+                selectedParam={execParamFilter}
+                onSelectParam={setExecParamFilter}
+                onSelectPerson={setExecGraphSelected}
+              />
             </div>
           )}
           {execPerfOpen && !execGraphOpen && (
@@ -1363,7 +1544,14 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                     <SortableTh label="Answered" sortKey="answered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
                     <SortableTh label="Unanswered" sortKey="unanswered" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
                     {QUALITY_PARAMS.map(p => (
-                      <SortableTh key={p.key} label={p.label} sortKey={p.key} sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
+                      <SortableTh
+                        key={p.key}
+                        label={p.label}
+                        sortKey={p.key}
+                        sort={execSort}
+                        onSort={(k) => toggleSort(setExecSort, k)}
+                        style={execParamFilter === p.key ? { background: 'rgba(129,140,248,0.22)', color: '#818cf8', borderRadius: '4px' } : {}}
+                      />
                     ))}
                     <SortableTh label="Performance" sortKey="perfPct" sort={execSort} onSort={(k) => toggleSort(setExecSort, k)} />
                   </tr>
