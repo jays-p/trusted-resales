@@ -827,7 +827,11 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
         unanswered,
       };
     })
-    .filter(p => p.name.toLowerCase().includes(execSearch.toLowerCase()));
+    .filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(execSearch.toLowerCase());
+      const matchesSelected = execGraphSelected === 'all' || p.name === execGraphSelected;
+      return matchesSearch && matchesSelected;
+    });
   const sortedExecRows = sortByKey(execRows, execSort, (row, key) => (
     key === 'name' ? row.name : key === 'calls' ? row.leads : key === 'cold' ? row.coldTotal : (row[key] !== undefined ? row[key] : 0)
   ));
@@ -1778,7 +1782,7 @@ const KpiCard = ({ label, value, color, icon: IconComponent, subtext }) => {
         padding: '16px 20px',
         display: 'flex',
         flexDirection: 'column',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         minHeight: '105px',
         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: hovered ? 'translateY(-3px)' : 'none',
@@ -1804,7 +1808,7 @@ const KpiCard = ({ label, value, color, icon: IconComponent, subtext }) => {
             boxShadow: theme.iconShadow,
             display: 'flex',
             alignItems: 'center',
-            justify: 'center',
+            justifyContent: 'center',
             color: '#ffffff',
             flexShrink: 0,
             transition: 'all 0.25s ease',

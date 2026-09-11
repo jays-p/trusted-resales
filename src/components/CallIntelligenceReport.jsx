@@ -155,7 +155,7 @@ export const CallIntelligenceReport = ({ record, onBack }) => {
             color: '#f43f5e',
             display: 'flex',
             alignItems: 'center',
-            justify: 'center',
+            justifyContent: 'center',
             cursor: 'pointer',
             marginLeft: 'auto',
             flexShrink: 0,
@@ -285,7 +285,7 @@ export const CallIntelligenceReport = ({ record, onBack }) => {
                     color: '#fff',
                     display: 'flex',
                     alignItems: 'center',
-                    justify: 'center',
+                    justifyContent: 'center',
                     cursor: 'pointer',
                   }}
                 >
