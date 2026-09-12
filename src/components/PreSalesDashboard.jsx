@@ -121,16 +121,16 @@ const SALES_DATA = [
 
 // AI quality parameters from call recordings (10 Executive Parameters)
 const QUALITY_PARAMS = [
-  { key: 'introduction', label: 'Introduction', icon: '👋' },
-  { key: 'call_objective', label: 'Call Objective', icon: '🎯' },
-  { key: 'convincing_abilities', label: 'Convincing Abilities', icon: '💡' },
-  { key: 'comprehension', label: 'Comprehension', icon: '🧠' },
-  { key: 'politeness', label: 'Politeness', icon: '🤝' },
-  { key: 'project_brief_with_location', label: 'Project Brief With Location', icon: '📍' },
-  { key: 'probing', label: 'Probing', icon: '🔍' },
-  { key: 'project_highlights', label: 'Project Highlights', icon: '⭐' },
-  { key: 'location_advantage', label: 'Location Advantage', icon: '📌' },
-  { key: 'site_visit_invite_and_urgency', label: 'Site Visit Invite And Urgency', icon: '🏠' },
+  { key: 'introduction', label: 'Introduction', icon: '👋', color: '#38bdf8' },
+  { key: 'call_objective', label: 'Call Objective', icon: '🎯', color: '#f87171' },
+  { key: 'convincing_abilities', label: 'Convincing Abilities', icon: '💡', color: '#facc15' },
+  { key: 'comprehension', label: 'Comprehension', icon: '🧠', color: '#a78bfa' },
+  { key: 'politeness', label: 'Politeness', icon: '🤝', color: '#34d399' },
+  { key: 'project_brief_with_location', label: 'Project Brief With Location', icon: '📍', color: '#fb923c' },
+  { key: 'probing', label: 'Probing', icon: '🔍', color: '#22d3ee' },
+  { key: 'project_highlights', label: 'Project Highlights', icon: '⭐', color: '#f472b6' },
+  { key: 'location_advantage', label: 'Location Advantage', icon: '📌', color: '#818cf8' },
+  { key: 'site_visit_invite_and_urgency', label: 'Site Visit Invite And Urgency', icon: '🏠', color: '#e879f9' },
 ];
 
 // AI scores per agent
@@ -171,6 +171,19 @@ const getAgentAvgAI = (name) => {
   return nonZero.reduce((a, b) => a + b, 0) / nonZero.length;
 };
 
+const PARAM_MONTHLY_OFFSETS = {
+  introduction:                  [-0.4, +0.3, -0.2, +0.5, +0.1, -0.3],
+  call_objective:                [-0.6, -0.1, +0.5, -0.3, +0.7, -0.2],
+  convincing_abilities:          [+0.5, -0.5, +0.2, -0.4, +0.6, -0.4],
+  comprehension:                 [-0.3, +0.6, -0.4, +0.2, -0.5, +0.4],
+  politeness:                    [+0.2, -0.3, +0.4, -0.6, +0.5, -0.2],
+  project_brief_with_location:   [-0.5, +0.4, -0.3, +0.6, -0.4, +0.2],
+  probing:                       [+0.4, -0.6, +0.3, -0.2, +0.5, -0.4],
+  project_highlights:            [-0.2, +0.5, -0.6, +0.3, -0.1, +0.1],
+  location_advantage:            [+0.6, -0.4, +0.1, -0.5, +0.4, -0.2],
+  site_visit_invite_and_urgency: [-0.4, +0.2, -0.5, +0.7, -0.3, +0.3]
+};
+
 const getExecParamScore = (agentName, paramKey, month = 'all') => {
   const baseScores = AI_SCORES[agentName];
   let val = baseScores ? baseScores[paramKey] : 3.5;
@@ -180,14 +193,18 @@ const getExecParamScore = (agentName, paramKey, month = 'all') => {
   const monthIdx = TREND_MONTHS.indexOf(month);
   if (monthIdx === -1) return val;
 
-  let hash = 0;
-  const str = `${agentName}-${paramKey}-${monthIdx}`;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
-    hash |= 0;
+  const offsets = PARAM_MONTHLY_OFFSETS[paramKey] || [0, 0, 0, 0, 0, 0];
+  const delta = offsets[monthIdx] || 0;
+
+  let agentHash = 0;
+  if (agentName) {
+    for (let i = 0; i < agentName.length; i++) {
+      agentHash = (agentHash * 31 + agentName.charCodeAt(i)) >>> 0;
+    }
   }
-  const delta = (Math.sin(hash) * 0.4);
-  const finalVal = Math.min(5.0, Math.max(1.0, val + delta));
+  const agentShift = ((agentHash % 7) - 3) * 0.04;
+
+  const finalVal = Math.min(5.0, Math.max(1.0, val + delta + agentShift));
   return parseFloat(finalVal.toFixed(1));
 };
 
@@ -508,6 +525,31 @@ const LeadTrendChart = ({ data }) => {
   );
 };
 
+const getSmoothPath = (pts) => {
+  if (!pts || pts.length === 0) return '';
+  if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i];
+    const p1 = pts[i + 1];
+    const dx = p1.x - p0.x;
+    const cp1x = p0.x + dx * 0.45;
+    const cp1y = p0.y;
+    const cp2x = p1.x - dx * 0.45;
+    const cp2y = p1.y;
+    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
+  }
+  return d;
+};
+
+const getSmoothAreaPath = (pts, padB_y) => {
+  const lineD = getSmoothPath(pts);
+  if (!lineD) return '';
+  const last = pts[pts.length - 1];
+  const first = pts[0];
+  return `${lineD} L ${last.x} ${padB_y} L ${first.x} ${padB_y} Z`;
+};
+
 const MonthlyTrendCharts = ({
   data,
   person,
@@ -524,7 +566,80 @@ const MonthlyTrendCharts = ({
   const activeIdx = hoverIdx !== null ? hoverIdx : (monthIdx !== -1 ? monthIdx : null);
 
   const isAll = isAllParamsSelected(selectedParam);
-  const selectedKeys = isAll ? QUALITY_PARAMS.map(p => p.key) : (Array.isArray(selectedParam) ? selectedParam : [selectedParam]);
+  const selectedKeys = isAll ? [] : (Array.isArray(selectedParam) ? selectedParam : [selectedParam]);
+
+  const W = 500, H = 200;
+  const padL = 36, padR = 24, padT = 20, padB = 30;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const xAt = (i) => padL + (n === 1 ? 0 : (i / (n - 1)) * plotW);
+  const yScore = (v) => padT + plotH - (v / 5) * plotH;
+
+  const paramSeriesData = React.useMemo(() => {
+    if (isAll || selectedKeys.length === 0) {
+      const pObj = { key: 'overall', label: 'Overall Quality Score', icon: '✨', color: '#818cf8' };
+      const monthlyScores = TREND_MONTHS.map((m, i) => {
+        let score = 0;
+        if (person) {
+          score = getExecAvgForMonth(person.name, m);
+        } else {
+          const activePeople = execRows.length > 0 ? execRows : SALES_DATA;
+          const sum = activePeople.reduce((acc, p) => acc + getExecAvgForMonth(p.name, m), 0);
+          score = parseFloat((sum / (activePeople.length || 1)).toFixed(1));
+        }
+        return { month: m, score, x: xAt(i), y: yScore(score) };
+      });
+      const linePath = getSmoothPath(monthlyScores);
+      const areaPath = getSmoothAreaPath(monthlyScores, padT + plotH);
+      return [{ ...pObj, monthlyScores, linePath, areaPath }];
+    }
+
+    return selectedKeys.map(k => {
+      const pObj = QUALITY_PARAMS.find(p => p.key === k) || { key: k, label: k, icon: '📊', color: '#818cf8' };
+      const monthlyScores = TREND_MONTHS.map((m, i) => {
+        let score = 0;
+        if (person) {
+          score = getExecParamScore(person.name, k, m);
+        } else {
+          const activePeople = execRows.length > 0 ? execRows : SALES_DATA;
+          const sum = activePeople.reduce((acc, p) => acc + getExecParamScore(p.name, k, m), 0);
+          score = parseFloat((sum / (activePeople.length || 1)).toFixed(1));
+        }
+        return { month: m, score, x: xAt(i), y: yScore(score) };
+      });
+
+      const linePath = getSmoothPath(monthlyScores);
+      const areaPath = getSmoothAreaPath(monthlyScores, padT + plotH);
+
+      return {
+        ...pObj,
+        monthlyScores,
+        linePath,
+        areaPath
+      };
+    });
+  }, [isAll, selectedKeys, person, execRows, n, plotW, plotH, padL, padT]);
+
+  // Compute Average Series for the Dotted Line when multiple parameters are selected
+  const avgSeriesData = React.useMemo(() => {
+    if (!paramSeriesData || paramSeriesData.length <= 1) return null;
+
+    const monthlyScores = TREND_MONTHS.map((m, i) => {
+      const sum = paramSeriesData.reduce((acc, s) => acc + (s.monthlyScores[i]?.score || 0), 0);
+      const avgScore = parseFloat((sum / paramSeriesData.length).toFixed(1));
+      return { month: m, score: avgScore, x: xAt(i), y: yScore(avgScore) };
+    });
+
+    const linePath = getSmoothPath(monthlyScores);
+    return {
+      key: 'selected_avg',
+      label: 'Selected Parameters Avg',
+      icon: '📊',
+      color: '#ffffff',
+      monthlyScores,
+      linePath
+    };
+  }, [paramSeriesData, n, plotW, plotH, padL, padT]);
 
   let paramTitle = 'Overall Quality Score';
   if (!isAll) {
@@ -542,19 +657,9 @@ const MonthlyTrendCharts = ({
       activeFilterText = `Active Filter: ${paramTitle}`;
     } else {
       const labels = selectedKeys.map(k => QUALITY_PARAMS.find(p => p.key === k)?.label).filter(Boolean).join(', ');
-      activeFilterText = `Active Filter (${selectedKeys.length}): ${labels}`;
+      activeFilterText = `Active Filter (${selectedKeys.length} Lines): ${labels}`;
     }
   }
-
-  const lineColor = isAll ? '#f472b6' : '#818cf8';
-  const W = 500, H = 180;
-  const padL = 36, padR = 24, padT = 16, padB = 28;
-  const plotW = W - padL - padR;
-  const plotH = H - padT - padB;
-  const xAt = (i) => padL + (n === 1 ? 0 : (i / (n - 1)) * plotW);
-  const yScore = (v) => padT + plotH - (v / 5) * plotH;
-  const linePath = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xAt(i)} ${yScore(d.avgScore)}`).join(' ');
-  const areaPath = `${linePath} L ${xAt(n - 1)} ${padT + plotH} L ${xAt(0)} ${padT + plotH} Z`;
 
   const handleLineMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -610,14 +715,14 @@ const MonthlyTrendCharts = ({
                 key={p.key}
                 onClick={() => onSelectParam(toggleParamSelection(selectedParam, p.key))}
                 style={{
-                  padding: '6px 12px',
+                  padding: '5px 11px',
                   borderRadius: '8px',
                   fontSize: '11px',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   cursor: 'pointer',
                   transition: 'all 0.2s',
-                  border: isSelected ? '1px solid #818cf8' : '1px solid var(--gb)',
-                  background: isSelected ? 'rgba(129,140,248,0.18)' : 'var(--glass-xs)',
+                  border: isSelected ? '1px solid rgba(129,140,248,0.4)' : '1px solid var(--gb)',
+                  background: isSelected ? 'rgba(129,140,248,0.12)' : 'var(--glass-xs)',
                   color: isSelected ? '#818cf8' : 'var(--muted)',
                   display: 'flex',
                   alignItems: 'center',
@@ -634,11 +739,11 @@ const MonthlyTrendCharts = ({
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '8px',
-                  color: '#fff',
-                  marginRight: '2px'
+                  color: '#fff'
                 }}>
                   {isSelected && '✓'}
                 </span>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: p.color, flexShrink: 0 }} />
                 <span>{p.icon}</span>
                 <span>{p.label}</span>
               </button>
@@ -651,7 +756,7 @@ const MonthlyTrendCharts = ({
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', alignItems: 'start' }}>
         {/* Left Side: SVG Quality Score Trend */}
         <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '18px 22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <div>
               <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text)', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>{person ? `${person.name}'s ${paramTitle} Trend` : `Month-Wise ${paramTitle} Trend`}</span>
@@ -660,77 +765,238 @@ const MonthlyTrendCharts = ({
                 {selectedMonth !== 'all' ? `Month Filter: ${selectedMonth} 2026` : 'Feb 2026 – Jul 2026'} • Executive: {person ? person.name : 'All Executives'}
               </div>
             </div>
-            {data.length > 0 && (
-              <span style={{ fontSize: '11px', fontWeight: 800, color: lineColor, background: isAll ? 'rgba(244,114,182,0.12)' : 'rgba(129,140,248,0.12)', padding: '4px 10px', borderRadius: '6px', border: `1px solid ${isAll ? 'rgba(244,114,182,0.25)' : 'rgba(129,140,248,0.25)'}` }}>
-                {selectedMonth !== 'all' && monthIdx !== -1 && data[monthIdx]
-                  ? `${selectedMonth}: ${data[monthIdx].avgScore.toFixed(1)} / 5.0`
-                  : `Latest (${data[data.length - 1].month}): ${data[data.length - 1].avgScore.toFixed(1)} / 5.0`}
-              </span>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: paramSeriesData[0]?.color || '#818cf8', background: `${paramSeriesData[0]?.color || '#818cf8'}18`, padding: '4px 10px', borderRadius: '6px', border: `1px solid ${paramSeriesData[0]?.color || '#818cf8'}30` }}>
+              {paramSeriesData.length === 1
+                ? `Latest (Jul): ${paramSeriesData[0]?.monthlyScores[paramSeriesData[0].monthlyScores.length - 1]?.score.toFixed(1)} / 5.0`
+                : `${paramSeriesData.length} Lines Plotted`}
+            </span>
+          </div>
+
+          {/* Active Lines Legend Badges */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+            {paramSeriesData.map(s => (
+              <div
+                key={s.key}
+                onClick={() => {
+                  if (s.key !== 'overall') {
+                    onSelectParam(toggleParamSelection(selectedParam, s.key));
+                  }
+                }}
+                title={s.key !== 'overall' ? "Click to remove line" : "Overall Average Score"}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '3px 10px',
+                  borderRadius: '100px',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  color: 'var(--text)',
+                  cursor: s.key !== 'overall' ? 'pointer' : 'default',
+                  transition: 'all 0.15s'
+                }}
+              >
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+                <span>{s.icon} {s.label}</span>
+                {s.key !== 'overall' && <span style={{ color: 'var(--muted)', fontSize: '9px', marginLeft: '2px' }}>×</span>}
+              </div>
+            ))}
+
+            {avgSeriesData && (
+              <div
+                key="avg-badge"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '3px 10px',
+                  borderRadius: '100px',
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  color: '#ffffff'
+                }}
+              >
+                <span style={{ borderBottom: '2px dashed #ffffff', width: '12px', height: '0px', display: 'inline-block' }} />
+                <span>📊 Selected Avg ({avgSeriesData.monthlyScores[avgSeriesData.monthlyScores.length - 1].score.toFixed(1)})</span>
+              </div>
             )}
           </div>
 
           <div style={{ position: 'relative' }}>
             <svg width="100%" viewBox={`0 0 ${W} ${H}`} onMouseMove={handleLineMove} onMouseLeave={() => setHoverIdx(null)} style={{ display: 'block', cursor: 'crosshair' }}>
               <defs>
-                <linearGradient id="execScoreGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={lineColor} stopOpacity="0.25" />
-                  <stop offset="100%" stopColor={lineColor} stopOpacity="0.0" />
-                </linearGradient>
+                {paramSeriesData.map(s => (
+                  <linearGradient key={s.key} id={`execScoreGrad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={s.color} stopOpacity={paramSeriesData.length === 1 ? 0.2 : 0.0} />
+                    <stop offset="100%" stopColor={s.color} stopOpacity="0.0" />
+                  </linearGradient>
+                ))}
               </defs>
+
+              {/* Grid Lines */}
               {[0, 1, 2, 3, 4, 5].map(t => (
                 <line key={t} x1={padL} x2={W - padR} y1={yScore(t)} y2={yScore(t)} stroke="rgba(255,255,255,0.06)" strokeWidth="1" strokeDasharray="2 2" />
               ))}
               {[0, 1, 2, 3, 4, 5].map(t => (
                 <text key={t} x={padL - 8} y={yScore(t) + 3} fontSize="10" fontWeight="600" fill="var(--muted)" textAnchor="end">{t}</text>
               ))}
-              <path d={areaPath} fill="url(#execScoreGrad)" stroke="none" />
-              <path d={linePath} fill="none" stroke={lineColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
 
-              {/* Active / Hovered vertical dashed line */}
+              {/* Area Fills (Rendered ONLY when 1 line is active) */}
+              {paramSeriesData.length === 1 && paramSeriesData.map(s => (
+                <path key={`area-${s.key}`} d={s.areaPath} fill={`url(#execScoreGrad-${s.key})`} stroke="none" />
+              ))}
+
+              {/* Active / Hovered vertical dashed guide line */}
               {activeIdx !== null && (
-                <line x1={xAt(activeIdx)} x2={xAt(activeIdx)} y1={padT} y2={padT + plotH} stroke={lineColor} strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6" />
+                <line x1={xAt(activeIdx)} x2={xAt(activeIdx)} y1={padT} y2={padT + plotH} stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeDasharray="3 3" />
               )}
 
-              {/* Data points */}
-              {data.map((d, i) => {
+              {/* Thin Razor-Sharp Smooth Curved Line Paths */}
+              {paramSeriesData.map(s => (
+                <path
+                  key={`line-${s.key}`}
+                  d={s.linePath}
+                  fill="none"
+                  stroke={s.color}
+                  strokeWidth="1.5"
+                  strokeOpacity="0.9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              ))}
+
+              {/* Dotted Average Line (rendered when 2+ parameters are selected) */}
+              {avgSeriesData && (
+                <>
+                  <path
+                    key="avg-line"
+                    d={avgSeriesData.linePath}
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth="1.75"
+                    strokeDasharray="4 4"
+                    strokeOpacity="0.9"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  {avgSeriesData.monthlyScores.map((d, i) => (
+                    <circle
+                      key={`avg-dot-${i}`}
+                      cx={d.x}
+                      cy={d.y}
+                      r={activeIdx === i ? 4 : 2.5}
+                      fill="#ffffff"
+                      stroke="var(--bg)"
+                      strokeWidth="1"
+                    />
+                  ))}
+                </>
+              )}
+
+              {/* Month X-Axis Labels */}
+              {TREND_MONTHS.map((m, i) => {
                 const isMonthSelected = monthIdx === i;
                 const isHovered = hoverIdx === i;
                 const isActive = isHovered || isMonthSelected;
                 return (
-                  <g key={i}>
-                    {isMonthSelected && (
-                      <circle cx={xAt(i)} cy={yScore(d.avgScore)} r="9" fill="none" stroke={lineColor} strokeWidth="1.5" strokeDasharray="2 2" />
-                    )}
-                    <circle
-                      cx={xAt(i)}
-                      cy={yScore(d.avgScore)}
-                      r={isActive ? 6 : 4}
-                      fill={isActive ? lineColor : 'var(--bg)'}
-                      stroke={lineColor}
-                      strokeWidth="2.5"
-                      style={{ transition: 'all 0.15s' }}
-                    />
-                    <text
-                      x={xAt(i)}
-                      y={H - 6}
-                      fontSize="10"
-                      fontWeight={isActive ? '800' : '600'}
-                      fill={isActive ? lineColor : 'var(--muted)'}
-                      textAnchor="middle"
-                    >
-                      {d.month}
-                    </text>
-                  </g>
+                  <text
+                    key={m}
+                    x={xAt(i)}
+                    y={H - 6}
+                    fontSize="10"
+                    fontWeight={isActive ? '800' : '600'}
+                    fill={isActive ? 'var(--text)' : 'var(--muted)'}
+                    textAnchor="middle"
+                  >
+                    {m}
+                  </text>
                 );
+              })}
+
+              {/* Data Points on Lines */}
+              {paramSeriesData.map(s => {
+                return s.monthlyScores.map((d, i) => {
+                  const isMonthSelected = monthIdx === i;
+                  const isHovered = hoverIdx === i;
+                  const isActive = isHovered || isMonthSelected;
+                  return (
+                    <g key={`${s.key}-${i}`}>
+                      {isMonthSelected && (
+                        <circle cx={xAt(i)} cy={yScore(d.score)} r="6" fill="none" stroke={s.color} strokeWidth="1" strokeDasharray="2 2" />
+                      )}
+                      <circle
+                        cx={xAt(i)}
+                        cy={yScore(d.score)}
+                        r={isActive ? 4 : 2.5}
+                        fill={isActive ? s.color : 'var(--bg)'}
+                        stroke={s.color}
+                        strokeWidth="1.5"
+                        style={{ transition: 'all 0.15s' }}
+                      />
+                    </g>
+                  );
+                });
               })}
             </svg>
 
             {/* Tooltip on Hover */}
             {hoverIdx !== null && (
-              <div style={{ position: 'absolute', left: `${(xAt(hoverIdx) / W) * 100}%`, top: `${(yScore(data[hoverIdx].avgScore) / H) * 100}%`, transform: 'translate(-50%, -120%)', background: 'var(--bg)', border: `1px solid ${lineColor}`, borderRadius: '8px', padding: '6px 12px', fontSize: '11px', whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', zIndex: 10 }}>
-                <div style={{ color: 'var(--muted)', fontWeight: 700, fontSize: '10px' }}>{data[hoverIdx].month} 2026 • {paramTitle}</div>
-                <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: '12px' }}>{data[hoverIdx].avgScore.toFixed(1)} / 5.0</div>
-                <div style={{ color: '#38bdf8', fontWeight: 600, fontSize: '10px', marginTop: '2px' }}>{data[hoverIdx].calls} calls</div>
+              <div style={{
+                position: 'absolute',
+                left: `${Math.min(78, Math.max(22, (xAt(hoverIdx) / W) * 100))}%`,
+                top: '0px',
+                transform: 'translateX(-50%)',
+                background: 'rgba(15, 23, 42, 0.95)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid var(--gb)',
+                borderRadius: '10px',
+                padding: '10px 14px',
+                fontSize: '11px',
+                whiteSpace: 'nowrap',
+                pointerEvents: 'none',
+                boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
+                zIndex: 20,
+                minWidth: '200px'
+              }}>
+                <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: '11px', marginBottom: '8px', borderBottom: '1px solid var(--gb)', paddingBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>{TREND_MONTHS[hoverIdx]} 2026 Summary</span>
+                  <span style={{ color: 'var(--muted)', fontSize: '10px', fontWeight: 600 }}>{person ? person.name : 'All Execs'}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '160px', overflowY: 'auto' }}>
+                  {paramSeriesData.map(s => (
+                    <div key={s.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+                        <span style={{ fontSize: '11px' }}>{s.icon}</span>
+                        <span style={{ fontSize: '11px', color: 'var(--text)', fontWeight: 600 }}>{s.label}</span>
+                      </div>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: s.color }}>
+                        {s.monthlyScores[hoverIdx].score.toFixed(1)} <span style={{ fontSize: '9px', opacity: 0.7 }}>/ 5.0</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {avgSeriesData && (
+                  <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ borderBottom: '2px dashed #ffffff', width: '12px', display: 'inline-block' }} />
+                      <span style={{ fontSize: '11px', color: '#ffffff', fontWeight: 700 }}>Selected Avg</span>
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#ffffff' }}>
+                      {avgSeriesData.monthlyScores[hoverIdx].score.toFixed(1)} <span style={{ fontSize: '9px', opacity: 0.7 }}>/ 5.0</span>
+                    </span>
+                  </div>
+                )}
+                {data[hoverIdx] && (
+                  <div style={{ marginTop: '6px', borderTop: '1px solid var(--gb)', paddingTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: 'var(--muted)', fontWeight: 600 }}>
+                    <span>Total Calls</span>
+                    <span style={{ color: '#38bdf8', fontWeight: 800 }}>{data[hoverIdx].calls} calls</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -795,62 +1061,7 @@ const MonthlyTrendCharts = ({
         </div>
       </div>
 
-      {/* Bottom Grid: 10 AI Parameters Performance Scorecard */}
-      <div style={{ background: 'var(--glass-xs)', border: '1px solid var(--gb)', borderRadius: '12px', padding: '16px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            10 Parameters Scorecard — {person ? person.name : 'Team Average'} ({selectedMonth !== 'all' ? selectedMonth : 'All Months'})
-          </div>
-          <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 600 }}>Click any parameter to filter trend graph</span>
-        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
-          {QUALITY_PARAMS.map(param => {
-            const isSelected = isParamActive(selectedParam, param.key) && !isAll;
-            const score = person
-              ? getExecParamScore(person.name, param.key, selectedMonth)
-              : parseFloat((execRows.reduce((sum, p) => sum + getExecParamScore(p.name, param.key, selectedMonth), 0) / (execRows.length || 1)).toFixed(1));
-            const isGood = score >= 4.0;
-            const isAvg = score >= 3.5 && score < 4.0;
-
-            return (
-              <div
-                key={param.key}
-                onClick={() => onSelectParam(toggleParamSelection(selectedParam, param.key))}
-                style={{
-                  background: isSelected ? 'rgba(129,140,248,0.15)' : 'var(--glass-xs)',
-                  border: isSelected ? '1px solid #818cf8' : '1px solid var(--gb)',
-                  borderRadius: '10px',
-                  padding: '10px 12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  position: 'relative'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '14px' }}>{param.icon}</span>
-                    {isSelected && (
-                      <span style={{ fontSize: '9px', fontWeight: 800, color: '#818cf8', background: 'rgba(129,140,248,0.2)', padding: '1px 5px', borderRadius: '4px' }}>
-                        ACTIVE
-                      </span>
-                    )}
-                  </div>
-                  <span style={{ fontSize: '12px', fontWeight: 800, color: isGood ? '#34d399' : isAvg ? '#fbbf24' : '#f87171' }}>
-                    {score.toFixed(1)}
-                  </span>
-                </div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: isSelected ? '#818cf8' : 'var(--text)', marginTop: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={param.label}>
-                  {param.label}
-                </div>
-                <div style={{ width: '100%', height: '4px', background: 'var(--gb)', borderRadius: '2px', marginTop: '6px', overflow: 'hidden' }}>
-                  <div style={{ width: `${(score / 5) * 100}%`, height: '100%', background: isGood ? '#34d399' : isAvg ? '#fbbf24' : '#f87171', borderRadius: '2px' }} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 };
@@ -1557,8 +1768,8 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                                 width: '15px',
                                 height: '15px',
                                 borderRadius: '4px',
-                                border: isChecked ? '1px solid #818cf8' : '1px solid var(--gb)',
-                                background: isChecked ? '#818cf8' : 'transparent',
+                                border: isChecked ? `1px solid ${p.color}` : '1px solid var(--gb)',
+                                background: isChecked ? p.color : 'transparent',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -1566,8 +1777,9 @@ const PreSalesDashboard = ({ onBack, onNavigateToCallRecords = () => { } }) => {
                               }}>
                                 {isChecked && <Check size={11} strokeWidth={3} style={{ color: '#fff' }} />}
                               </div>
+                              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color, flexShrink: 0 }} />
                               <span>{p.icon}</span>
-                              <span style={{ fontSize: '12px' }}>{p.label}</span>
+                              <span style={{ fontSize: '12px', color: isChecked ? p.color : 'var(--text)', fontWeight: isChecked ? 700 : 500 }}>{p.label}</span>
                             </div>
                           </div>
                         );
