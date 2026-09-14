@@ -527,19 +527,7 @@ const LeadTrendChart = ({ data }) => {
 
 const getSmoothPath = (pts) => {
   if (!pts || pts.length === 0) return '';
-  if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
-  let d = `M ${pts[0].x} ${pts[0].y}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i];
-    const p1 = pts[i + 1];
-    const dx = p1.x - p0.x;
-    const cp1x = p0.x + dx * 0.45;
-    const cp1y = p0.y;
-    const cp2x = p1.x - dx * 0.45;
-    const cp2y = p1.y;
-    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
-  }
-  return d;
+  return pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
 };
 
 const getSmoothAreaPath = (pts, padB_y) => {
